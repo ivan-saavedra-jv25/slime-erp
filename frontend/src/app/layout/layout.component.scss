@@ -1,0 +1,50 @@
+:host {
+  display: block;
+  height: 100vh;
+}
+
+.app-shell {
+  height: 100vh;
+}
+
+.sidebar {
+  width: 256px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.sidebar nav {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.user-box {
+  padding: var(--space-4);
+  border-top: var(--border-width-default) solid var(--border-default);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.user-name {
+  font: var(--font-body-sm);
+  color: var(--sidebar-text);
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.app-name {
+  font-weight: 800;
+  font-size: 16px;
+}
+
+.content {
+  padding: var(--space-6);
+  background: var(--surface-page);
+  min-height: calc(100vh - 64px);
+}

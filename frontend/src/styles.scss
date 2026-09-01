@@ -1,0 +1,52 @@
+@use './styles/material-theme';
+@use './styles/components';
+
+// Hoja global. Los tokens (colors/typography/spacing/radius-border/shadow) se cargan
+// antes que este archivo vía angular.json → styles. Aquí solo se consumen, nunca se
+// redefinen valores crudos.
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font: var(--font-body);
+  color: var(--text-body);
+  background: var(--surface-page);
+}
+
+h1 {
+  font: var(--font-h1);
+  color: var(--text-title);
+  margin: 0 0 var(--space-4);
+}
+
+h2 {
+  font: var(--font-h2);
+  color: var(--text-title);
+  margin: 0 0 var(--space-3);
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: var(--radius-pill);
+}
+
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  line-height: 1;
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+}

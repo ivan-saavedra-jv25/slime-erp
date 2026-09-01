@@ -1,0 +1,31 @@
+<h2 mat-dialog-title>{{ esEdicion ? 'Editar cliente' : 'Nuevo cliente' }}</h2>
+<div mat-dialog-content class="form">
+  <mat-form-field appearance="outline">
+    <mat-label>Nombre</mat-label>
+    <input matInput [(ngModel)]="nombre" required />
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label>RUT</mat-label>
+    <input matInput [(ngModel)]="rut" />
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Email</mat-label>
+    <input matInput type="email" [(ngModel)]="email" />
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Teléfono</mat-label>
+    <input matInput [(ngModel)]="telefono" />
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Dirección</mat-label>
+    <input matInput [(ngModel)]="direccion" />
+  </mat-form-field>
+</div>
+<div mat-dialog-actions align="end">
+  <button mat-button (click)="cancelar()">Cancelar</button>
+  <button mat-flat-button color="primary" (click)="guardar()">Guardar</button>
+</div>

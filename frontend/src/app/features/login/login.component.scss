@@ -1,0 +1,38 @@
+:host {
+  display: block;
+}
+
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface-page);
+}
+
+.login-card {
+  width: 340px;
+  padding: var(--space-6);
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+mat-form-field {
+  width: 100%;
+}
+
+.error {
+  color: var(--error-base);
+  font: var(--font-body-sm);
+  margin: 0;
+}
+
+.hint {
+  font: var(--font-legals);
+  color: var(--text-disabled);
+  margin: var(--space-2) 0 0;
+}

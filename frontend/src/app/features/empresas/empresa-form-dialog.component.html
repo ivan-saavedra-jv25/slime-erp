@@ -1,0 +1,43 @@
+<h2 mat-dialog-title>Nueva empresa</h2>
+<div mat-dialog-content class="form">
+  <h3 class="form-section-title">Datos de la empresa</h3>
+  <mat-form-field appearance="outline">
+    <mat-label>Nombre</mat-label>
+    <input matInput [(ngModel)]="nombre" required />
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label>RUT</mat-label>
+    <input matInput [(ngModel)]="rut" required />
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Plan (opcional, por defecto "basico")</mat-label>
+    <input matInput [(ngModel)]="plan" />
+  </mat-form-field>
+
+  <h3 class="form-section-title">Administrador inicial</h3>
+  <mat-form-field appearance="outline">
+    <mat-label>Nombre</mat-label>
+    <input matInput [(ngModel)]="adminNombre" required />
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label>RUT</mat-label>
+    <input matInput [(ngModel)]="adminRut" required />
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Email</mat-label>
+    <input matInput type="email" [(ngModel)]="adminEmail" required />
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Contraseña</mat-label>
+    <input matInput type="password" [(ngModel)]="adminPassword" required />
+  </mat-form-field>
+</div>
+<div mat-dialog-actions align="end">
+  <button mat-button (click)="cancelar()">Cancelar</button>
+  <button mat-flat-button color="primary" (click)="guardar()">Crear empresa</button>
+</div>

@@ -1,0 +1,10 @@
+/* Design tokens — radio y borde. */
+:root {
+  --radius-1: 4px;
+  --radius-2: 8px;
+  --radius-3: 16px;
+  --radius-pill: 999px;
+
+  --border-width-default: 1px;
+  --border-width-medium: 2px;
+}

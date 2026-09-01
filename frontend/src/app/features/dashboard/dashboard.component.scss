@@ -1,0 +1,35 @@
+h1 {
+  font: var(--font-h2);
+  color: var(--text-title);
+  margin: 0 0 var(--space-4);
+}
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-4);
+}
+
+.kpi-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-4);
+}
+
+.kpi-label {
+  font: var(--font-body-sm);
+  color: var(--text-muted);
+}
+
+.kpi-value {
+  font: var(--font-h2);
+  color: var(--text-title);
+  font-weight: 700;
+}
+
+@media (max-width: 720px) {
+  .kpi-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,62 @@
+// Tema Angular Material (M3) construido sobre los tokens existentes en
+// src/styles/tokens/*.css, en vez del tema azul/índigo por defecto de Material.
+//
+// NOTA DE IMPLEMENTACIÓN: el brief original de esta tarea especifica el mixin
+// `mat.theme(...)`, que es la API estable desde Angular Material 19 y no
+// existe en la versión instalada en este proyecto (Angular Material 18.2.14,
+// fijada por el resto del scaffold en Angular 18.2.x). Se reproduce el mismo
+// resultado con la API pública de la v18 instalada (`mat.define-theme` +
+// `mat.all-component-themes`), habilitando `use-system-variables` para que
+// los componentes consuman variables `--mat-sys-*` (en vez de valores fijos
+// por componente) — preservando el mismo mecanismo de override por variables
+// CSS que pedía el brief.
+@use '@angular/material' as mat;
+
+@include mat.core();
+
+$slime-erp-theme: mat.define-theme((
+  color: (
+    theme-type: light,
+    primary: mat.$blue-palette,
+    tertiary: mat.$cyan-palette,
+    use-system-variables: true,
+    system-variables-prefix: 'mat-sys',
+  ),
+  typography: (
+    use-system-variables: true,
+    system-variables-prefix: 'mat-sys',
+  ),
+  density: (
+    scale: 0,
+  ),
+));
+
+html {
+  // Emite los valores base --mat-sys-* (color, tipografía, elevación, forma,
+  // movimiento, estado) generados por el tema M3. Sin esto, los componentes
+  // (que ahora referencian var(--mat-sys-*) gracias a `use-system-variables`
+  // arriba) quedarían sin valor de respaldo — a diferencia de `mat.theme()`
+  // en v19+, la API de v18 no incluye un fallback embebido en cada var().
+  @include mat.system-level-colors($slime-erp-theme);
+  @include mat.system-level-typography($slime-erp-theme);
+  @include mat.system-level-elevation($slime-erp-theme, $prefix: 'mat-sys');
+  @include mat.system-level-shape($slime-erp-theme, $prefix: 'mat-sys');
+  @include mat.system-level-motion($slime-erp-theme, $prefix: 'mat-sys');
+  @include mat.system-level-state($slime-erp-theme, $prefix: 'mat-sys');
+
+  @include mat.all-component-themes($slime-erp-theme);
+
+  // Overrides puntuales: los tokens de la app (colors.css) son la fuente de
+  // verdad, no la paleta generada por Material. Ajustar estos nombres de
+  // variable si `ng serve` muestra que Material usa otros tokens --mat-sys-*
+  // en la versión instalada (inspeccionar con las devtools del navegador).
+  --mat-sys-primary: var(--primary-base);
+  --mat-sys-on-primary: var(--white);
+  --mat-sys-primary-container: var(--primary-background);
+  --mat-sys-on-primary-container: var(--primary-dark);
+  --mat-sys-surface: var(--surface-card);
+  --mat-sys-on-surface: var(--text-body);
+  --mat-sys-outline: var(--border-strong);
+  --mat-sys-corner-medium: var(--radius-2);
+  --mat-sys-corner-full: var(--radius-pill);
+}

@@ -1,0 +1,69 @@
+/* Design tokens — color. Escala neutra + marca + estados de sistema. */
+:root {
+  /* Neutros */
+  --gray-950: #0f172a;
+  --gray-900: #111827;
+  --gray-700: #374151;
+  --gray-500: #6b7280;
+  --gray-400: #9ca3af;
+  --gray-300: #d1d5db;
+  --gray-200: #e5e7eb;
+  --gray-100: #f3f4f6;
+  --gray-50: #f9fafb;
+  --white: #ffffff;
+
+  /* Marca (identidad slim-erp) */
+  --brand-dark: #111827;
+  --brand-base: #1f2937;
+  --brand-light: #374151;
+
+  /* Primario — interacción (botones, links, foco) */
+  --primary-dark: #1e4ecc;
+  --primary-base: #295eff;
+  --primary-light: #5c82ff;
+  --primary-lighter: #a9bfff;
+  --primary-background: #eef2ff;
+
+  /* Barra superior institucional */
+  --topbar-gradient-from: #002884;
+  --topbar-gradient-to: #001b4c;
+  --topbar-shadow: rgba(0, 27, 76, 0.22);
+
+  /* Sidebar */
+  --sidebar-border: #ced7e0;
+  --sidebar-hover: #fafbff;
+  --sidebar-text: #2a343d;
+  --sidebar-icon: #8393a3;
+  --sidebar-subitem-text: #52677b;
+
+  /* Estados de sistema */
+  --success-base: #059669;
+  --success-background: #ecfdf5;
+  --warning-base: #d97706;
+  --warning-background: #fffbeb;
+  --error-base: #dc2626;
+  --error-background: #fef2f2;
+  --info-base: #0284c7;
+  --info-background: #f0f9ff;
+
+  /* Aliases semánticos — usar siempre estos, nunca la escala cruda */
+  --text-title: var(--gray-900);
+  --text-body: var(--gray-700);
+  --text-muted: var(--gray-500);
+  --text-disabled: var(--gray-400);
+  --text-link: var(--primary-base);
+  --text-on-brand: var(--white);
+
+  --surface-page: #f5f9ff;
+  --surface-card: var(--white);
+  --surface-subtle: var(--gray-100);
+  --surface-brand: var(--brand-base);
+
+  --border-default: var(--gray-200);
+  --border-strong: var(--gray-300);
+  --border-interactive: var(--primary-base);
+
+  --interactive: var(--primary-base);
+  --interactive-hover: var(--primary-dark);
+  --focus-ring: var(--primary-light);
+}

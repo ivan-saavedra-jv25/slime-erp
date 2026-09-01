@@ -1,0 +1,13 @@
+/* Design tokens — tipografía. Fuente del sistema, sin fetch externo. */
+:root {
+  --font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  --font-h1: 700 1.5rem/1.3 var(--font-family);
+  --font-h2: 700 1.1rem/1.4 var(--font-family);
+  --font-h3: 600 1rem/1.4 var(--font-family);
+  --font-body: 400 0.9rem/1.5 var(--font-family);
+  --font-body-sm: 400 0.8rem/1.5 var(--font-family);
+  --font-button: 600 0.85rem/1 var(--font-family);
+  --font-table-header: 600 0.7rem/1 var(--font-family);
+  --font-legals: 400 0.72rem/1.4 var(--font-family);
+}

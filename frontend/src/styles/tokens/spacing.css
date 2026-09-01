@@ -1,0 +1,15 @@
+/* Design tokens — espaciado. Escala base 8, pasos finos de 4. */
+:root {
+  --space-0: 0;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 40px;
+
+  /* Alturas de fila para listas/tablas/formularios largos; nunca alertas ni toasters */
+  --density-default: 48px;
+  --density-high: 32px;
+}
