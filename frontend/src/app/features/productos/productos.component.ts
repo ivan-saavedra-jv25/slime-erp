@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatTableModule } from '@angular/material/table';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
@@ -14,7 +15,7 @@ import { Categoria, Producto, Subcategoria } from '../../core/models/models';
 @Component({
   selector: 'app-productos',
   standalone: true,
-  imports: [CommonModule, FormsModule, MatTableModule, MatButtonModule, MatIconModule, MatCardModule],
+  imports: [CommonModule, FormsModule, MatTableModule, MatPaginatorModule, MatButtonModule, MatIconModule, MatCardModule],
   templateUrl: './productos.component.html',
   styleUrl: './productos.component.scss',
 })
@@ -26,6 +27,11 @@ export class ProductosComponent implements OnInit {
   error = '';
   guardando = false;
   editandoId: number | null = null;
+
+  filtro = '';
+  paginaActual = 0;
+  tamanoPagina = 10;
+  readonly opcionesTamano = [10, 25, 50];
 
   sku = '';
   nombre = '';
@@ -48,11 +54,39 @@ export class ProductosComponent implements OnInit {
   }
 
   cargar(): void {
-    this.productoService.listar().subscribe((productos) => (this.productos = productos));
+    this.productoService.listar().subscribe((productos) => {
+      this.productos = productos;
+      this.paginaActual = 0;
+    });
   }
 
   nombreCategoria(id: number | null): string {
     return this.categorias.find((c) => c.id === id)?.nombre ?? '';
+  }
+
+  get productosFiltrados(): Producto[] {
+    const q = this.filtro.trim().toLowerCase();
+    if (!q) return this.productos;
+    return this.productos.filter(
+      (p) =>
+        p.nombre.toLowerCase().includes(q) ||
+        (p.sku ?? '').toLowerCase().includes(q) ||
+        this.nombreCategoria(p.categoriaId).toLowerCase().includes(q)
+    );
+  }
+
+  get productosPagina(): Producto[] {
+    const inicio = this.paginaActual * this.tamanoPagina;
+    return this.productosFiltrados.slice(inicio, inicio + this.tamanoPagina);
+  }
+
+  onFiltroChange(): void {
+    this.paginaActual = 0;
+  }
+
+  onPageChange(event: PageEvent): void {
+    this.paginaActual = event.pageIndex;
+    this.tamanoPagina = event.pageSize;
   }
 
   onCategoriaChange(): void {

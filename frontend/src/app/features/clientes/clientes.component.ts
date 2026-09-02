@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatTableModule } from '@angular/material/table';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
@@ -12,7 +13,7 @@ import { Cliente } from '../../core/models/models';
 @Component({
   selector: 'app-clientes',
   standalone: true,
-  imports: [CommonModule, FormsModule, MatTableModule, MatButtonModule, MatIconModule, MatCardModule],
+  imports: [CommonModule, FormsModule, MatTableModule, MatPaginatorModule, MatButtonModule, MatIconModule, MatCardModule],
   templateUrl: './clientes.component.html',
   styleUrl: './clientes.component.scss',
 })
@@ -22,6 +23,11 @@ export class ClientesComponent implements OnInit {
   error = '';
   guardando = false;
   editandoId: number | null = null;
+
+  filtro = '';
+  paginaActual = 0;
+  tamanoPagina = 10;
+  readonly opcionesTamano = [10, 25, 50];
 
   nombre = '';
   rut = '';
@@ -40,7 +46,36 @@ export class ClientesComponent implements OnInit {
   }
 
   cargar(): void {
-    this.clienteService.listar().subscribe((clientes) => (this.clientes = clientes));
+    this.clienteService.listar().subscribe((clientes) => {
+      this.clientes = clientes;
+      this.paginaActual = 0;
+    });
+  }
+
+  get clientesFiltrados(): Cliente[] {
+    const q = this.filtro.trim().toLowerCase();
+    if (!q) return this.clientes;
+    return this.clientes.filter(
+      (c) =>
+        c.nombre.toLowerCase().includes(q) ||
+        (c.rut ?? '').toLowerCase().includes(q) ||
+        (c.email ?? '').toLowerCase().includes(q) ||
+        (c.telefono ?? '').toLowerCase().includes(q)
+    );
+  }
+
+  get clientesPagina(): Cliente[] {
+    const inicio = this.paginaActual * this.tamanoPagina;
+    return this.clientesFiltrados.slice(inicio, inicio + this.tamanoPagina);
+  }
+
+  onFiltroChange(): void {
+    this.paginaActual = 0;
+  }
+
+  onPageChange(event: PageEvent): void {
+    this.paginaActual = event.pageIndex;
+    this.tamanoPagina = event.pageSize;
   }
 
   editar(cliente: Cliente): void {
