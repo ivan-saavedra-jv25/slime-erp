@@ -32,11 +32,33 @@
       (closedStart)="sidenavAbierto.set(false)"
     >
       <nav>
-        @for (item of items; track item.ruta) {
-          <a [routerLink]="item.ruta" routerLinkActive="active">
-            <mat-icon>{{ item.icono }}</mat-icon>
-            <span class="label">{{ item.label }}</span>
-          </a>
+        <a [routerLink]="dashboard.ruta" routerLinkActive="active">
+          <mat-icon>{{ dashboard.icono }}</mat-icon>
+          <span class="label">{{ dashboard.label }}</span>
+        </a>
+
+        @for (grupo of grupos; track grupo.key) {
+          <div class="nav-group">
+            <button
+              type="button"
+              class="nav-group-toggle"
+              [class.active]="esGrupoActivo(grupo)"
+              (click)="toggleGrupo(grupo.key)"
+            >
+              <mat-icon>{{ grupo.icono }}</mat-icon>
+              <span class="label">{{ grupo.titulo }}</span>
+              <mat-icon class="chevron" [class.expanded]="expandido(grupo.key)">expand_more</mat-icon>
+            </button>
+
+            <div class="nav-submenu" [class.expanded]="expandido(grupo.key)">
+              @for (item of grupo.items; track item.ruta) {
+                <a [routerLink]="item.ruta" routerLinkActive="active">
+                  <mat-icon>{{ item.icono }}</mat-icon>
+                  <span class="label">{{ item.label }}</span>
+                </a>
+              }
+            </div>
+          </div>
         }
       </nav>
       <div class="user-box">

@@ -142,6 +142,74 @@
   color: var(--primary-base);
 }
 
+.nav-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.nav-group-toggle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 11px 20px;
+  border: none;
+  background: transparent;
+  color: var(--sidebar-text);
+  font-size: 14px;
+  font-weight: 400;
+  font-family: inherit;
+  cursor: pointer;
+  border-right: 3px solid transparent;
+  transition: background-color 0.12s;
+}
+
+.nav-group-toggle mat-icon:not(.chevron) {
+  color: var(--sidebar-icon);
+}
+
+.nav-group-toggle .label {
+  flex: 1;
+  text-align: left;
+}
+
+.nav-group-toggle .chevron {
+  font-size: 18px;
+  transition: transform 0.15s;
+}
+
+.nav-group-toggle .chevron.expanded {
+  transform: rotate(180deg);
+}
+
+.nav-group-toggle:hover {
+  background: var(--sidebar-hover);
+}
+
+.nav-group-toggle.active {
+  color: var(--primary-base);
+  font-weight: 700;
+}
+
+.nav-group-toggle.active mat-icon:not(.chevron) {
+  color: var(--primary-base);
+}
+
+.nav-submenu {
+  display: flex;
+  flex-direction: column;
+  height: 0;
+  overflow: hidden;
+}
+
+.nav-submenu.expanded {
+  height: auto;
+}
+
+.nav-submenu a {
+  padding-left: 48px;
+}
+
 .user-box {
   border-top: var(--border-width-default) solid var(--border-default);
   padding: var(--space-4);

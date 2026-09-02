@@ -17,12 +17,37 @@ interface NavItem {
   permiso?: Permiso;
 }
 
-const NAV_ITEMS: NavItem[] = [
-  { ruta: '/dashboard', label: 'Dashboard', icono: 'dashboard' },
-  { ruta: '/clientes', label: 'Clientes', icono: 'group', permiso: 'CLIENTES_VER' },
-  { ruta: '/productos', label: 'Productos', icono: 'inventory_2', permiso: 'PRODUCTOS_VER' },
-  { ruta: '/usuarios', label: 'Usuarios', icono: 'manage_accounts', permiso: 'USUARIOS_VER' },
-  { ruta: '/admin/empresas', label: 'Empresas', icono: 'apartment', permiso: 'EMPRESAS_ADMINISTRAR' },
+interface NavGroup {
+  key: string;
+  titulo: string;
+  icono: string;
+  items: NavItem[];
+}
+
+const DASHBOARD: NavItem = { ruta: '/dashboard', label: 'Dashboard', icono: 'dashboard' };
+
+const GRUPOS: NavGroup[] = [
+  {
+    key: 'contactos',
+    titulo: 'Contactos',
+    icono: 'group',
+    items: [{ ruta: '/clientes', label: 'Clientes', icono: 'group', permiso: 'CLIENTES_VER' }],
+  },
+  {
+    key: 'catalogo',
+    titulo: 'Catálogo',
+    icono: 'inventory_2',
+    items: [{ ruta: '/productos', label: 'Productos', icono: 'inventory_2', permiso: 'PRODUCTOS_VER' }],
+  },
+  {
+    key: 'administracion',
+    titulo: 'Administración',
+    icono: 'admin_panel_settings',
+    items: [
+      { ruta: '/usuarios', label: 'Usuarios', icono: 'manage_accounts', permiso: 'USUARIOS_VER' },
+      { ruta: '/admin/empresas', label: 'Empresas', icono: 'apartment', permiso: 'EMPRESAS_ADMINISTRAR' },
+    ],
+  },
 ];
 
 @Component({
@@ -42,9 +67,11 @@ const NAV_ITEMS: NavItem[] = [
   styleUrl: './layout.component.scss',
 })
 export class LayoutComponent implements OnInit {
+  dashboard = DASHBOARD;
   tituloPagina = signal('');
   esMovil = signal(false);
   sidenavAbierto = signal(true);
+  private grupoExpandido = signal<string | null>(null);
 
   constructor(
     public auth: AuthService,
@@ -52,8 +79,11 @@ export class LayoutComponent implements OnInit {
     private breakpointObserver: BreakpointObserver
   ) {}
 
-  get items(): NavItem[] {
-    return NAV_ITEMS.filter((item) => !item.permiso || this.auth.tienePermiso(item.permiso));
+  get grupos(): NavGroup[] {
+    return GRUPOS.map((grupo) => ({
+      ...grupo,
+      items: grupo.items.filter((item) => !item.permiso || this.auth.tienePermiso(item.permiso)),
+    })).filter((grupo) => grupo.items.length > 0);
   }
 
   get iniciales(): string {
@@ -68,8 +98,11 @@ export class LayoutComponent implements OnInit {
 
   ngOnInit(): void {
     this.actualizarTitulo(this.router.url);
+    this.expandirGrupoActivo(this.router.url);
     this.router.events.pipe(filter((e) => e instanceof NavigationEnd)).subscribe((e) => {
-      this.actualizarTitulo((e as NavigationEnd).urlAfterRedirects);
+      const url = (e as NavigationEnd).urlAfterRedirects;
+      this.actualizarTitulo(url);
+      this.expandirGrupoActivo(url);
       if (this.esMovil()) {
         this.sidenavAbierto.set(false);
       }
@@ -85,9 +118,29 @@ export class LayoutComponent implements OnInit {
     this.sidenavAbierto.update((v) => !v);
   }
 
+  toggleGrupo(key: string): void {
+    this.grupoExpandido.update((actual) => (actual === key ? null : key));
+  }
+
+  expandido(key: string): boolean {
+    return this.grupoExpandido() === key;
+  }
+
+  esGrupoActivo(grupo: NavGroup): boolean {
+    return grupo.items.some((item) => this.router.url.startsWith(item.ruta));
+  }
+
   private actualizarTitulo(url: string): void {
-    const item = this.items.find((i) => url === i.ruta || url.startsWith(`${i.ruta}/`));
+    const todos = [this.dashboard, ...this.grupos.flatMap((g) => g.items)];
+    const item = todos.find((i) => url === i.ruta || url.startsWith(`${i.ruta}/`));
     this.tituloPagina.set(item?.label ?? '');
+  }
+
+  private expandirGrupoActivo(url: string): void {
+    const grupo = this.grupos.find((g) => g.items.some((item) => url.startsWith(item.ruta)));
+    if (grupo) {
+      this.grupoExpandido.set(grupo.key);
+    }
   }
 
   cerrarSesion(): void {
