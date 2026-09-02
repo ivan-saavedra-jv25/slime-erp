@@ -24,17 +24,19 @@ class RolPermisosTest {
                         Permiso.BODEGAS_VER, Permiso.BODEGAS_EDITAR,
                         Permiso.FORMAS_PAGO_VER, Permiso.FORMAS_PAGO_EDITAR,
                         Permiso.MOVIMIENTOS_VER, Permiso.MOVIMIENTOS_EDITAR,
+                        Permiso.VENTAS_VER, Permiso.VENTAS_EDITAR,
                         Permiso.USUARIOS_VER, Permiso.USUARIOS_EDITAR),
                 RolPermisos.permisosDe(Rol.ADMIN));
     }
 
     @Test
-    void vendedorGestionaClientesYMovimientosYSoloVeElRestoDelCatalogo() {
+    void vendedorGestionaClientesMovimientosYVentasYSoloVeElRestoDelCatalogo() {
         assertEquals(
                 Set.of(Permiso.CLIENTES_VER, Permiso.CLIENTES_EDITAR,
                         Permiso.PRODUCTOS_VER, Permiso.CATEGORIAS_VER, Permiso.BODEGAS_VER,
                         Permiso.FORMAS_PAGO_VER,
-                        Permiso.MOVIMIENTOS_VER, Permiso.MOVIMIENTOS_EDITAR),
+                        Permiso.MOVIMIENTOS_VER, Permiso.MOVIMIENTOS_EDITAR,
+                        Permiso.VENTAS_VER, Permiso.VENTAS_EDITAR),
                 RolPermisos.permisosDe(Rol.VENDEDOR));
     }
 
@@ -54,7 +56,7 @@ class RolPermisosTest {
         assertEquals(
                 Set.of(Permiso.CLIENTES_VER, Permiso.PROVEEDORES_VER, Permiso.PRODUCTOS_VER,
                         Permiso.CATEGORIAS_VER, Permiso.BODEGAS_VER,
-                        Permiso.FORMAS_PAGO_VER, Permiso.MOVIMIENTOS_VER),
+                        Permiso.FORMAS_PAGO_VER, Permiso.MOVIMIENTOS_VER, Permiso.VENTAS_VER),
                 RolPermisos.permisosDe(Rol.VISUALIZADOR));
     }
 }

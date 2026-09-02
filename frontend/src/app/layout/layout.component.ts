@@ -29,6 +29,15 @@ const DASHBOARD: NavItem = { ruta: '/dashboard', label: 'Dashboard', icono: 'das
 
 const GRUPOS: NavGroup[] = [
   {
+    key: 'ventas',
+    titulo: 'Ventas',
+    icono: 'point_of_sale',
+    items: [
+      { ruta: '/ventas', label: 'Nueva venta', icono: 'point_of_sale', permiso: 'VENTAS_VER', exact: true },
+      { ruta: '/ventas/historial', label: 'Historial', icono: 'history', permiso: 'VENTAS_VER' },
+    ],
+  },
+  {
     key: 'contactos',
     titulo: 'Contactos',
     icono: 'group',

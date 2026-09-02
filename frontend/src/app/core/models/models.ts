@@ -15,6 +15,8 @@ export type Permiso =
   | 'FORMAS_PAGO_EDITAR'
   | 'MOVIMIENTOS_VER'
   | 'MOVIMIENTOS_EDITAR'
+  | 'VENTAS_VER'
+  | 'VENTAS_EDITAR'
   | 'USUARIOS_VER'
   | 'USUARIOS_EDITAR'
   | 'EMPRESAS_ADMINISTRAR';
@@ -146,6 +148,37 @@ export interface MovimientoHistorial {
   observacion: string | null;
   fecha: string;
   items: MovimientoDetalleItem[];
+}
+
+export type TipoDocumentoVenta = 'BOLETA' | 'FACTURA' | 'VOUCHER';
+
+export interface VentaItem {
+  productoId: number;
+  cantidad: number;
+  precioUnitario: number;
+}
+
+export interface VentaDetalle {
+  productoId: number;
+  cantidad: number;
+  precioUnitario: number;
+  subtotal: number;
+}
+
+export interface Venta {
+  id: number;
+  clienteId: number;
+  formaPagoId: number;
+  bodegaId: number;
+  tipoDocumento: TipoDocumentoVenta;
+  exento: boolean;
+  fecha: string;
+  montoNeto: number;
+  montoIva: number;
+  montoTotal: number;
+  descuento: number;
+  observacion: string | null;
+  detalle: VentaDetalle[];
 }
 
 export interface Empresa {

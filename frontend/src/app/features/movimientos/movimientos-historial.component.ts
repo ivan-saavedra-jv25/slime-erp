@@ -45,6 +45,7 @@ export class MovimientosHistorialComponent implements OnInit {
       case 'ENTRADA':
         return 'tag tag--success';
       case 'SALIDA':
+      case 'SALIDA_VENTA':
         return 'tag tag--error';
       case 'TRASLADO':
         return 'tag tag--info';
@@ -60,6 +61,7 @@ export class MovimientosHistorialComponent implements OnInit {
       case 'ENTRADA':
         return 'input';
       case 'SALIDA':
+      case 'SALIDA_VENTA':
         return 'output';
       case 'TRASLADO':
         return 'swap_horiz';
