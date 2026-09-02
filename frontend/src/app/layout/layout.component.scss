@@ -157,7 +157,7 @@
   background: transparent;
   color: var(--sidebar-text);
   font-size: 14px;
-  font-weight: 400;
+  font-weight: 700;
   font-family: inherit;
   cursor: pointer;
   border-right: 3px solid transparent;
@@ -200,6 +200,8 @@
   flex-direction: column;
   height: 0;
   overflow: hidden;
+  margin-left: 31px;
+  border-left: 2px solid var(--sidebar-border);
 }
 
 .nav-submenu.expanded {
@@ -207,7 +209,20 @@
 }
 
 .nav-submenu a {
-  padding-left: 48px;
+  padding: 9px 20px 9px 17px;
+  font-size: 13px;
+  font-weight: 400;
+}
+
+.nav-submenu a mat-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  opacity: 0.65;
+}
+
+.nav-submenu a.active mat-icon {
+  opacity: 1;
 }
 
 .user-box {
