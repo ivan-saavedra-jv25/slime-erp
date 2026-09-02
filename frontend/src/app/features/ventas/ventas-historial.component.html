@@ -33,7 +33,7 @@
             <td>{{ v.fecha | date: 'short' }}</td>
             <td>
               <span [class]="'tag ' + tagTipo(v.tipoDocumento)">{{ etiquetaTipo(v.tipoDocumento) }}</span>
-              @if (v.tipoDocumento === 'VOUCHER' && v.exento) {
+              @if (v.exento) {
                 <span class="tag">Exento</span>
               }
             </td>
@@ -79,7 +79,7 @@
                     @if (v.descuento) {
                       <span>Descuento: {{ v.descuento }}</span>
                     }
-                    @if (v.tipoDocumento !== 'VOUCHER') {
+                    @if (!sinIva(v)) {
                       <span>Neto: {{ v.montoNeto }}</span>
                       <span>IVA: {{ v.montoIva }}</span>
                     }

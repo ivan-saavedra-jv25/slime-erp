@@ -54,13 +54,15 @@ public class VentaService {
 
         validarStock(tenantId, bodega.getId(), request.items());
 
+        boolean exento = request.exento();
+
         Venta venta = Venta.builder()
                 .tenantId(tenantId)
                 .clienteId(request.clienteId())
                 .formaPagoId(request.formaPagoId())
                 .bodegaId(bodega.getId())
                 .tipoDocumento(request.tipoDocumento())
-                .exento(request.tipoDocumento() == TipoDocumentoVenta.VOUCHER && request.exento())
+                .exento(exento)
                 .observacion(request.observacion())
                 .build();
         venta = ventaRepository.save(venta);
@@ -86,7 +88,7 @@ public class VentaService {
 
         BigDecimal descuento = request.descuento() != null ? request.descuento() : BigDecimal.ZERO;
         CalculadoraMontosVenta.Montos montos = CalculadoraMontosVenta.calcular(
-                request.tipoDocumento(), sumaDetalle.subtract(descuento));
+                request.tipoDocumento(), exento, sumaDetalle.subtract(descuento));
 
         venta.setDetalle(detalle);
         venta.setDescuento(descuento);

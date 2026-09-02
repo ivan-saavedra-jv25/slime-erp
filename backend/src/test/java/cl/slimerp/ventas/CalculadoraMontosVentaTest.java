@@ -10,7 +10,7 @@ class CalculadoraMontosVentaTest {
 
     @Test
     void facturaCalculaIvaSobreElNetoDeDetalle() {
-        var montos = CalculadoraMontosVenta.calcular(TipoDocumentoVenta.FACTURA, new BigDecimal("1000"));
+        var montos = CalculadoraMontosVenta.calcular(TipoDocumentoVenta.FACTURA, false, new BigDecimal("1000"));
 
         assertEquals(new BigDecimal("1000.00"), montos.neto());
         assertEquals(new BigDecimal("190.00"), montos.iva());
@@ -18,8 +18,8 @@ class CalculadoraMontosVentaTest {
     }
 
     @Test
-    void boletaDesglosaElNetoYElIvaDesdeElBrutoDeDetalle() {
-        var montos = CalculadoraMontosVenta.calcular(TipoDocumentoVenta.BOLETA, new BigDecimal("1190"));
+    void boletaAfectaDesglosaElNetoYElIvaDesdeElBrutoDeDetalle() {
+        var montos = CalculadoraMontosVenta.calcular(TipoDocumentoVenta.BOLETA, false, new BigDecimal("1190"));
 
         assertEquals(new BigDecimal("1190.00"), montos.total());
         // neto + iva debe reconstruir el total exacto (el IVA absorbe el redondeo)
@@ -29,16 +29,34 @@ class CalculadoraMontosVentaTest {
     }
 
     @Test
-    void boletaConMontoNoDivisibleExactoElIvaAbsorbeElResiduo() {
-        var montos = CalculadoraMontosVenta.calcular(TipoDocumentoVenta.BOLETA, new BigDecimal("1000"));
+    void boletaAfectaConMontoNoDivisibleExactoElIvaAbsorbeElResiduo() {
+        var montos = CalculadoraMontosVenta.calcular(TipoDocumentoVenta.BOLETA, false, new BigDecimal("1000"));
 
         assertEquals(montos.total(), montos.neto().add(montos.iva()));
         assertEquals(new BigDecimal("1000.00"), montos.total());
     }
 
     @Test
+    void boletaExentaNoAplicaIva() {
+        var montos = CalculadoraMontosVenta.calcular(TipoDocumentoVenta.BOLETA, true, new BigDecimal("1000"));
+
+        assertEquals(new BigDecimal("1000.00"), montos.neto());
+        assertEquals(new BigDecimal("0.00"), montos.iva());
+        assertEquals(new BigDecimal("1000.00"), montos.total());
+    }
+
+    @Test
+    void facturaExentaNoAplicaIva() {
+        var montos = CalculadoraMontosVenta.calcular(TipoDocumentoVenta.FACTURA, true, new BigDecimal("1000"));
+
+        assertEquals(new BigDecimal("1000.00"), montos.neto());
+        assertEquals(new BigDecimal("0.00"), montos.iva());
+        assertEquals(new BigDecimal("1000.00"), montos.total());
+    }
+
+    @Test
     void voucherNoAplicaIva() {
-        var montos = CalculadoraMontosVenta.calcular(TipoDocumentoVenta.VOUCHER, new BigDecimal("500"));
+        var montos = CalculadoraMontosVenta.calcular(TipoDocumentoVenta.VOUCHER, false, new BigDecimal("500"));
 
         assertEquals(new BigDecimal("500.00"), montos.neto());
         assertEquals(new BigDecimal("0.00"), montos.iva());
@@ -47,7 +65,7 @@ class CalculadoraMontosVentaTest {
 
     @Test
     void unaSumaNegativaSeTrataComoCero() {
-        var montos = CalculadoraMontosVenta.calcular(TipoDocumentoVenta.FACTURA, new BigDecimal("-50"));
+        var montos = CalculadoraMontosVenta.calcular(TipoDocumentoVenta.FACTURA, false, new BigDecimal("-50"));
 
         assertEquals(new BigDecimal("0.00"), montos.neto());
         assertEquals(new BigDecimal("0.00"), montos.iva());

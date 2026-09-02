@@ -120,6 +120,26 @@ class VentaServiceTest {
     }
 
     @Test
+    void boletaExentaNoCalculaIvaYGuardaElFlagExento() {
+        Venta venta = service.crear(request(TipoDocumentoVenta.BOLETA, true, null, new BigDecimal("1000"), BigDecimal.ONE));
+
+        assertEquals(BigDecimal.ZERO.setScale(2), venta.getMontoIva());
+        assertEquals(new BigDecimal("1000.00"), venta.getMontoNeto());
+        assertEquals(new BigDecimal("1000.00"), venta.getMontoTotal());
+        assertTrue(venta.isExento());
+    }
+
+    @Test
+    void facturaExentaNoCalculaIvaYGuardaElFlagExento() {
+        Venta venta = service.crear(request(TipoDocumentoVenta.FACTURA, true, null, new BigDecimal("1000"), new BigDecimal("2")));
+
+        assertEquals(BigDecimal.ZERO.setScale(2), venta.getMontoIva());
+        assertEquals(new BigDecimal("2000.00"), venta.getMontoNeto());
+        assertEquals(new BigDecimal("2000.00"), venta.getMontoTotal());
+        assertTrue(venta.isExento());
+    }
+
+    @Test
     void voucherNoCalculaIvaYGuardaElFlagExento() {
         Venta venta = service.crear(request(TipoDocumentoVenta.VOUCHER, true, null, new BigDecimal("500"), BigDecimal.ONE));
 

@@ -20,16 +20,24 @@ public final class CalculadoraMontosVenta {
 
     // Calcula neto/IVA/total según el tipo de documento a partir de la suma de
     // los subtotales de detalle (ya con el descuento aplicado):
-    //   - FACTURA: la suma de detalle es NETA -> se calcula y suma el IVA.
-    //   - BOLETA: la suma de detalle es BRUTA (IVA incluido) -> se desglosa.
-    //   - VOUCHER: sin IVA, el total es la suma tal cual.
-    public static Montos calcular(TipoDocumentoVenta tipoDocumento, BigDecimal sumaDetalle) {
+    //   - FACTURA afecta (tipo 33 del SII): la suma de detalle es NETA -> se
+    //     calcula y suma el IVA.
+    //   - BOLETA afecta (tipo 39): la suma de detalle es BRUTA (IVA incluido)
+    //     -> se desglosa.
+    //   - FACTURA exenta (tipo 34) y BOLETA exenta (tipo 41): sin IVA, el
+    //     total es la suma tal cual.
+    //   - VOUCHER: siempre sin IVA, el total es la suma tal cual.
+    public static Montos calcular(TipoDocumentoVenta tipoDocumento, boolean exento, BigDecimal sumaDetalle) {
         BigDecimal monto = sumaDetalle.max(BigDecimal.ZERO).setScale(ESCALA, RoundingMode.HALF_UP);
         return switch (tipoDocumento) {
-            case FACTURA -> desdeNeto(monto);
-            case BOLETA -> desdeBruto(monto);
-            case VOUCHER -> new Montos(monto, BigDecimal.ZERO.setScale(ESCALA), monto);
+            case FACTURA -> exento ? sinIva(monto) : desdeNeto(monto);
+            case BOLETA -> exento ? sinIva(monto) : desdeBruto(monto);
+            case VOUCHER -> sinIva(monto);
         };
+    }
+
+    private static Montos sinIva(BigDecimal monto) {
+        return new Montos(monto, BigDecimal.ZERO.setScale(ESCALA), monto);
     }
 
     private static Montos desdeNeto(BigDecimal neto) {

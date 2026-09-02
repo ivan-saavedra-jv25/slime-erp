@@ -40,8 +40,8 @@ export class VentasComponent implements OnInit {
   inventarioBodega: InventarioItem[] = [];
 
   readonly tiposDocumento: { value: TipoDocumentoVenta; label: string; desc: string }[] = [
-    { value: 'BOLETA', label: 'Boleta', desc: 'Detalle en bruto (IVA incluido); el total se desglosa.' },
-    { value: 'FACTURA', label: 'Factura', desc: 'Detalle en neto; el IVA se calcula y se suma.' },
+    { value: 'BOLETA', label: 'Boleta', desc: 'Afecta: detalle en bruto (IVA incluido), el total se desglosa. Puede marcarse como exenta.' },
+    { value: 'FACTURA', label: 'Factura', desc: 'Afecta: detalle en neto, el IVA se calcula y se suma. Puede marcarse como exenta.' },
     { value: 'VOUCHER', label: 'Voucher', desc: 'Documento interno sin IVA.' },
   ];
 
@@ -100,13 +100,24 @@ export class VentasComponent implements OnInit {
 
   seleccionarTipoDocumento(tipo: TipoDocumentoVenta): void {
     this.tipoDocumento = tipo;
-    if (tipo !== 'VOUCHER') this.exento = false;
+    this.exento = false;
+  }
+
+  get sinIva(): boolean {
+    return this.tipoDocumento === 'VOUCHER' || this.exento;
   }
 
   get labelPrecio(): string {
+    if (this.sinIva) return 'Precio';
     if (this.tipoDocumento === 'FACTURA') return 'Precio neto';
     if (this.tipoDocumento === 'BOLETA') return 'Precio bruto';
     return 'Precio';
+  }
+
+  get labelExento(): string {
+    if (this.tipoDocumento === 'FACTURA') return 'Factura exenta (tipo 34, en vez de la afecta tipo 33)';
+    if (this.tipoDocumento === 'BOLETA') return 'Boleta exenta (tipo 41, en vez de la afecta tipo 39)';
+    return 'Venta exenta (desmarcado = venta interna)';
   }
 
   get clienteSeleccionado(): Cliente | null {
@@ -213,19 +224,19 @@ export class VentasComponent implements OnInit {
   }
 
   get netoActual(): number {
+    if (this.sinIva) return this.montoConDescuento;
     if (this.tipoDocumento === 'FACTURA') return this.montoConDescuento;
-    if (this.tipoDocumento === 'VOUCHER') return this.montoConDescuento;
     return Math.round(this.montoConDescuento / 1.19);
   }
 
   get ivaActual(): number {
-    if (this.tipoDocumento === 'VOUCHER') return 0;
+    if (this.sinIva) return 0;
     if (this.tipoDocumento === 'FACTURA') return Math.round(this.netoActual * 0.19);
     return this.montoConDescuento - this.netoActual;
   }
 
   get totalActual(): number {
-    if (this.tipoDocumento === 'FACTURA') return this.netoActual + this.ivaActual;
+    if (this.tipoDocumento === 'FACTURA' && !this.sinIva) return this.netoActual + this.ivaActual;
     return this.montoConDescuento;
   }
 

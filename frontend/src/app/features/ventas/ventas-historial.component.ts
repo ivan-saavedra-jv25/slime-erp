@@ -74,6 +74,10 @@ export class VentasHistorialComponent implements OnInit {
     return TAGS[tipo];
   }
 
+  sinIva(venta: Venta): boolean {
+    return venta.tipoDocumento === 'VOUCHER' || venta.exento;
+  }
+
   nombreCliente(id: number): string {
     return this.clientes.find((c) => c.id === id)?.nombre ?? String(id);
   }

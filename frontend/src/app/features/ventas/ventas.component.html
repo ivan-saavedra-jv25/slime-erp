@@ -82,12 +82,10 @@
         }
       </div>
 
-      @if (tipoDocumento === 'VOUCHER') {
-        <label class="checkbox-row">
-          <input type="checkbox" name="exento" [(ngModel)]="exento" />
-          Venta exenta (desmarcado = venta interna)
-        </label>
-      }
+      <label class="checkbox-row">
+        <input type="checkbox" name="exento" [(ngModel)]="exento" />
+        {{ labelExento }}
+      </label>
 
       <div class="form-grid">
         <div class="form-group">
@@ -230,7 +228,7 @@
       </div>
 
       <div class="totals-group">
-        @if (tipoDocumento !== 'VOUCHER') {
+        @if (!sinIva) {
           <div class="totals-row">
             <span class="totals-row__label">Neto</span>
             <span class="totals-row__value">{{ netoActual }}</span>
