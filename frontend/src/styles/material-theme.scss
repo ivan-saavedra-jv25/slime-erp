@@ -55,6 +55,11 @@ html {
   --mat-sys-primary-container: var(--primary-background);
   --mat-sys-on-primary-container: var(--primary-dark);
   --mat-sys-surface: var(--surface-card);
+  --mat-sys-surface-container-lowest: var(--surface-card);
+  --mat-sys-surface-container-low: var(--surface-card);
+  --mat-sys-surface-container: var(--surface-card);
+  --mat-sys-surface-container-high: var(--surface-card);
+  --mat-sys-surface-container-highest: var(--surface-card);
   --mat-sys-on-surface: var(--text-body);
   --mat-sys-outline: var(--border-strong);
   --mat-sys-corner-medium: var(--radius-2);

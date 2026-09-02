@@ -1,12 +1,77 @@
-<div class="page-header">
-  <h1>Usuarios</h1>
-  @if (auth.tienePermiso('USUARIOS_EDITAR')) {
-    <button mat-flat-button color="primary" (click)="abrirCrear()">Nuevo usuario</button>
-  }
-</div>
+<h1>Usuarios</h1>
 
 @if (error) {
   <p class="page-error">{{ error }}</p>
+}
+
+@if (auth.tienePermiso('USUARIOS_EDITAR')) {
+  <mat-card class="form-panel">
+    <h2>{{ editandoId ? 'Editar usuario' : 'Nuevo usuario' }}</h2>
+    <form #f="ngForm" (ngSubmit)="guardar()" novalidate>
+      <div class="form-grid">
+        <div class="form-group" [class.has-error]="nombreCtrl.invalid && nombreCtrl.touched">
+          <label for="nombre">Nombre<span class="required-mark">*</span></label>
+          <input id="nombre" name="nombre" [(ngModel)]="nombre" required #nombreCtrl="ngModel" />
+          @if (nombreCtrl.invalid && nombreCtrl.touched) {
+            <span class="field-error">El nombre es obligatorio.</span>
+          }
+        </div>
+
+        <div class="form-group" [class.has-error]="rutCtrl.invalid && rutCtrl.touched">
+          <label for="rut">RUT<span class="required-mark">*</span></label>
+          <input id="rut" name="rut" [(ngModel)]="rut" required #rutCtrl="ngModel" />
+          @if (rutCtrl.invalid && rutCtrl.touched) {
+            <span class="field-error">El RUT es obligatorio.</span>
+          }
+        </div>
+
+        <div class="form-group" [class.has-error]="emailCtrl.invalid && emailCtrl.touched">
+          <label for="email">Email<span class="required-mark">*</span></label>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            autocomplete="off"
+            [(ngModel)]="email"
+            required
+            #emailCtrl="ngModel"
+          />
+          @if (emailCtrl.invalid && emailCtrl.touched) {
+            <span class="field-error">El email es obligatorio.</span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="password">{{ editandoId ? 'Nueva contraseña' : 'Contraseña' }} <span class="hint">{{ editandoId ? '(opcional)' : '' }}</span></label>
+          <input
+            id="password"
+            name="password"
+            type="password"
+            autocomplete="new-password"
+            [(ngModel)]="password"
+          />
+        </div>
+
+        <div class="form-group span-2">
+          <label for="rol">Rol</label>
+          <select id="rol" name="rol" [(ngModel)]="rol">
+            @for (r of roles; track r) {
+              <option [value]="r">{{ r }}</option>
+            }
+          </select>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        @if (editandoId) {
+          <button mat-button type="button" (click)="cancelarEdicion()">Cancelar</button>
+        }
+        <button mat-flat-button color="primary" type="submit" [disabled]="guardando || f.invalid">
+          {{ guardando ? 'Guardando...' : editandoId ? 'Guardar cambios' : 'Agregar usuario' }}
+        </button>
+      </div>
+    </form>
+  </mat-card>
 }
 
 <table mat-table [dataSource]="usuarios" class="mat-elevation-z1">
@@ -34,7 +99,7 @@
     <th mat-header-cell *matHeaderCellDef></th>
     <td mat-cell *matCellDef="let u">
       @if (auth.tienePermiso('USUARIOS_EDITAR')) {
-        <button mat-icon-button (click)="abrirEditar(u)"><mat-icon>edit</mat-icon></button>
+        <button mat-icon-button (click)="editar(u)"><mat-icon>edit</mat-icon></button>
         @if (u.activo) {
           <button mat-icon-button (click)="desactivar(u)" title="Desactivar"><mat-icon>block</mat-icon></button>
         } @else {

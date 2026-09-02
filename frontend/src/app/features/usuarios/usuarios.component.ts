@@ -1,27 +1,38 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatDialog } from '@angular/material/dialog';
+import { MatCardModule } from '@angular/material/card';
 import { UsuarioService, UsuarioRequest } from '../../core/services/usuario.service';
 import { AuthService } from '../../core/services/auth.service';
-import { Usuario } from '../../core/models/models';
-import { UsuarioFormDialogComponent } from './usuario-form-dialog.component';
+import { Rol, Usuario } from '../../core/models/models';
+
+const ROLES_ASIGNABLES: Rol[] = ['ADMIN', 'VENDEDOR', 'COMPRADOR', 'VISUALIZADOR'];
 
 @Component({
   selector: 'app-usuarios',
   standalone: true,
-  imports: [CommonModule, MatTableModule, MatButtonModule, MatIconModule],
+  imports: [CommonModule, FormsModule, MatTableModule, MatButtonModule, MatIconModule, MatCardModule],
   templateUrl: './usuarios.component.html',
   styleUrl: './usuarios.component.scss',
 })
 export class UsuariosComponent implements OnInit {
+  roles = ROLES_ASIGNABLES;
   columnas = ['nombre', 'email', 'rol', 'activo', 'acciones'];
   usuarios: Usuario[] = [];
   error = '';
+  guardando = false;
+  editandoId: number | null = null;
 
-  constructor(private usuarioService: UsuarioService, public auth: AuthService, private dialog: MatDialog) {}
+  nombre = '';
+  rut = '';
+  email = '';
+  password = '';
+  rol: Rol = 'VENDEDOR';
+
+  constructor(private usuarioService: UsuarioService, public auth: AuthService) {}
 
   ngOnInit(): void {
     this.cargar();
@@ -31,37 +42,45 @@ export class UsuariosComponent implements OnInit {
     this.usuarioService.listar().subscribe((usuarios) => (this.usuarios = usuarios));
   }
 
-  abrirCrear(): void {
-    const ref = this.dialog.open(UsuarioFormDialogComponent, { width: '420px' });
-    ref.afterClosed().subscribe((request: UsuarioRequest | undefined) => {
-      if (request) {
-        this.usuarioService.crear(request).subscribe({
-          next: () => {
-            this.error = '';
-            this.cargar();
-          },
-          error: (err) => {
-            this.error = err?.error?.error ?? 'Ocurrió un error. Intenta nuevamente.';
-          },
-        });
-      }
-    });
+  editar(usuario: Usuario): void {
+    this.editandoId = usuario.id;
+    this.nombre = usuario.nombre;
+    this.rut = usuario.rut;
+    this.email = usuario.email;
+    this.password = '';
+    this.rol = usuario.rol;
   }
 
-  abrirEditar(usuario: Usuario): void {
-    const ref = this.dialog.open(UsuarioFormDialogComponent, { width: '420px', data: usuario });
-    ref.afterClosed().subscribe((request: UsuarioRequest | undefined) => {
-      if (request) {
-        this.usuarioService.actualizar(usuario.id, request).subscribe({
-          next: () => {
-            this.error = '';
-            this.cargar();
-          },
-          error: (err) => {
-            this.error = err?.error?.error ?? 'Ocurrió un error. Intenta nuevamente.';
-          },
-        });
-      }
+  cancelarEdicion(): void {
+    this.editandoId = null;
+    this.limpiarFormulario();
+  }
+
+  guardar(): void {
+    if (!this.nombre || !this.rut || !this.email) return;
+    const request: UsuarioRequest = {
+      nombre: this.nombre,
+      rut: this.rut,
+      email: this.email,
+      rol: this.rol,
+      ...(this.password ? { password: this.password } : {}),
+    };
+    this.guardando = true;
+    const obs = this.editandoId
+      ? this.usuarioService.actualizar(this.editandoId, request)
+      : this.usuarioService.crear(request);
+    obs.subscribe({
+      next: () => {
+        this.error = '';
+        this.guardando = false;
+        this.editandoId = null;
+        this.limpiarFormulario();
+        this.cargar();
+      },
+      error: (err) => {
+        this.guardando = false;
+        this.error = err?.error?.error ?? 'Ocurrió un error. Intenta nuevamente.';
+      },
     });
   }
 
@@ -69,6 +88,7 @@ export class UsuariosComponent implements OnInit {
     this.usuarioService.desactivar(usuario.id).subscribe({
       next: () => {
         this.error = '';
+        if (this.editandoId === usuario.id) this.cancelarEdicion();
         this.cargar();
       },
       error: (err) => {
@@ -95,5 +115,13 @@ export class UsuariosComponent implements OnInit {
           this.error = err?.error?.error ?? 'Ocurrió un error. Intenta nuevamente.';
         },
       });
+  }
+
+  private limpiarFormulario(): void {
+    this.nombre = '';
+    this.rut = '';
+    this.email = '';
+    this.password = '';
+    this.rol = 'VENDEDOR';
   }
 }

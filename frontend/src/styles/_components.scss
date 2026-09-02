@@ -1,6 +1,7 @@
-// Patrones de layout compartidos que Angular Material no cubre.
-// Todo lo que Material sí resuelve (botones, tablas, campos, chips) se usa
-// directamente vía sus componentes, estilizados por el tema en material-theme.scss.
+// Patrones de layout y de campos de formulario compartidos.
+// Los inputs, selects, textareas y checkboxes son HTML nativo estilizado con
+// los tokens de diseño (colors/typography/spacing/radius) — no <mat-form-field>.
+// Material se reserva para botones, tarjetas, tablas e iconos.
 
 .page-container {
   max-width: 1120px;
@@ -27,14 +28,128 @@
   gap: var(--space-2);
 }
 
-.form .mat-mdc-form-field {
-  width: 100%;
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-4);
+}
+
+.form-grid .span-2 {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 720px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+// Campo con label, obligatoriedad y error inline
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.form-group label {
+  font: var(--font-body-sm);
+  font-weight: 600;
+  color: var(--text-title);
+}
+
+.form-group .hint {
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+.required-mark {
+  color: var(--error-base);
+  margin-left: 2px;
+}
+
+// Anatomía única de input/select/textarea
+.form-group input,
+.form-group select,
+.form-group textarea {
+  height: 40px;
+  padding: 0 var(--space-3);
+  border: var(--border-width-default) solid var(--border-strong);
+  border-radius: var(--radius-2);
+  font: var(--font-body);
+  color: var(--text-title);
+  background: var(--surface-card);
+  transition: border-color 0.15s;
+}
+
+.form-group textarea {
+  height: auto;
+  min-height: 72px;
+  padding-top: var(--space-2);
+  resize: vertical;
+  font-family: inherit;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-width: var(--border-width-medium);
+  border-color: var(--border-interactive);
+}
+
+.form-group.has-error input,
+.form-group.has-error select,
+.form-group.has-error textarea {
+  border-color: var(--error-base);
+}
+
+.field-error {
+  font: var(--font-legals);
+  color: var(--error-base);
+}
+
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font: var(--font-body-sm);
+  color: var(--text-body);
+}
+
+.checkbox-row input {
+  width: 16px;
+  height: 16px;
 }
 
 .form-section-title {
   font: var(--font-h3);
   color: var(--text-title);
   margin: var(--space-3) 0 var(--space-1);
+}
+
+.form-section-hint {
+  font: var(--font-body-sm);
+  color: var(--text-muted);
+  margin: 0 0 var(--space-2);
+}
+
+.form-panel {
+  margin-bottom: var(--space-5);
+  padding: var(--space-4) var(--space-5);
+}
+
+.form-panel h2 {
+  font: var(--font-h3);
+  color: var(--text-title);
+  margin: 0 0 var(--space-3);
+}
+
+.form-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
 }
 
 .page-error {

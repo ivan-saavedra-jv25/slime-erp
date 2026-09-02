@@ -1,28 +1,54 @@
-<mat-sidenav-container class="app-shell">
-  <mat-sidenav #sidenav mode="side" opened class="sidebar">
-    <nav mat-nav-list>
-      @for (item of items; track item.ruta) {
-        <a mat-list-item [routerLink]="item.ruta" routerLinkActive="active">
-          <mat-icon matListItemIcon>{{ item.icono }}</mat-icon>
-          <span matListItemTitle>{{ item.label }}</span>
-        </a>
+<div class="app-shell">
+  <header class="topbar">
+    <div class="topbar-left">
+      @if (esMovil()) {
+        <button
+          type="button"
+          mat-icon-button
+          class="menu-toggle"
+          (click)="toggleSidenav()"
+          aria-label="Abrir menú"
+        >
+          <mat-icon>menu</mat-icon>
+        </button>
       }
-    </nav>
-    <div class="user-box">
-      <div class="user-name">{{ auth.session()?.nombre }}</div>
-      <button mat-stroked-button (click)="cerrarSesion()">Cerrar sesión</button>
-    </div>
-  </mat-sidenav>
-
-  <mat-sidenav-content>
-    <mat-toolbar color="primary" class="topbar">
-      <button mat-icon-button (click)="sidenav.toggle()">
-        <mat-icon>menu</mat-icon>
-      </button>
+      <span class="logo" aria-hidden="true">S</span>
       <span class="app-name">Slime ERP</span>
-    </mat-toolbar>
-    <main class="content">
-      <router-outlet></router-outlet>
-    </main>
-  </mat-sidenav-content>
-</mat-sidenav-container>
+      <span class="divider"></span>
+      <span class="page-title">{{ tituloPagina() }}</span>
+    </div>
+    <div class="topbar-right">
+      <span class="avatar">{{ iniciales }}</span>
+      <span class="user-id">{{ auth.session()?.rut }}</span>
+    </div>
+  </header>
+
+  <mat-sidenav-container class="body">
+    <mat-sidenav
+      #sidenav
+      class="sidebar"
+      [mode]="esMovil() ? 'over' : 'side'"
+      [opened]="sidenavAbierto()"
+      (closedStart)="sidenavAbierto.set(false)"
+    >
+      <nav>
+        @for (item of items; track item.ruta) {
+          <a [routerLink]="item.ruta" routerLinkActive="active">
+            <mat-icon>{{ item.icono }}</mat-icon>
+            <span class="label">{{ item.label }}</span>
+          </a>
+        }
+      </nav>
+      <div class="user-box">
+        <div class="user-name">{{ auth.session()?.nombre }}</div>
+        <button mat-stroked-button (click)="cerrarSesion()">Cerrar sesión</button>
+      </div>
+    </mat-sidenav>
+
+    <mat-sidenav-content>
+      <main class="content">
+        <router-outlet></router-outlet>
+      </main>
+    </mat-sidenav-content>
+  </mat-sidenav-container>
+</div>

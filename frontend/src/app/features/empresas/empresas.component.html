@@ -1,12 +1,95 @@
-<div class="page-header">
-  <h1>Empresas</h1>
-  @if (auth.tienePermiso('EMPRESAS_ADMINISTRAR')) {
-    <button mat-flat-button color="primary" (click)="abrirCrear()">Nueva empresa</button>
-  }
-</div>
+<h1>Empresas</h1>
 
 @if (error) {
   <p class="page-error">{{ error }}</p>
+}
+
+@if (auth.tienePermiso('EMPRESAS_ADMINISTRAR')) {
+  <mat-card class="form-panel">
+    <h2>Nueva empresa</h2>
+    <form #f="ngForm" (ngSubmit)="guardar()" novalidate>
+      <h3 class="form-section-title">Datos de la empresa</h3>
+      <div class="form-grid">
+        <div class="form-group" [class.has-error]="empresaNombreCtrl.invalid && empresaNombreCtrl.touched">
+          <label for="nombre">Nombre<span class="required-mark">*</span></label>
+          <input id="nombre" name="nombre" [(ngModel)]="nombre" required #empresaNombreCtrl="ngModel" />
+          @if (empresaNombreCtrl.invalid && empresaNombreCtrl.touched) {
+            <span class="field-error">El nombre es obligatorio.</span>
+          }
+        </div>
+
+        <div class="form-group" [class.has-error]="empresaRutCtrl.invalid && empresaRutCtrl.touched">
+          <label for="rut">RUT<span class="required-mark">*</span></label>
+          <input id="rut" name="rut" [(ngModel)]="rut" required #empresaRutCtrl="ngModel" />
+          @if (empresaRutCtrl.invalid && empresaRutCtrl.touched) {
+            <span class="field-error">El RUT es obligatorio.</span>
+          }
+        </div>
+
+        <div class="form-group span-2">
+          <label for="plan">Plan <span class="hint">(opcional, por defecto "basico")</span></label>
+          <input id="plan" name="plan" [(ngModel)]="plan" />
+        </div>
+      </div>
+
+      <h3 class="form-section-title">Administrador inicial</h3>
+      <div class="form-grid">
+        <div class="form-group" [class.has-error]="adminNombreCtrl.invalid && adminNombreCtrl.touched">
+          <label for="adminNombre">Nombre<span class="required-mark">*</span></label>
+          <input id="adminNombre" name="adminNombre" [(ngModel)]="adminNombre" required #adminNombreCtrl="ngModel" />
+          @if (adminNombreCtrl.invalid && adminNombreCtrl.touched) {
+            <span class="field-error">El nombre es obligatorio.</span>
+          }
+        </div>
+
+        <div class="form-group" [class.has-error]="adminRutCtrl.invalid && adminRutCtrl.touched">
+          <label for="adminRut">RUT<span class="required-mark">*</span></label>
+          <input id="adminRut" name="adminRut" [(ngModel)]="adminRut" required #adminRutCtrl="ngModel" />
+          @if (adminRutCtrl.invalid && adminRutCtrl.touched) {
+            <span class="field-error">El RUT es obligatorio.</span>
+          }
+        </div>
+
+        <div class="form-group" [class.has-error]="adminEmailCtrl.invalid && adminEmailCtrl.touched">
+          <label for="adminEmail">Email<span class="required-mark">*</span></label>
+          <input
+            id="adminEmail"
+            name="adminEmail"
+            type="email"
+            autocomplete="off"
+            [(ngModel)]="adminEmail"
+            required
+            #adminEmailCtrl="ngModel"
+          />
+          @if (adminEmailCtrl.invalid && adminEmailCtrl.touched) {
+            <span class="field-error">El email es obligatorio.</span>
+          }
+        </div>
+
+        <div class="form-group" [class.has-error]="adminPasswordCtrl.invalid && adminPasswordCtrl.touched">
+          <label for="adminPassword">Contraseña<span class="required-mark">*</span></label>
+          <input
+            id="adminPassword"
+            name="adminPassword"
+            type="password"
+            autocomplete="new-password"
+            [(ngModel)]="adminPassword"
+            required
+            #adminPasswordCtrl="ngModel"
+          />
+          @if (adminPasswordCtrl.invalid && adminPasswordCtrl.touched) {
+            <span class="field-error">La contraseña es obligatoria.</span>
+          }
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button mat-flat-button color="primary" type="submit" [disabled]="guardando || f.invalid">
+          {{ guardando ? 'Creando...' : 'Crear empresa' }}
+        </button>
+      </div>
+    </form>
+  </mat-card>
 }
 
 <table mat-table [dataSource]="empresas" class="mat-elevation-z1">

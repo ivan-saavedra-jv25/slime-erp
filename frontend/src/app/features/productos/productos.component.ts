@@ -1,18 +1,18 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatDialog } from '@angular/material/dialog';
+import { MatCardModule } from '@angular/material/card';
 import { ProductoService, ProductoRequest } from '../../core/services/producto.service';
 import { AuthService } from '../../core/services/auth.service';
 import { Producto } from '../../core/models/models';
-import { ProductoFormDialogComponent } from './producto-form-dialog.component';
 
 @Component({
   selector: 'app-productos',
   standalone: true,
-  imports: [CommonModule, MatTableModule, MatButtonModule, MatIconModule],
+  imports: [CommonModule, FormsModule, MatTableModule, MatButtonModule, MatIconModule, MatCardModule],
   templateUrl: './productos.component.html',
   styleUrl: './productos.component.scss',
 })
@@ -20,8 +20,18 @@ export class ProductosComponent implements OnInit {
   columnas = ['sku', 'nombre', 'precioVenta', 'stock', 'acciones'];
   productos: Producto[] = [];
   error = '';
+  guardando = false;
+  editandoId: number | null = null;
 
-  constructor(private productoService: ProductoService, public auth: AuthService, private dialog: MatDialog) {}
+  sku = '';
+  nombre = '';
+  descripcion = '';
+  precioVenta = 0;
+  precioCompra = 0;
+  stock = 0;
+  controlaStock = true;
+
+  constructor(private productoService: ProductoService, public auth: AuthService) {}
 
   ngOnInit(): void {
     this.cargar();
@@ -31,37 +41,49 @@ export class ProductosComponent implements OnInit {
     this.productoService.listar().subscribe((productos) => (this.productos = productos));
   }
 
-  abrirCrear(): void {
-    const ref = this.dialog.open(ProductoFormDialogComponent, { width: '420px' });
-    ref.afterClosed().subscribe((request: ProductoRequest | undefined) => {
-      if (request) {
-        this.productoService.crear(request).subscribe({
-          next: () => {
-            this.error = '';
-            this.cargar();
-          },
-          error: (err) => {
-            this.error = err?.error?.error ?? 'Ocurrió un error. Intenta nuevamente.';
-          },
-        });
-      }
-    });
+  editar(producto: Producto): void {
+    this.editandoId = producto.id;
+    this.sku = producto.sku ?? '';
+    this.nombre = producto.nombre;
+    this.descripcion = producto.descripcion ?? '';
+    this.precioVenta = producto.precioVenta;
+    this.precioCompra = producto.precioCompra;
+    this.stock = producto.stock;
+    this.controlaStock = producto.controlaStock;
   }
 
-  abrirEditar(producto: Producto): void {
-    const ref = this.dialog.open(ProductoFormDialogComponent, { width: '420px', data: producto });
-    ref.afterClosed().subscribe((request: ProductoRequest | undefined) => {
-      if (request) {
-        this.productoService.actualizar(producto.id, request).subscribe({
-          next: () => {
-            this.error = '';
-            this.cargar();
-          },
-          error: (err) => {
-            this.error = err?.error?.error ?? 'Ocurrió un error. Intenta nuevamente.';
-          },
-        });
-      }
+  cancelarEdicion(): void {
+    this.editandoId = null;
+    this.limpiarFormulario();
+  }
+
+  guardar(): void {
+    if (!this.nombre) return;
+    const request: ProductoRequest = {
+      sku: this.sku || null,
+      nombre: this.nombre,
+      descripcion: this.descripcion,
+      precioVenta: this.precioVenta,
+      precioCompra: this.precioCompra,
+      stock: this.stock,
+      controlaStock: this.controlaStock,
+    };
+    this.guardando = true;
+    const obs = this.editandoId
+      ? this.productoService.actualizar(this.editandoId, request)
+      : this.productoService.crear(request);
+    obs.subscribe({
+      next: () => {
+        this.error = '';
+        this.guardando = false;
+        this.editandoId = null;
+        this.limpiarFormulario();
+        this.cargar();
+      },
+      error: (err) => {
+        this.guardando = false;
+        this.error = err?.error?.error ?? 'Ocurrió un error. Intenta nuevamente.';
+      },
     });
   }
 
@@ -69,11 +91,22 @@ export class ProductosComponent implements OnInit {
     this.productoService.eliminar(producto.id).subscribe({
       next: () => {
         this.error = '';
+        if (this.editandoId === producto.id) this.cancelarEdicion();
         this.cargar();
       },
       error: (err) => {
         this.error = err?.error?.error ?? 'Ocurrió un error. Intenta nuevamente.';
       },
     });
+  }
+
+  private limpiarFormulario(): void {
+    this.sku = '';
+    this.nombre = '';
+    this.descripcion = '';
+    this.precioVenta = 0;
+    this.precioCompra = 0;
+    this.stock = 0;
+    this.controlaStock = true;
   }
 }

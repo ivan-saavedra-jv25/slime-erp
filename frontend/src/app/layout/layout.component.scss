@@ -5,23 +5,146 @@
 
 .app-shell {
   height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+// Barra superior
+.topbar {
+  height: 56px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  background: linear-gradient(135deg, var(--topbar-gradient-from), var(--topbar-gradient-to));
+  color: var(--white);
+  box-shadow: 0 2px 8px var(--topbar-shadow);
+}
+
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.menu-toggle {
+  color: var(--white);
+}
+
+.logo {
+  height: 22px;
+  width: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-1);
+  background: var(--white);
+  color: var(--topbar-gradient-from);
+  font-weight: 800;
+  font-size: 13px;
+}
+
+.app-name {
+  font-weight: 800;
+  font-size: 16px;
+  color: var(--white);
+}
+
+.divider {
+  width: 1px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.page-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--white);
+  opacity: 0.72;
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--white);
+  color: var(--topbar-gradient-from);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.user-id {
+  font-size: 13px;
+  color: var(--white);
+}
+
+// Cuerpo: sidebar + contenido
+.body {
+  flex: 1;
+  min-height: 0;
 }
 
 .sidebar {
   width: 256px;
+  background: var(--white);
+  border-right: 1px solid var(--sidebar-border);
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
 }
 
 .sidebar nav {
+  display: flex;
+  flex-direction: column;
   flex: 1;
   overflow-y: auto;
+  padding-bottom: 8px;
+}
+
+.sidebar nav a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 20px;
+  text-decoration: none;
+  color: var(--sidebar-text);
+  font-size: 14px;
+  font-weight: 400;
+  border-right: 3px solid transparent;
+  transition: background-color 0.12s;
+}
+
+.sidebar nav a mat-icon {
+  color: var(--sidebar-icon);
+}
+
+.sidebar nav a:hover {
+  background: var(--sidebar-hover);
+}
+
+.sidebar nav a.active {
+  background: var(--sidebar-hover);
+  border-right-color: var(--primary-base);
+  color: var(--primary-base);
+  font-weight: 700;
+}
+
+.sidebar nav a.active mat-icon {
+  color: var(--primary-base);
 }
 
 .user-box {
-  padding: var(--space-4);
   border-top: var(--border-width-default) solid var(--border-default);
+  padding: var(--space-4);
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
@@ -32,19 +155,30 @@
   color: var(--sidebar-text);
 }
 
-.topbar {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-}
-
-.app-name {
-  font-weight: 800;
-  font-size: 16px;
+.user-box button {
+  width: 100%;
 }
 
 .content {
-  padding: var(--space-6);
+  padding: 24px;
   background: var(--surface-page);
-  min-height: calc(100vh - 64px);
+  min-height: 100%;
+}
+
+@media (max-width: 900px) {
+  .content {
+    padding: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .divider,
+  .page-title,
+  .user-id {
+    display: none;
+  }
+
+  .topbar {
+    padding: 0 12px;
+  }
 }

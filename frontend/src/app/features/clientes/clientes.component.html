@@ -1,12 +1,78 @@
-<div class="page-header">
-  <h1>Clientes</h1>
-  @if (auth.tienePermiso('CLIENTES_EDITAR')) {
-    <button mat-flat-button color="primary" (click)="abrirCrear()">Nuevo cliente</button>
-  }
-</div>
+<h1>Clientes</h1>
 
 @if (error) {
   <p class="page-error">{{ error }}</p>
+}
+
+@if (auth.tienePermiso('CLIENTES_EDITAR')) {
+  <mat-card class="form-panel">
+    <h2>{{ editandoId ? 'Editar cliente' : 'Nuevo cliente' }}</h2>
+    <form #f="ngForm" (ngSubmit)="guardar()" novalidate>
+      <div class="form-grid">
+        <div class="form-group span-2" [class.has-error]="nombreCtrl.invalid && nombreCtrl.touched">
+          <label for="nombre">Nombre<span class="required-mark">*</span></label>
+          <input id="nombre" name="nombre" [(ngModel)]="nombre" required #nombreCtrl="ngModel" />
+          @if (nombreCtrl.invalid && nombreCtrl.touched) {
+            <span class="field-error">El nombre es obligatorio.</span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="rut">RUT <span class="hint">(opcional)</span></label>
+          <input id="rut" name="rut" placeholder="11.111.111-1" [(ngModel)]="rut" />
+        </div>
+
+        <div class="form-group">
+          <label for="email">Email <span class="hint">(opcional)</span></label>
+          <input id="email" name="email" type="email" autocomplete="off" [(ngModel)]="email" />
+        </div>
+
+        <div class="form-group">
+          <label for="telefono">Teléfono <span class="hint">(opcional)</span></label>
+          <input id="telefono" name="telefono" [(ngModel)]="telefono" />
+        </div>
+
+        <div class="form-group">
+          <label for="direccion">Dirección <span class="hint">(opcional)</span></label>
+          <input id="direccion" name="direccion" [(ngModel)]="direccion" />
+        </div>
+      </div>
+
+      <h3 class="form-section-title">Datos tributarios (DTE)</h3>
+      <p class="form-section-hint">Se solicitan solo al emitir facturación electrónica.</p>
+
+      <div class="form-grid">
+        <div class="form-group span-2">
+          <label for="razonSocial">Razón social <span class="hint">(opcional)</span></label>
+          <input id="razonSocial" name="razonSocial" [(ngModel)]="razonSocial" />
+        </div>
+
+        <div class="form-group span-2">
+          <label for="giro">Giro <span class="hint">(opcional)</span></label>
+          <input id="giro" name="giro" [(ngModel)]="giro" />
+        </div>
+
+        <div class="form-group">
+          <label for="comuna">Comuna <span class="hint">(opcional)</span></label>
+          <input id="comuna" name="comuna" [(ngModel)]="comuna" />
+        </div>
+
+        <div class="form-group">
+          <label for="ciudad">Ciudad <span class="hint">(opcional)</span></label>
+          <input id="ciudad" name="ciudad" [(ngModel)]="ciudad" />
+        </div>
+      </div>
+
+      <div class="form-actions">
+        @if (editandoId) {
+          <button mat-button type="button" (click)="cancelarEdicion()">Cancelar</button>
+        }
+        <button mat-flat-button color="primary" type="submit" [disabled]="guardando || f.invalid">
+          {{ guardando ? 'Guardando...' : editandoId ? 'Guardar cambios' : 'Agregar cliente' }}
+        </button>
+      </div>
+    </form>
+  </mat-card>
 }
 
 <table mat-table [dataSource]="clientes" class="mat-elevation-z1">
@@ -34,7 +100,7 @@
     <th mat-header-cell *matHeaderCellDef></th>
     <td mat-cell *matCellDef="let c">
       @if (auth.tienePermiso('CLIENTES_EDITAR')) {
-        <button mat-icon-button (click)="abrirEditar(c)"><mat-icon>edit</mat-icon></button>
+        <button mat-icon-button (click)="editar(c)"><mat-icon>edit</mat-icon></button>
         <button mat-icon-button (click)="eliminar(c)"><mat-icon>delete</mat-icon></button>
       }
     </td>
