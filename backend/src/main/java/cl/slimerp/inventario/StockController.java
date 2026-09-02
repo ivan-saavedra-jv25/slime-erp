@@ -86,7 +86,7 @@ public class StockController {
         BigDecimal actualCantidad = actual == null ? BigDecimal.ZERO : actual.getCantidad();
         BigDecimal delta = request.cantidad().subtract(actualCantidad);
 
-        stockService.sumar(tenantId, request.productoId(), request.bodegaId(), delta);
+        stockService.sumar(tenantId, request.productoId(), request.bodegaId(), delta, TipoMovimiento.AJUSTE, null, null);
 
         return porProducto(request.productoId());
     }

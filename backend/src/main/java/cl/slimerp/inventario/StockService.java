@@ -10,10 +10,13 @@ public class StockService {
 
     private final StockProductoBodegaRepository stockRepository;
     private final BodegaRepository bodegaRepository;
+    private final MovimientoInventarioRepository movimientoRepository;
 
-    public StockService(StockProductoBodegaRepository stockRepository, BodegaRepository bodegaRepository) {
+    public StockService(StockProductoBodegaRepository stockRepository, BodegaRepository bodegaRepository,
+                         MovimientoInventarioRepository movimientoRepository) {
         this.stockRepository = stockRepository;
         this.bodegaRepository = bodegaRepository;
+        this.movimientoRepository = movimientoRepository;
     }
 
     public Bodega bodegaPrincipal(Long tenantId) {
@@ -22,7 +25,8 @@ public class StockService {
     }
 
     @Transactional
-    public void sumar(Long tenantId, Long productoId, Long bodegaId, BigDecimal cantidad) {
+    public void sumar(Long tenantId, Long productoId, Long bodegaId, BigDecimal cantidad,
+                       TipoMovimiento tipo, Long headerId, Long referenciaId) {
         StockProductoBodega stock = stockRepository.findByTenantIdAndProductoIdAndBodegaId(tenantId, productoId, bodegaId)
                 .orElseGet(() -> stockRepository.save(StockProductoBodega.builder()
                         .tenantId(tenantId)
@@ -33,12 +37,23 @@ public class StockService {
 
         stock.setCantidad(stock.getCantidad().add(cantidad));
         stockRepository.save(stock);
+
+        movimientoRepository.save(MovimientoInventario.builder()
+                .tenantId(tenantId)
+                .productoId(productoId)
+                .tipo(tipo)
+                .cantidad(cantidad.abs())
+                .headerId(headerId)
+                .bodegaId(bodegaId)
+                .referenciaId(referenciaId)
+                .build());
     }
 
     @Transactional
-    public void transferir(Long tenantId, Long productoId, Long bodegaOrigenId, Long bodegaDestinoId, BigDecimal cantidad) {
-        sumar(tenantId, productoId, bodegaOrigenId, cantidad.negate());
-        sumar(tenantId, productoId, bodegaDestinoId, cantidad);
+    public void transferir(Long tenantId, Long productoId, Long bodegaOrigenId, Long bodegaDestinoId,
+                            BigDecimal cantidad, Long headerId) {
+        sumar(tenantId, productoId, bodegaOrigenId, cantidad.negate(), TipoMovimiento.SALIDA, headerId, null);
+        sumar(tenantId, productoId, bodegaDestinoId, cantidad, TipoMovimiento.ENTRADA, headerId, null);
     }
 
     public BigDecimal stockDisponible(Long tenantId, Long productoId, Long bodegaId) {

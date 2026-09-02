@@ -15,6 +15,7 @@ interface NavItem {
   label: string;
   icono: string;
   permiso?: Permiso;
+  exact?: boolean;
 }
 
 interface NavGroup {
@@ -42,6 +43,15 @@ const GRUPOS: NavGroup[] = [
       { ruta: '/categorias', label: 'Categorías', icono: 'category', permiso: 'CATEGORIAS_VER' },
       { ruta: '/bodegas', label: 'Bodegas', icono: 'warehouse', permiso: 'BODEGAS_VER' },
       { ruta: '/formas-pago', label: 'Formas de pago', icono: 'payments', permiso: 'FORMAS_PAGO_VER' },
+    ],
+  },
+  {
+    key: 'inventario',
+    titulo: 'Inventario',
+    icono: 'inventory',
+    items: [
+      { ruta: '/movimientos', label: 'Movimientos', icono: 'swap_horiz', permiso: 'MOVIMIENTOS_VER', exact: true },
+      { ruta: '/movimientos/historial', label: 'Historial', icono: 'history', permiso: 'MOVIMIENTOS_VER' },
     ],
   },
   {
@@ -137,7 +147,8 @@ export class LayoutComponent implements OnInit {
 
   private actualizarTitulo(url: string): void {
     const todos = [this.dashboard, ...this.grupos.flatMap((g) => g.items)];
-    const item = todos.find((i) => url === i.ruta || url.startsWith(`${i.ruta}/`));
+    const candidatos = todos.filter((i) => url === i.ruta || (!i.exact && url.startsWith(`${i.ruta}/`)));
+    const item = candidatos.sort((a, b) => b.ruta.length - a.ruta.length)[0];
     this.tituloPagina.set(item?.label ?? '');
   }
 

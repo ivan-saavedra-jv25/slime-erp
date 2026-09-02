@@ -11,6 +11,8 @@ export type Permiso =
   | 'BODEGAS_EDITAR'
   | 'FORMAS_PAGO_VER'
   | 'FORMAS_PAGO_EDITAR'
+  | 'MOVIMIENTOS_VER'
+  | 'MOVIMIENTOS_EDITAR'
   | 'USUARIOS_VER'
   | 'USUARIOS_EDITAR'
   | 'EMPRESAS_ADMINISTRAR';
@@ -107,6 +109,31 @@ export interface FormaPago {
   categoria: CategoriaFormaPago;
   activo: boolean;
   fechaCreacion: string;
+}
+
+export type TipoMovimiento = 'ENTRADA' | 'SALIDA' | 'TRASLADO' | 'AJUSTE';
+
+export interface MovimientoItem {
+  productoId: number;
+  cantidad: number;
+}
+
+export interface MovimientoDetalleItem {
+  productoId: number;
+  productoSku: string | null;
+  productoNombre: string;
+  cantidad: number;
+}
+
+export interface MovimientoHistorial {
+  id: number;
+  tipo: string;
+  bodegaOrigenNombre: string;
+  bodegaDestinoNombre: string;
+  usuarioNombre: string;
+  observacion: string | null;
+  fecha: string;
+  items: MovimientoDetalleItem[];
 }
 
 export interface Empresa {

@@ -1,0 +1,182 @@
+<div class="page-header">
+  <h1>Movimientos de Inventario</h1>
+  <a mat-stroked-button routerLink="/movimientos/historial">
+    <mat-icon>history</mat-icon>
+    Ver historial
+  </a>
+</div>
+
+@if (error) {
+  <p class="page-error">{{ error }}</p>
+}
+@if (mensaje) {
+  <p class="page-mensaje">{{ mensaje }}</p>
+}
+
+<mat-card class="form-panel">
+  <h2>Tipo de operación</h2>
+  <div class="tipo-grid">
+    @for (t of tipos; track t.value) {
+      <button
+        type="button"
+        class="tipo-card"
+        [class.tipo-card--active]="tipo === t.value"
+        (click)="seleccionarTipo(t.value)"
+      >
+        <mat-icon>{{ t.icon }}</mat-icon>
+        <span class="tipo-card__label">{{ t.label }}</span>
+        <span class="tipo-card__desc">{{ t.desc }}</span>
+      </button>
+    }
+  </div>
+</mat-card>
+
+<mat-card class="form-panel">
+  <h2>Datos del movimiento</h2>
+  <div class="form-grid">
+    @if (mostrarOrigen) {
+      <div class="form-group">
+        <label for="bodegaOrigen">{{ labelOrigen }}<span class="required-mark">*</span></label>
+        <select id="bodegaOrigen" name="bodegaOrigen" [(ngModel)]="bodegaOrigenId">
+          <option [ngValue]="null" disabled>Selecciona una bodega</option>
+          @for (b of bodegas; track b.id) {
+            <option [ngValue]="b.id">{{ b.nombre }}</option>
+          }
+        </select>
+      </div>
+    }
+
+    @if (mostrarDestino) {
+      <div class="form-group">
+        <label for="bodegaDestino">Bodega destino<span class="required-mark">*</span></label>
+        <select id="bodegaDestino" name="bodegaDestino" [(ngModel)]="bodegaDestinoId">
+          <option [ngValue]="null" disabled>Selecciona una bodega</option>
+          @for (b of bodegas; track b.id) {
+            <option [ngValue]="b.id">{{ b.nombre }}</option>
+          }
+        </select>
+      </div>
+    }
+
+    <div class="form-group span-2">
+      <label for="observacion">Observación <span class="hint">(opcional)</span></label>
+      <textarea id="observacion" name="observacion" rows="2" [(ngModel)]="observacion"></textarea>
+    </div>
+
+    <div class="form-group">
+      <label for="responsable">Responsable</label>
+      <input id="responsable" type="text" [value]="nombreUsuario" readonly />
+    </div>
+  </div>
+</mat-card>
+
+<mat-card class="form-panel">
+  <h2>Detalle de productos</h2>
+  <p class="form-section-hint">
+    Busca por <strong>SKU o nombre</strong> y presiona <strong>Enter</strong> para seleccionar el primer resultado.
+  </p>
+
+  <div class="item-entry">
+    <div class="item-entry__row">
+      <div class="form-group item-entry__col item-entry__col--search">
+        <label for="filtroProducto">Buscar producto</label>
+        <input
+          id="filtroProducto"
+          type="text"
+          placeholder="Buscar producto..."
+          [(ngModel)]="filtroProducto"
+          name="filtroProducto"
+          (keydown.enter)="seleccionarPrimero()"
+        />
+        @if (filtroProducto && productosFiltrados.length) {
+          <div class="search-results">
+            @for (p of productosFiltrados; track p.id) {
+              <div class="search-results__item" (click)="seleccionarProducto(p)">
+                <span class="search-results__nombre">{{ p.nombre }}</span>
+                <span class="search-results__sku">SKU: {{ p.sku || '—' }}</span>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <div class="form-group item-entry__col">
+        <label>Producto seleccionado</label>
+        <input type="text" [value]="productoSeleccionado?.nombre ?? ''" readonly placeholder="Selecciona un producto" />
+      </div>
+
+      <div class="form-group item-entry__col item-entry__col--qty">
+        <label for="itemCantidad">Cantidad</label>
+        <input id="itemCantidad" type="number" [(ngModel)]="itemCantidad" name="itemCantidad" min="1" />
+      </div>
+
+      <button
+        type="button"
+        mat-icon-button
+        class="item-entry__add-btn"
+        [disabled]="!itemProductoId"
+        (click)="agregarItem()"
+      >
+        <mat-icon>add_circle</mat-icon>
+      </button>
+    </div>
+    @if (itemError) {
+      <p class="field-error">{{ itemError }}</p>
+    }
+  </div>
+
+  <table class="items-table">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>SKU</th>
+        <th>Producto</th>
+        <th class="right">Cantidad</th>
+        <th class="right"></th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (it of items; track it.productoId; let i = $index) {
+        <tr>
+          <td>{{ i + 1 }}</td>
+          <td>{{ skuProducto(it.productoId) }}</td>
+          <td>{{ nombreProducto(it.productoId) }}</td>
+          <td class="right">{{ it.cantidad }}</td>
+          <td class="right">
+            <button type="button" mat-icon-button (click)="quitarItem(i)"><mat-icon>delete</mat-icon></button>
+          </td>
+        </tr>
+      }
+      @if (!items.length) {
+        <tr>
+          <td colspan="5" class="empty-state">Agrega productos desde el buscador de arriba.</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</mat-card>
+
+<mat-card class="form-panel summary-panel">
+  <div class="summary-grid">
+    <div class="summary-stat">
+      <span class="summary-stat__value">{{ items.length }}</span>
+      <span class="summary-stat__label">Productos</span>
+    </div>
+    <div class="summary-stat">
+      <span class="summary-stat__value">{{ totalUnidades }}</span>
+      <span class="summary-stat__label">Unidades totales</span>
+    </div>
+    <div class="summary-actions">
+      <button
+        type="button"
+        mat-flat-button
+        color="primary"
+        [disabled]="!puedeConfirmar"
+        (click)="confirmar()"
+      >
+        <mat-icon>check_circle</mat-icon>
+        {{ guardando ? 'Guardando...' : 'Confirmar movimiento' }}
+      </button>
+    </div>
+  </div>
+</mat-card>

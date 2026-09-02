@@ -38,6 +38,15 @@ export const routes: Routes = [
           import('./features/formas-pago/formas-pago.component').then((m) => m.FormasPagoComponent),
       },
       {
+        path: 'movimientos',
+        loadComponent: () => import('./features/movimientos/movimientos.component').then((m) => m.MovimientosComponent),
+      },
+      {
+        path: 'movimientos/historial',
+        loadComponent: () =>
+          import('./features/movimientos/movimientos-historial.component').then((m) => m.MovimientosHistorialComponent),
+      },
+      {
         path: 'usuarios',
         loadComponent: () => import('./features/usuarios/usuarios.component').then((m) => m.UsuariosComponent),
       },

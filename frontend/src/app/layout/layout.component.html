@@ -52,7 +52,11 @@
 
             <div class="nav-submenu" [class.expanded]="expandido(grupo.key)">
               @for (item of grupo.items; track item.ruta) {
-                <a [routerLink]="item.ruta" routerLinkActive="active">
+                <a
+                  [routerLink]="item.ruta"
+                  routerLinkActive="active"
+                  [routerLinkActiveOptions]="{ exact: !!item.exact }"
+                >
                   <mat-icon>{{ item.icono }}</mat-icon>
                   <span class="label">{{ item.label }}</span>
                 </a>

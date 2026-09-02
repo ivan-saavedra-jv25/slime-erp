@@ -1,0 +1,84 @@
+<div class="page-header">
+  <h1>Historial de Movimientos</h1>
+  <a mat-flat-button color="primary" routerLink="/movimientos">
+    <mat-icon>add</mat-icon>
+    Nuevo movimiento
+  </a>
+</div>
+
+<mat-card class="form-panel">
+  @if (cargando) {
+    <p class="empty-state">Cargando movimientos...</p>
+  }
+
+  @if (!cargando && !movimientos.length) {
+    <p class="empty-state">No hay movimientos registrados.</p>
+  }
+
+  @if (!cargando && movimientos.length) {
+    <table class="historial-table">
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Tipo</th>
+          <th>Bodega origen</th>
+          <th>Bodega destino</th>
+          <th>Responsable</th>
+          <th class="right">Productos</th>
+          <th class="right"></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (m of movimientos; track m.id) {
+          <tr [class.row-expanded]="detalleAbierto === m.id">
+            <td>{{ m.fecha }}</td>
+            <td>
+              <span [class]="claseTag(m.tipo)">
+                <mat-icon class="tag-icon">{{ iconoTipo(m.tipo) }}</mat-icon>
+                {{ m.tipo }}
+              </span>
+            </td>
+            <td>{{ m.bodegaOrigenNombre }}</td>
+            <td>{{ m.bodegaDestinoNombre }}</td>
+            <td>{{ m.usuarioNombre }}</td>
+            <td class="right">{{ m.items.length }}</td>
+            <td class="right">
+              <button type="button" mat-icon-button (click)="toggleDetalle(m.id)">
+                <mat-icon>{{ detalleAbierto === m.id ? 'expand_less' : 'expand_more' }}</mat-icon>
+              </button>
+            </td>
+          </tr>
+          @if (detalleAbierto === m.id) {
+            <tr class="detail-row">
+              <td colspan="7">
+                <div class="detail-panel">
+                  @if (m.observacion) {
+                    <p class="detail-obs"><strong>Observación:</strong> {{ m.observacion }}</p>
+                  }
+                  <table class="detail-table">
+                    <thead>
+                      <tr>
+                        <th>SKU</th>
+                        <th>Producto</th>
+                        <th class="right">Cantidad</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (item of m.items; track item.productoId) {
+                        <tr>
+                          <td>{{ item.productoSku || '—' }}</td>
+                          <td>{{ item.productoNombre }}</td>
+                          <td class="right">{{ item.cantidad }}</td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+              </td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+  }
+</mat-card>
