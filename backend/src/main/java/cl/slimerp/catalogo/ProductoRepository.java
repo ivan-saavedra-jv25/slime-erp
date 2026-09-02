@@ -12,6 +12,8 @@ import java.util.Optional;
 public interface ProductoRepository extends JpaRepository<Producto, Long> {
     List<Producto> findByTenantIdAndActivoTrue(Long tenantId);
 
+    long countByTenantIdAndActivoTrue(Long tenantId);
+
     Optional<Producto> findByIdAndTenantIdAndActivoTrue(Long id, Long tenantId);
 
     Optional<Producto> findFirstByTenantIdAndSku(Long tenantId, String sku);

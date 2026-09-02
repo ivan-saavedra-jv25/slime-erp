@@ -86,6 +86,7 @@ export interface Producto {
   subcategoriaId: number | null;
   precioVenta: number;
   precioCompra: number;
+  stockMinimo: number;
   activo: boolean;
 }
 
@@ -286,4 +287,48 @@ export interface CrearEmpresaRequest {
   adminRut: string;
   adminEmail: string;
   adminPassword: string;
+}
+
+export interface KpiResumen {
+  ventasPeriodo: number;
+  ventasPeriodoAnterior: number;
+  variacionPct: number | null;
+  comprasPeriodo: number;
+  documentosEmitidos: number;
+  totalClientes: number;
+  totalProductos: number;
+  stockDisponible: number;
+  productosStockBajo: number;
+  productosSinStock: number;
+  cuentasPorCobrarSaldo: number;
+  cuentasPorCobrarPendientes: number;
+}
+
+export type TipoAlertaDashboard = 'SIN_STOCK' | 'STOCK_BAJO' | 'CUENTAS_PENDIENTES';
+export type SeveridadAlerta = 'ALTA' | 'MEDIA';
+
+export interface AlertaDashboard {
+  tipo: TipoAlertaDashboard;
+  severidad: SeveridadAlerta;
+  mensaje: string;
+  ruta: string;
+}
+
+export interface VentaResumenItem {
+  id: number;
+  fecha: string;
+  clienteNombre: string;
+  total: number;
+  tipoDocumento: TipoDocumentoVenta;
+}
+
+export interface DashboardResponse {
+  kpis: KpiResumen;
+  alertas: AlertaDashboard[];
+  ultimasVentas: VentaResumenItem[];
+}
+
+export interface PuntoVenta {
+  etiqueta: string;
+  monto: number;
 }

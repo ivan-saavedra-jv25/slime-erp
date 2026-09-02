@@ -12,6 +12,8 @@ import java.util.Optional;
 public interface ClienteRepository extends JpaRepository<Cliente, Long> {
     List<Cliente> findByTenantIdAndActivoTrue(Long tenantId);
 
+    long countByTenantIdAndActivoTrue(Long tenantId);
+
     Optional<Cliente> findByIdAndTenantIdAndActivoTrue(Long id, Long tenantId);
 
     // Ver la nota en ProductoRepository.buscar(): "busqueda" siempre trae el

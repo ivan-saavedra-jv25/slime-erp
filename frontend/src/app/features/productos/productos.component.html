@@ -71,6 +71,12 @@
           <label for="precioCompra">Precio compra <span class="hint">(opcional)</span></label>
           <input id="precioCompra" name="precioCompra" type="number" [(ngModel)]="precioCompra" />
         </div>
+
+        <div class="form-group">
+          <label for="stockMinimo">Stock mínimo <span class="hint">(opcional)</span></label>
+          <input id="stockMinimo" name="stockMinimo" type="number" min="0" [(ngModel)]="stockMinimo" />
+          <span class="hint">Alerta en el dashboard cuando el stock caiga a este nivel o menos. 0 = sin alerta.</span>
+        </div>
       </div>
 
       <div class="form-actions">

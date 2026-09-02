@@ -62,6 +62,7 @@ public class ProductoController {
                 .subcategoriaId(request.subcategoriaId())
                 .precioVenta(request.precioVenta())
                 .precioCompra(request.precioCompra() != null ? request.precioCompra() : BigDecimal.ZERO)
+                .stockMinimo(request.stockMinimo() != null ? request.stockMinimo() : BigDecimal.ZERO)
                 .build();
         return ResponseEntity.ok(productoRepository.save(producto));
     }
@@ -78,6 +79,7 @@ public class ProductoController {
                     producto.setSubcategoriaId(request.subcategoriaId());
                     producto.setPrecioVenta(request.precioVenta());
                     producto.setPrecioCompra(request.precioCompra() != null ? request.precioCompra() : BigDecimal.ZERO);
+                    producto.setStockMinimo(request.stockMinimo() != null ? request.stockMinimo() : BigDecimal.ZERO);
                     return ResponseEntity.ok(productoRepository.save(producto));
                 })
                 .orElseGet(() -> ResponseEntity.notFound().build());

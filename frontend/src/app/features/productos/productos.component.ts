@@ -43,6 +43,7 @@ export class ProductosComponent implements OnInit, OnDestroy {
   subcategoriaId: number | null = null;
   precioVenta = 0;
   precioCompra = 0;
+  stockMinimo = 0;
 
   private readonly busqueda$ = new Subject<string>();
 
@@ -107,6 +108,7 @@ export class ProductosComponent implements OnInit, OnDestroy {
     this.descripcion = producto.descripcion ?? '';
     this.precioVenta = producto.precioVenta;
     this.precioCompra = producto.precioCompra;
+    this.stockMinimo = producto.stockMinimo;
     this.categoriaId = producto.categoriaId;
     this.subcategoriaId = null;
     this.subcategoriasDisponibles = [];
@@ -133,6 +135,7 @@ export class ProductosComponent implements OnInit, OnDestroy {
       subcategoriaId: this.subcategoriaId,
       precioVenta: this.precioVenta,
       precioCompra: this.precioCompra,
+      stockMinimo: this.stockMinimo,
     };
     this.guardando = true;
     const obs = this.editandoId
@@ -175,5 +178,6 @@ export class ProductosComponent implements OnInit, OnDestroy {
     this.subcategoriasDisponibles = [];
     this.precioVenta = 0;
     this.precioCompra = 0;
+    this.stockMinimo = 0;
   }
 }

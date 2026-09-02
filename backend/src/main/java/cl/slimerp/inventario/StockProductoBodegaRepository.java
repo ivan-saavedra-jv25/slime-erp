@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Optional;
 
 public interface StockProductoBodegaRepository extends JpaRepository<StockProductoBodega, Long> {
+    List<StockProductoBodega> findByTenantId(Long tenantId);
+
     List<StockProductoBodega> findByTenantIdAndBodegaId(Long tenantId, Long bodegaId);
 
     List<StockProductoBodega> findByTenantIdAndProductoId(Long tenantId, Long productoId);

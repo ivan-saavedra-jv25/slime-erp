@@ -45,6 +45,12 @@ public class Producto {
     @Builder.Default
     private BigDecimal precioCompra = BigDecimal.ZERO;
 
+    // Umbral para la alerta de "stock bajo" del dashboard. 0 = sin umbral
+    // configurado (no genera alerta de stock bajo para este producto).
+    @Column(name = "stock_minimo", nullable = false, precision = 14, scale = 2)
+    @Builder.Default
+    private BigDecimal stockMinimo = BigDecimal.ZERO;
+
     @Column(nullable = false)
     @Builder.Default
     private boolean activo = true;

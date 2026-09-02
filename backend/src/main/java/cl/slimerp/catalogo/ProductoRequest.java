@@ -12,6 +12,7 @@ public record ProductoRequest(
         Long categoriaId,
         Long subcategoriaId,
         @NotNull BigDecimal precioVenta,
-        BigDecimal precioCompra
+        BigDecimal precioCompra,
+        BigDecimal stockMinimo
 ) {
 }

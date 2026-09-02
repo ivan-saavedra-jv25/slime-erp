@@ -12,6 +12,7 @@ export interface ProductoRequest {
   subcategoriaId?: number | null;
   precioVenta: number;
   precioCompra?: number;
+  stockMinimo?: number;
 }
 
 @Injectable({ providedIn: 'root' })

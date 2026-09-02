@@ -1,10 +1,156 @@
 <h1>Bienvenido, {{ auth.session()?.nombre }}</h1>
 
-<section class="kpi-grid">
-  @for (kpi of kpis; track kpi.label) {
-    <mat-card class="kpi-card">
-      <span class="kpi-label">{{ kpi.label }}</span>
-      <span class="kpi-value">{{ kpi.value }}</span>
+<section class="quick-actions">
+  <a mat-stroked-button routerLink="/ventas"><mat-icon>point_of_sale</mat-icon>Nueva venta</a>
+  <a mat-stroked-button routerLink="/compras"><mat-icon>shopping_cart</mat-icon>Registrar compra</a>
+  <a mat-stroked-button routerLink="/clientes"><mat-icon>group</mat-icon>Nuevo cliente</a>
+  <a mat-stroked-button routerLink="/productos"><mat-icon>inventory_2</mat-icon>Nuevo producto</a>
+  <a mat-stroked-button routerLink="/movimientos"><mat-icon>swap_horiz</mat-icon>Movimiento de inventario</a>
+</section>
+
+@if (cargando) {
+  <p class="empty-state">Cargando dashboard...</p>
+}
+
+@if (!cargando && datos) {
+  <section class="kpi-section">
+    <h2 class="section-title">Ventas y compras</h2>
+    <div class="kpi-grid kpi-grid--3">
+      <mat-card class="kpi-card">
+        <span class="kpi-label">Ventas del período</span>
+        <span class="kpi-value">{{ formatoMoneda(datos.kpis.ventasPeriodo) }}</span>
+        @if (datos.kpis.variacionPct !== null) {
+          <span class="kpi-badge" [class.kpi-badge--down]="datos.kpis.variacionPct < 0">
+            <mat-icon>{{ datos.kpis.variacionPct >= 0 ? 'trending_up' : 'trending_down' }}</mat-icon>
+            {{ datos.kpis.variacionPct >= 0 ? '+' : '' }}{{ datos.kpis.variacionPct | number: '1.0-1' }}% vs mes anterior
+          </span>
+        }
+      </mat-card>
+      <mat-card class="kpi-card">
+        <span class="kpi-label">Compras del período</span>
+        <span class="kpi-value">{{ formatoMoneda(datos.kpis.comprasPeriodo) }}</span>
+      </mat-card>
+      <mat-card class="kpi-card">
+        <span class="kpi-label">Documentos emitidos</span>
+        <span class="kpi-value">{{ formatoNumero(datos.kpis.documentosEmitidos) }}</span>
+      </mat-card>
+    </div>
+
+    <h2 class="section-title">Catálogo e inventario</h2>
+    <div class="kpi-grid kpi-grid--5">
+      <mat-card class="kpi-card">
+        <span class="kpi-label">Clientes activos</span>
+        <span class="kpi-value">{{ formatoNumero(datos.kpis.totalClientes) }}</span>
+      </mat-card>
+      <mat-card class="kpi-card">
+        <span class="kpi-label">Productos activos</span>
+        <span class="kpi-value">{{ formatoNumero(datos.kpis.totalProductos) }}</span>
+      </mat-card>
+      <mat-card class="kpi-card">
+        <span class="kpi-label">Stock disponible</span>
+        <span class="kpi-value">{{ formatoNumero(datos.kpis.stockDisponible) }}</span>
+      </mat-card>
+      <mat-card class="kpi-card" [class.kpi-card--alerta]="datos.kpis.productosStockBajo > 0">
+        <span class="kpi-label">Stock bajo</span>
+        <span class="kpi-value">{{ datos.kpis.productosStockBajo }}</span>
+      </mat-card>
+      <mat-card class="kpi-card" [class.kpi-card--alerta]="datos.kpis.productosSinStock > 0">
+        <span class="kpi-label">Sin stock</span>
+        <span class="kpi-value">{{ datos.kpis.productosSinStock }}</span>
+      </mat-card>
+    </div>
+
+    <h2 class="section-title">Tesorería</h2>
+    <div class="kpi-grid kpi-grid--2">
+      <mat-card class="kpi-card" [class.kpi-card--alerta]="datos.kpis.cuentasPorCobrarPendientes > 0">
+        <span class="kpi-label">Cuentas por cobrar pendientes</span>
+        <span class="kpi-value">{{ datos.kpis.cuentasPorCobrarPendientes }}</span>
+      </mat-card>
+      <mat-card class="kpi-card">
+        <span class="kpi-label">Saldo pendiente</span>
+        <span class="kpi-value">{{ formatoMoneda(datos.kpis.cuentasPorCobrarSaldo) }}</span>
+      </mat-card>
+    </div>
+  </section>
+
+  @if (datos.alertas.length) {
+    <mat-card class="form-panel">
+      <h2>Requiere atención</h2>
+      <div class="alertas-list">
+        @for (alerta of datos.alertas; track alerta.tipo) {
+          <a [class]="'tag alerta-tag ' + tagSeveridad(alerta.severidad)" [routerLink]="alerta.ruta">{{ alerta.mensaje }}</a>
+        }
+      </div>
     </mat-card>
   }
-</section>
+
+  <mat-card class="form-panel">
+    <div class="panel-header-row">
+      <h2>Evolución de ventas</h2>
+      <div class="rango-selector">
+        @for (r of rangos; track r.value) {
+          <button
+            type="button"
+            class="rango-btn"
+            [class.rango-btn--active]="rangoActivo === r.value"
+            (click)="seleccionarRango(r.value)"
+          >
+            {{ r.label }}
+          </button>
+        }
+      </div>
+    </div>
+
+    @if (cargandoGrafico) {
+      <p class="empty-state">Cargando gráfico...</p>
+    }
+    @if (!cargandoGrafico && !puntos.length) {
+      <p class="empty-state">Sin ventas en este período.</p>
+    }
+    @if (!cargandoGrafico && puntos.length) {
+      <svg class="chart" viewBox="0 0 600 180" preserveAspectRatio="none">
+        @for (barra of barras; track $index) {
+          <rect [attr.x]="barra.x" [attr.y]="barra.y" [attr.width]="barra.width" [attr.height]="barra.height" rx="2">
+            <title>{{ barra.etiqueta }}: {{ formatoMoneda(barra.monto) }}</title>
+          </rect>
+        }
+      </svg>
+      <div class="chart-labels">
+        @for (barra of barras; track $index) {
+          <span class="chart-label">{{ barra.etiqueta }}</span>
+        }
+      </div>
+    }
+  </mat-card>
+
+  <mat-card class="form-panel">
+    <div class="panel-header-row">
+      <h2>Últimas ventas</h2>
+      <a mat-button routerLink="/ventas/historial">Ver todas</a>
+    </div>
+    @if (!datos.ultimasVentas.length) {
+      <p class="empty-state">Todavía no hay ventas registradas.</p>
+    } @else {
+      <table class="historial-table">
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Cliente</th>
+            <th>Documento</th>
+            <th class="right">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (v of datos.ultimasVentas; track v.id) {
+            <tr>
+              <td>{{ v.fecha | date: 'short' }}</td>
+              <td>{{ v.clienteNombre }}</td>
+              <td><span [class]="'tag ' + tagDocumento(v.tipoDocumento)">{{ etiquetaDocumento(v.tipoDocumento) }}</span></td>
+              <td class="right">{{ formatoMoneda(v.total) }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </mat-card>
+}

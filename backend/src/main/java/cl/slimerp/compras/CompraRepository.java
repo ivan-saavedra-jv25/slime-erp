@@ -3,6 +3,7 @@ package cl.slimerp.compras;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -12,4 +13,7 @@ public interface CompraRepository extends JpaRepository<Compra, Long> {
 
     @EntityGraph(attributePaths = "detalle")
     Optional<Compra> findByIdAndTenantIdAndActivoTrue(Long id, Long tenantId);
+
+    // Usado por el Dashboard: no necesita el detalle de líneas.
+    List<Compra> findByTenantIdAndActivoTrueAndFechaBetween(Long tenantId, LocalDateTime desde, LocalDateTime hasta);
 }
