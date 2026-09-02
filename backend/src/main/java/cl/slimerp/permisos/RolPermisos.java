@@ -19,6 +19,7 @@ public final class RolPermisos {
         MAPA.put(Rol.SUPER_ADMIN, EnumSet.allOf(Permiso.class));
         MAPA.put(Rol.ADMIN, EnumSet.of(
                 Permiso.CLIENTES_VER, Permiso.CLIENTES_EDITAR,
+                Permiso.PROVEEDORES_VER, Permiso.PROVEEDORES_EDITAR,
                 Permiso.PRODUCTOS_VER, Permiso.PRODUCTOS_EDITAR,
                 Permiso.CATEGORIAS_VER, Permiso.CATEGORIAS_EDITAR,
                 Permiso.BODEGAS_VER, Permiso.BODEGAS_EDITAR,
@@ -31,12 +32,14 @@ public final class RolPermisos {
                 Permiso.FORMAS_PAGO_VER,
                 Permiso.MOVIMIENTOS_VER, Permiso.MOVIMIENTOS_EDITAR));
         MAPA.put(Rol.COMPRADOR, EnumSet.of(
+                Permiso.PROVEEDORES_VER, Permiso.PROVEEDORES_EDITAR,
                 Permiso.PRODUCTOS_VER, Permiso.PRODUCTOS_EDITAR,
                 Permiso.CATEGORIAS_VER, Permiso.CATEGORIAS_EDITAR,
                 Permiso.BODEGAS_VER, Permiso.BODEGAS_EDITAR,
                 Permiso.MOVIMIENTOS_VER, Permiso.MOVIMIENTOS_EDITAR));
         MAPA.put(Rol.VISUALIZADOR, EnumSet.of(
-                Permiso.CLIENTES_VER, Permiso.PRODUCTOS_VER, Permiso.CATEGORIAS_VER, Permiso.BODEGAS_VER,
+                Permiso.CLIENTES_VER, Permiso.PROVEEDORES_VER, Permiso.PRODUCTOS_VER,
+                Permiso.CATEGORIAS_VER, Permiso.BODEGAS_VER,
                 Permiso.FORMAS_PAGO_VER, Permiso.MOVIMIENTOS_VER));
     }
 

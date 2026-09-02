@@ -32,7 +32,10 @@ const GRUPOS: NavGroup[] = [
     key: 'contactos',
     titulo: 'Contactos',
     icono: 'group',
-    items: [{ ruta: '/clientes', label: 'Clientes', icono: 'group', permiso: 'CLIENTES_VER' }],
+    items: [
+      { ruta: '/clientes', label: 'Clientes', icono: 'group', permiso: 'CLIENTES_VER' },
+      { ruta: '/proveedores', label: 'Proveedores', icono: 'local_shipping', permiso: 'PROVEEDORES_VER' },
+    ],
   },
   {
     key: 'catalogo',

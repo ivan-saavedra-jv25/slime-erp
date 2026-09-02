@@ -3,6 +3,8 @@ export type Rol = 'SUPER_ADMIN' | 'ADMIN' | 'VENDEDOR' | 'COMPRADOR' | 'VISUALIZ
 export type Permiso =
   | 'CLIENTES_VER'
   | 'CLIENTES_EDITAR'
+  | 'PROVEEDORES_VER'
+  | 'PROVEEDORES_EDITAR'
   | 'PRODUCTOS_VER'
   | 'PRODUCTOS_EDITAR'
   | 'CATEGORIAS_VER'
@@ -50,6 +52,16 @@ export interface Cliente {
   giro: string | null;
   comuna: string | null;
   ciudad: string | null;
+  activo: boolean;
+}
+
+export interface Proveedor {
+  id: number;
+  nombre: string;
+  rut: string | null;
+  email: string | null;
+  telefono: string | null;
+  direccion: string | null;
   activo: boolean;
 }
 

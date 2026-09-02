@@ -1,0 +1,86 @@
+<h1>Proveedores</h1>
+
+@if (error) {
+  <p class="page-error">{{ error }}</p>
+}
+
+@if (auth.tienePermiso('PROVEEDORES_EDITAR')) {
+  <mat-card class="form-panel">
+    <h2>{{ editandoId ? 'Editar proveedor' : 'Nuevo proveedor' }}</h2>
+    <form #f="ngForm" (ngSubmit)="guardar()" novalidate>
+      <div class="form-grid">
+        <div class="form-group span-2" [class.has-error]="nombreCtrl.invalid && nombreCtrl.touched">
+          <label for="nombre">Nombre<span class="required-mark">*</span></label>
+          <input id="nombre" name="nombre" [(ngModel)]="nombre" required #nombreCtrl="ngModel" />
+          @if (nombreCtrl.invalid && nombreCtrl.touched) {
+            <span class="field-error">El nombre es obligatorio.</span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="rut">RUT <span class="hint">(opcional)</span></label>
+          <input id="rut" name="rut" placeholder="11.111.111-1" [(ngModel)]="rut" />
+        </div>
+
+        <div class="form-group">
+          <label for="email">Email <span class="hint">(opcional)</span></label>
+          <input id="email" name="email" type="email" autocomplete="off" [(ngModel)]="email" />
+        </div>
+
+        <div class="form-group">
+          <label for="telefono">Teléfono <span class="hint">(opcional)</span></label>
+          <input id="telefono" name="telefono" [(ngModel)]="telefono" />
+        </div>
+
+        <div class="form-group">
+          <label for="direccion">Dirección <span class="hint">(opcional)</span></label>
+          <input id="direccion" name="direccion" [(ngModel)]="direccion" />
+        </div>
+      </div>
+
+      <div class="form-actions">
+        @if (editandoId) {
+          <button mat-button type="button" (click)="cancelarEdicion()">Cancelar</button>
+        }
+        <button mat-flat-button color="primary" type="submit" [disabled]="guardando || f.invalid">
+          {{ guardando ? 'Guardando...' : editandoId ? 'Guardar cambios' : 'Agregar proveedor' }}
+        </button>
+      </div>
+    </form>
+  </mat-card>
+}
+
+<table mat-table [dataSource]="proveedores" class="mat-elevation-z1">
+  <ng-container matColumnDef="nombre">
+    <th mat-header-cell *matHeaderCellDef>Nombre</th>
+    <td mat-cell *matCellDef="let p">{{ p.nombre }}</td>
+  </ng-container>
+
+  <ng-container matColumnDef="rut">
+    <th mat-header-cell *matHeaderCellDef>RUT</th>
+    <td mat-cell *matCellDef="let p">{{ p.rut }}</td>
+  </ng-container>
+
+  <ng-container matColumnDef="email">
+    <th mat-header-cell *matHeaderCellDef>Email</th>
+    <td mat-cell *matCellDef="let p">{{ p.email }}</td>
+  </ng-container>
+
+  <ng-container matColumnDef="telefono">
+    <th mat-header-cell *matHeaderCellDef>Teléfono</th>
+    <td mat-cell *matCellDef="let p">{{ p.telefono }}</td>
+  </ng-container>
+
+  <ng-container matColumnDef="acciones">
+    <th mat-header-cell *matHeaderCellDef></th>
+    <td mat-cell *matCellDef="let p">
+      @if (auth.tienePermiso('PROVEEDORES_EDITAR')) {
+        <button mat-icon-button (click)="editar(p)"><mat-icon>edit</mat-icon></button>
+        <button mat-icon-button (click)="eliminar(p)"><mat-icon>delete</mat-icon></button>
+      }
+    </td>
+  </ng-container>
+
+  <tr mat-header-row *matHeaderRowDef="columnas"></tr>
+  <tr mat-row *matRowDef="let row; columns: columnas"></tr>
+</table>

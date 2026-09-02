@@ -3,6 +3,8 @@ package cl.slimerp.permisos;
 public enum Permiso {
     CLIENTES_VER,
     CLIENTES_EDITAR,
+    PROVEEDORES_VER,
+    PROVEEDORES_EDITAR,
     PRODUCTOS_VER,
     PRODUCTOS_EDITAR,
     CATEGORIAS_VER,
