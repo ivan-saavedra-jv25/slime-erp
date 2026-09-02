@@ -4,18 +4,11 @@ import { RouterLink } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { HighchartsChartModule } from 'highcharts-angular';
+import * as Highcharts from 'highcharts';
 import { DashboardService } from '../../core/services/dashboard.service';
 import { AuthService } from '../../core/services/auth.service';
 import { AlertaDashboard, DashboardResponse, PuntoVenta, TipoDocumentoVenta } from '../../core/models/models';
-
-interface Barra {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  etiqueta: string;
-  monto: number;
-}
 
 const ETIQUETAS_DOCUMENTO: Record<TipoDocumentoVenta, string> = {
   BOLETA: 'Boleta',
@@ -48,7 +41,7 @@ const NUMERO = new Intl.NumberFormat('es-CL', { maximumFractionDigits: 0 });
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink, MatCardModule, MatButtonModule, MatIconModule],
+  imports: [CommonModule, RouterLink, MatCardModule, MatButtonModule, MatIconModule, HighchartsChartModule],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',
 })
@@ -57,9 +50,13 @@ export class DashboardComponent implements OnInit {
   rangoActivo = 'mes';
 
   datos: DashboardResponse | null = null;
-  puntos: PuntoVenta[] = [];
   cargando = true;
   cargandoGrafico = true;
+  tieneDatosGrafico = false;
+
+  readonly Highcharts: typeof Highcharts = Highcharts;
+  chartOptions: Highcharts.Options = {};
+  actualizarGrafico = false;
 
   constructor(
     private dashboardService: DashboardService,
@@ -87,31 +84,49 @@ export class DashboardComponent implements OnInit {
     this.cargandoGrafico = true;
     this.dashboardService.ventasEvolucion(this.rangoActivo).subscribe({
       next: (data) => {
-        this.puntos = data;
+        this.tieneDatosGrafico = data.some((p) => p.monto > 0);
+        this.chartOptions = this.construirOpciones(data);
+        this.actualizarGrafico = true;
         this.cargandoGrafico = false;
       },
       error: () => (this.cargandoGrafico = false),
     });
   }
 
-  get barras(): Barra[] {
-    if (!this.puntos.length) return [];
-    const ancho = 600;
-    const alto = 180;
-    const gap = this.puntos.length > 1 ? 8 : 0;
-    const anchoBarra = (ancho - gap * (this.puntos.length - 1)) / this.puntos.length;
-    const max = Math.max(...this.puntos.map((p) => p.monto), 1);
-    return this.puntos.map((p, i) => {
-      const alturaBarra = max === 0 ? 0 : (p.monto / max) * (alto - 20);
-      return {
-        x: i * (anchoBarra + gap),
-        y: alto - alturaBarra,
-        width: anchoBarra,
-        height: alturaBarra,
-        etiqueta: p.etiqueta,
-        monto: p.monto,
-      };
-    });
+  private construirOpciones(puntos: PuntoVenta[]): Highcharts.Options {
+    const colorPrimario = getComputedStyle(document.documentElement).getPropertyValue('--primary-base').trim() || '#2563eb';
+    const colorTexto = getComputedStyle(document.documentElement).getPropertyValue('--text-muted').trim() || '#6b7280';
+
+    return {
+      chart: { type: 'column', height: 240, backgroundColor: 'transparent', style: { fontFamily: 'inherit' } },
+      title: { text: undefined },
+      credits: { enabled: false },
+      xAxis: {
+        categories: puntos.map((p) => p.etiqueta),
+        labels: { style: { color: colorTexto } },
+        lineColor: colorTexto,
+      },
+      yAxis: {
+        title: { text: undefined },
+        labels: {
+          style: { color: colorTexto },
+          formatter: function (): string {
+            return NUMERO.format(Number(this.value));
+          },
+        },
+        gridLineDashStyle: 'Dash',
+      },
+      legend: { enabled: false },
+      tooltip: {
+        formatter: function (): string {
+          return `${this.key}: <b>${MONEDA.format(Number(this.y))}</b>`;
+        },
+      },
+      plotOptions: {
+        column: { borderRadius: 4, color: colorPrimario, maxPointWidth: 60 },
+      },
+      series: [{ type: 'column', name: 'Ventas', data: puntos.map((p) => p.monto) }],
+    };
   }
 
   formatoMoneda(valor: number): string {

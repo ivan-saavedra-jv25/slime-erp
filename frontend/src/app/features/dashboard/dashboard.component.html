@@ -104,23 +104,17 @@
     @if (cargandoGrafico) {
       <p class="empty-state">Cargando gráfico...</p>
     }
-    @if (!cargandoGrafico && !puntos.length) {
+    @if (!cargandoGrafico && !tieneDatosGrafico) {
       <p class="empty-state">Sin ventas en este período.</p>
     }
-    @if (!cargandoGrafico && puntos.length) {
-      <svg class="chart" viewBox="0 0 600 180" preserveAspectRatio="none">
-        @for (barra of barras; track $index) {
-          <rect [attr.x]="barra.x" [attr.y]="barra.y" [attr.width]="barra.width" [attr.height]="barra.height" rx="2">
-            <title>{{ barra.etiqueta }}: {{ formatoMoneda(barra.monto) }}</title>
-          </rect>
-        }
-      </svg>
-      <div class="chart-labels">
-        @for (barra of barras; track $index) {
-          <span class="chart-label">{{ barra.etiqueta }}</span>
-        }
-      </div>
-    }
+    <div [style.display]="!cargandoGrafico && tieneDatosGrafico ? 'block' : 'none'">
+      <highcharts-chart
+        [Highcharts]="Highcharts"
+        [options]="chartOptions"
+        [(update)]="actualizarGrafico"
+        style="display: block; width: 100%; height: 240px;"
+      ></highcharts-chart>
+    </div>
   </mat-card>
 
   <mat-card class="form-panel">

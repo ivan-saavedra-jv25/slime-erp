@@ -134,29 +134,6 @@ h1 {
   color: var(--primary-base);
 }
 
-.chart {
-  width: 100%;
-  height: 180px;
-  display: block;
-}
-
-.chart rect {
-  fill: var(--primary-base);
-}
-
-.chart-labels {
-  display: flex;
-  justify-content: space-between;
-  margin-top: var(--space-2);
-}
-
-.chart-label {
-  font: var(--font-legals);
-  color: var(--text-muted);
-  flex: 1;
-  text-align: center;
-}
-
 .historial-table {
   width: 100%;
   border-collapse: collapse;
