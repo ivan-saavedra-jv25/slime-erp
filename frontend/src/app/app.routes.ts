@@ -33,6 +33,11 @@ export const routes: Routes = [
         loadComponent: () => import('./features/categorias/categorias.component').then((m) => m.CategoriasComponent),
       },
       {
+        path: 'formas-pago',
+        loadComponent: () =>
+          import('./features/formas-pago/formas-pago.component').then((m) => m.FormasPagoComponent),
+      },
+      {
         path: 'usuarios',
         loadComponent: () => import('./features/usuarios/usuarios.component').then((m) => m.UsuariosComponent),
       },

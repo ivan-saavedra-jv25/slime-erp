@@ -9,6 +9,8 @@ export type Permiso =
   | 'CATEGORIAS_EDITAR'
   | 'BODEGAS_VER'
   | 'BODEGAS_EDITAR'
+  | 'FORMAS_PAGO_VER'
+  | 'FORMAS_PAGO_EDITAR'
   | 'USUARIOS_VER'
   | 'USUARIOS_EDITAR'
   | 'EMPRESAS_ADMINISTRAR';
@@ -95,6 +97,16 @@ export interface InventarioItem {
   sku: string | null;
   nombre: string;
   cantidad: number;
+}
+
+export type CategoriaFormaPago = 'GRATIS' | 'CREDITO' | 'CONTADO';
+
+export interface FormaPago {
+  id: number;
+  nombre: string;
+  categoria: CategoriaFormaPago;
+  activo: boolean;
+  fechaCreacion: string;
 }
 
 export interface Empresa {

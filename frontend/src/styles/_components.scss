@@ -165,6 +165,21 @@
   margin-left: var(--space-2);
 }
 
+.tag--success {
+  background: var(--success-background);
+  color: var(--success-base);
+}
+
+.tag--warning {
+  background: var(--warning-background);
+  color: var(--warning-base);
+}
+
+.tag--info {
+  background: var(--info-background);
+  color: var(--info-base);
+}
+
 .page-error {
   color: var(--error-base);
   font: var(--font-body-sm);

@@ -1,0 +1,71 @@
+<h1>Formas de pago</h1>
+
+@if (error) {
+  <p class="page-error">{{ error }}</p>
+}
+
+@if (auth.tienePermiso('FORMAS_PAGO_EDITAR')) {
+  <mat-card class="form-panel">
+    <h2>{{ editandoId ? 'Editar forma de pago' : 'Nueva forma de pago' }}</h2>
+    <p class="form-section-hint">Se usan para clasificar cómo se paga cada venta.</p>
+    <form #f="ngForm" (ngSubmit)="guardar()" novalidate>
+      <div class="form-grid">
+        <div class="form-group" [class.has-error]="nombreCtrl.invalid && nombreCtrl.touched">
+          <label for="nombre">Nombre<span class="required-mark">*</span></label>
+          <input id="nombre" name="nombre" [(ngModel)]="nombre" required #nombreCtrl="ngModel" />
+          @if (nombreCtrl.invalid && nombreCtrl.touched) {
+            <span class="field-error">El nombre es obligatorio.</span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="categoria">Categoría<span class="required-mark">*</span></label>
+          <select id="categoria" name="categoria" [(ngModel)]="categoria" required>
+            @for (c of categorias; track c) {
+              <option [value]="c">{{ etiquetaCategoria(c) }}</option>
+            }
+          </select>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        @if (editandoId) {
+          <button mat-button type="button" (click)="cancelarEdicion()">Cancelar</button>
+        }
+        <button mat-flat-button color="primary" type="submit" [disabled]="guardando || f.invalid">
+          {{ guardando ? 'Guardando...' : editandoId ? 'Guardar cambios' : 'Agregar' }}
+        </button>
+      </div>
+    </form>
+  </mat-card>
+}
+
+<table mat-table [dataSource]="formasPago" class="mat-elevation-z1">
+  <ng-container matColumnDef="nombre">
+    <th mat-header-cell *matHeaderCellDef>Nombre</th>
+    <td mat-cell *matCellDef="let fp">{{ fp.nombre }}</td>
+  </ng-container>
+
+  <ng-container matColumnDef="categoria">
+    <th mat-header-cell *matHeaderCellDef>Categoría</th>
+    <td mat-cell *matCellDef="let fp">
+      <span class="tag" [ngClass]="tagCategoria(fp.categoria)">{{ etiquetaCategoria(fp.categoria) }}</span>
+    </td>
+  </ng-container>
+
+  <ng-container matColumnDef="acciones">
+    <th mat-header-cell *matHeaderCellDef></th>
+    <td mat-cell *matCellDef="let fp">
+      @if (auth.tienePermiso('FORMAS_PAGO_EDITAR')) {
+        <button mat-icon-button (click)="editar(fp)"><mat-icon>edit</mat-icon></button>
+        <button mat-icon-button (click)="eliminar(fp)"><mat-icon>delete</mat-icon></button>
+      }
+    </td>
+  </ng-container>
+
+  <tr mat-header-row *matHeaderRowDef="columnas"></tr>
+  <tr mat-row *matRowDef="let row; columns: columnas"></tr>
+</table>
+@if (!formasPago.length) {
+  <p class="empty-state">Aún no hay formas de pago.</p>
+}

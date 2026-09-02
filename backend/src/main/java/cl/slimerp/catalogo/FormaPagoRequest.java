@@ -1,0 +1,7 @@
+package cl.slimerp.catalogo;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+
+public record FormaPagoRequest(@NotBlank String nombre, @NotNull CategoriaFormaPago categoria) {
+}
