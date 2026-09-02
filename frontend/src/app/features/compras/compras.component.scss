@@ -1,0 +1,143 @@
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-5);
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .two-col {
+    grid-template-columns: 1fr;
+  }
+}
+
+.search-group {
+  position: relative;
+}
+
+.search-results {
+  position: absolute;
+  top: calc(100% + 2px);
+  left: 0;
+  right: 0;
+  z-index: 10;
+  background: var(--surface-card);
+  border: var(--border-width-default) solid var(--border-default);
+  border-radius: var(--radius-2);
+  box-shadow: var(--shadow-neutral);
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.search-results__item {
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-2) var(--space-3);
+  cursor: pointer;
+}
+
+.search-results__item:hover {
+  background: var(--surface-subtle);
+}
+
+.search-results__nombre {
+  font: var(--font-body-sm);
+  font-weight: 600;
+  color: var(--text-title);
+}
+
+.search-results__sku {
+  font: var(--font-legals);
+  color: var(--text-muted);
+}
+
+.cliente-seleccionado {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-3);
+}
+
+.cliente-seleccionado__nombre {
+  font: var(--font-body);
+  font-weight: 700;
+  color: var(--text-title);
+}
+
+.item-entry {
+  margin-bottom: var(--space-4);
+}
+
+.item-entry__row {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.item-entry__col {
+  flex: 1;
+  min-width: 160px;
+  position: relative;
+}
+
+.item-entry__col--qty {
+  flex: 0 0 110px;
+  min-width: 110px;
+}
+
+.item-entry__add-btn {
+  margin-bottom: var(--space-1);
+}
+
+.items-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.items-table th,
+.items-table td {
+  text-align: left;
+  padding: var(--space-2) var(--space-3);
+  border-bottom: var(--border-width-default) solid var(--border-default);
+  font: var(--font-body-sm);
+}
+
+.items-table th {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.items-table .right {
+  text-align: right;
+}
+
+.totals-grid--simple {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.totals-group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-3);
+  min-width: 220px;
+}
+
+.totals-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  font: var(--font-body-sm);
+  color: var(--text-body);
+}
+
+.totals-row--total {
+  font: var(--font-h3);
+  font-weight: 700;
+  color: var(--text-title);
+  border-top: var(--border-width-default) solid var(--border-default);
+  padding-top: var(--space-2);
+}

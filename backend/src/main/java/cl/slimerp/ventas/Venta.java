@@ -37,8 +37,9 @@ public class Venta {
     @Column(name = "tipo_documento", nullable = false, length = 20)
     private TipoDocumentoVenta tipoDocumento;
 
-    // Solo aplica cuando tipoDocumento == VOUCHER: distingue venta interna (false)
-    // de venta exenta (true). No cambia el cálculo (ningún VOUCHER lleva IVA).
+    // Boleta/Factura: exenta (true, sin IVA) vs. afecta (false, con IVA).
+    // Voucher: distingue venta interna (false) de venta exenta (true); nunca
+    // lleva IVA en ningún caso.
     @Column(nullable = false)
     @Builder.Default
     private boolean exento = false;

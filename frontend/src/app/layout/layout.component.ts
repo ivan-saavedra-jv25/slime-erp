@@ -38,6 +38,15 @@ const GRUPOS: NavGroup[] = [
     ],
   },
   {
+    key: 'compras',
+    titulo: 'Compras',
+    icono: 'shopping_cart',
+    items: [
+      { ruta: '/compras', label: 'Nueva compra', icono: 'shopping_cart', permiso: 'COMPRAS_VER', exact: true },
+      { ruta: '/compras/historial', label: 'Historial', icono: 'history', permiso: 'COMPRAS_VER' },
+    ],
+  },
+  {
     key: 'contactos',
     titulo: 'Contactos',
     icono: 'group',

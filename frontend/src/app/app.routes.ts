@@ -26,6 +26,15 @@ export const routes: Routes = [
           import('./features/ventas/ventas-historial.component').then((m) => m.VentasHistorialComponent),
       },
       {
+        path: 'compras',
+        loadComponent: () => import('./features/compras/compras.component').then((m) => m.ComprasComponent),
+      },
+      {
+        path: 'compras/historial',
+        loadComponent: () =>
+          import('./features/compras/compras-historial.component').then((m) => m.ComprasHistorialComponent),
+      },
+      {
         path: 'clientes',
         loadComponent: () => import('./features/clientes/clientes.component').then((m) => m.ClientesComponent),
       },

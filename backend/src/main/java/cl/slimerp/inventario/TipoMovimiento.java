@@ -5,5 +5,6 @@ public enum TipoMovimiento {
     SALIDA,
     TRASLADO,
     AJUSTE,
-    SALIDA_VENTA
+    SALIDA_VENTA,
+    ENTRADA_COMPRA
 }

@@ -43,6 +43,7 @@ export class MovimientosHistorialComponent implements OnInit {
   claseTag(tipo: string): string {
     switch (tipo) {
       case 'ENTRADA':
+      case 'ENTRADA_COMPRA':
         return 'tag tag--success';
       case 'SALIDA':
       case 'SALIDA_VENTA':
@@ -59,6 +60,7 @@ export class MovimientosHistorialComponent implements OnInit {
   iconoTipo(tipo: string): string {
     switch (tipo) {
       case 'ENTRADA':
+      case 'ENTRADA_COMPRA':
         return 'input';
       case 'SALIDA':
       case 'SALIDA_VENTA':

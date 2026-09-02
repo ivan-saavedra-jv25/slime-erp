@@ -17,6 +17,8 @@ export type Permiso =
   | 'MOVIMIENTOS_EDITAR'
   | 'VENTAS_VER'
   | 'VENTAS_EDITAR'
+  | 'COMPRAS_VER'
+  | 'COMPRAS_EDITAR'
   | 'USUARIOS_VER'
   | 'USUARIOS_EDITAR'
   | 'EMPRESAS_ADMINISTRAR';
@@ -179,6 +181,29 @@ export interface Venta {
   descuento: number;
   observacion: string | null;
   detalle: VentaDetalle[];
+}
+
+export interface CompraItem {
+  productoId: number;
+  cantidad: number;
+  precioUnitario: number;
+}
+
+export interface CompraDetalle {
+  productoId: number;
+  cantidad: number;
+  precioUnitario: number;
+  subtotal: number;
+}
+
+export interface Compra {
+  id: number;
+  proveedorId: number;
+  bodegaId: number;
+  fecha: string;
+  total: number;
+  observacion: string | null;
+  detalle: CompraDetalle[];
 }
 
 export interface Empresa {
