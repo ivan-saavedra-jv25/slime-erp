@@ -27,6 +27,31 @@
           <textarea id="descripcion" name="descripcion" rows="2" [(ngModel)]="descripcion"></textarea>
         </div>
 
+        <div class="form-group">
+          <label for="categoriaId">Categoría <span class="hint">(opcional)</span></label>
+          <select id="categoriaId" name="categoriaId" [(ngModel)]="categoriaId" (ngModelChange)="onCategoriaChange()">
+            <option [ngValue]="null">Sin categoría</option>
+            @for (c of categorias; track c.id) {
+              <option [ngValue]="c.id">{{ c.nombre }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="subcategoriaId">Subcategoría <span class="hint">(opcional)</span></label>
+          <select
+            id="subcategoriaId"
+            name="subcategoriaId"
+            [(ngModel)]="subcategoriaId"
+            [disabled]="!categoriaId"
+          >
+            <option [ngValue]="null">Sin subcategoría</option>
+            @for (s of subcategoriasDisponibles; track s.id) {
+              <option [ngValue]="s.id">{{ s.nombre }}</option>
+            }
+          </select>
+        </div>
+
         <div class="form-group" [class.has-error]="precioVentaCtrl.invalid && precioVentaCtrl.touched">
           <label for="precioVenta">Precio venta<span class="required-mark">*</span></label>
           <input
@@ -69,6 +94,11 @@
   <ng-container matColumnDef="nombre">
     <th mat-header-cell *matHeaderCellDef>Nombre</th>
     <td mat-cell *matCellDef="let p">{{ p.nombre }}</td>
+  </ng-container>
+
+  <ng-container matColumnDef="categoria">
+    <th mat-header-cell *matHeaderCellDef>Categoría</th>
+    <td mat-cell *matCellDef="let p">{{ nombreCategoria(p.categoriaId) || '—' }}</td>
   </ng-container>
 
   <ng-container matColumnDef="precioVenta">

@@ -1,0 +1,29 @@
+:host {
+  display: block;
+}
+
+.categorias-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-5);
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .categorias-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.selectable-row {
+  cursor: pointer;
+}
+
+.selectable-row.selected {
+  background: var(--surface-page);
+}
+
+.selectable-row.selected td:first-child {
+  font-weight: 600;
+  color: var(--interactive);
+}

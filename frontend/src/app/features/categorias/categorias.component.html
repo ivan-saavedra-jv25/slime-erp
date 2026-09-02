@@ -1,0 +1,133 @@
+<h1>Categorías</h1>
+
+@if (error) {
+  <p class="page-error">{{ error }}</p>
+}
+
+<div class="categorias-layout">
+  <mat-card class="form-panel categorias-panel">
+    @if (auth.tienePermiso('CATEGORIAS_EDITAR')) {
+      <h2>{{ editandoCategoriaId ? 'Editar categoría' : 'Nueva categoría' }}</h2>
+      <form #f="ngForm" (ngSubmit)="guardarCategoria()" novalidate>
+        <div class="form-group" [class.has-error]="nombreCtrl.invalid && nombreCtrl.touched">
+          <label for="nombreCategoria">Nombre<span class="required-mark">*</span></label>
+          <input
+            id="nombreCategoria"
+            name="nombreCategoria"
+            [(ngModel)]="nombreCategoria"
+            required
+            #nombreCtrl="ngModel"
+          />
+          @if (nombreCtrl.invalid && nombreCtrl.touched) {
+            <span class="field-error">El nombre es obligatorio.</span>
+          }
+        </div>
+
+        <div class="form-actions">
+          @if (editandoCategoriaId) {
+            <button mat-button type="button" (click)="cancelarEdicionCategoria()">Cancelar</button>
+          }
+          <button mat-flat-button color="primary" type="submit" [disabled]="guardandoCategoria || f.invalid">
+            {{ guardandoCategoria ? 'Guardando...' : editandoCategoriaId ? 'Guardar' : 'Agregar' }}
+          </button>
+        </div>
+      </form>
+    }
+
+    <table mat-table [dataSource]="categorias" class="mat-elevation-z1">
+      <ng-container matColumnDef="nombre">
+        <th mat-header-cell *matHeaderCellDef>Categoría</th>
+        <td mat-cell *matCellDef="let c">{{ c.nombre }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="acciones">
+        <th mat-header-cell *matHeaderCellDef></th>
+        <td mat-cell *matCellDef="let c">
+          @if (auth.tienePermiso('CATEGORIAS_EDITAR')) {
+            <button mat-icon-button (click)="editarCategoria(c); $event.stopPropagation()">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button mat-icon-button (click)="eliminarCategoria(c); $event.stopPropagation()">
+              <mat-icon>delete</mat-icon>
+            </button>
+          }
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="columnasCategorias"></tr>
+      <tr
+        mat-row
+        *matRowDef="let row; columns: columnasCategorias"
+        class="selectable-row"
+        [class.selected]="categoriaSeleccionada?.id === row.id"
+        (click)="seleccionar(row)"
+      ></tr>
+    </table>
+    @if (!categorias.length) {
+      <p class="empty-state">Aún no hay categorías.</p>
+    }
+  </mat-card>
+
+  <mat-card class="form-panel subcategorias-panel">
+    <h2>
+      Subcategorías
+      @if (categoriaSeleccionada) {
+        <span class="hint">de {{ categoriaSeleccionada.nombre }}</span>
+      }
+    </h2>
+
+    @if (!categoriaSeleccionada) {
+      <p class="form-section-hint">Selecciona una categoría de la izquierda para ver y agregar sus subcategorías.</p>
+    } @else {
+      @if (auth.tienePermiso('CATEGORIAS_EDITAR')) {
+        <form #fs="ngForm" (ngSubmit)="guardarSubcategoria()" novalidate>
+          <div class="form-group" [class.has-error]="nombreSubCtrl.invalid && nombreSubCtrl.touched">
+            <label for="nombreSubcategoria">Nombre<span class="required-mark">*</span></label>
+            <input
+              id="nombreSubcategoria"
+              name="nombreSubcategoria"
+              [(ngModel)]="nombreSubcategoria"
+              required
+              #nombreSubCtrl="ngModel"
+            />
+            @if (nombreSubCtrl.invalid && nombreSubCtrl.touched) {
+              <span class="field-error">El nombre es obligatorio.</span>
+            }
+          </div>
+
+          <div class="form-actions">
+            @if (editandoSubcategoriaId) {
+              <button mat-button type="button" (click)="cancelarEdicionSubcategoria()">Cancelar</button>
+            }
+            <button mat-flat-button color="primary" type="submit" [disabled]="guardandoSubcategoria || fs.invalid">
+              {{ guardandoSubcategoria ? 'Guardando...' : editandoSubcategoriaId ? 'Guardar' : 'Agregar' }}
+            </button>
+          </div>
+        </form>
+      }
+
+      <table mat-table [dataSource]="subcategorias" class="mat-elevation-z1">
+        <ng-container matColumnDef="nombre">
+          <th mat-header-cell *matHeaderCellDef>Subcategoría</th>
+          <td mat-cell *matCellDef="let s">{{ s.nombre }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="acciones">
+          <th mat-header-cell *matHeaderCellDef></th>
+          <td mat-cell *matCellDef="let s">
+            @if (auth.tienePermiso('CATEGORIAS_EDITAR')) {
+              <button mat-icon-button (click)="editarSubcategoria(s)"><mat-icon>edit</mat-icon></button>
+              <button mat-icon-button (click)="eliminarSubcategoria(s)"><mat-icon>delete</mat-icon></button>
+            }
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="columnasSubcategorias"></tr>
+        <tr mat-row *matRowDef="let row; columns: columnasSubcategorias"></tr>
+      </table>
+      @if (!subcategorias.length) {
+        <p class="empty-state">Esta categoría aún no tiene subcategorías.</p>
+      }
+    }
+  </mat-card>
+</div>

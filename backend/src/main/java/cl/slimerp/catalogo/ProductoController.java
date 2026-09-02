@@ -41,6 +41,8 @@ public class ProductoController {
                 .sku(request.sku())
                 .nombre(request.nombre())
                 .descripcion(request.descripcion())
+                .categoriaId(request.categoriaId())
+                .subcategoriaId(request.subcategoriaId())
                 .precioVenta(request.precioVenta())
                 .precioCompra(request.precioCompra() != null ? request.precioCompra() : BigDecimal.ZERO)
                 .build();
@@ -55,6 +57,8 @@ public class ProductoController {
                     producto.setSku(request.sku());
                     producto.setNombre(request.nombre());
                     producto.setDescripcion(request.descripcion());
+                    producto.setCategoriaId(request.categoriaId());
+                    producto.setSubcategoriaId(request.subcategoriaId());
                     producto.setPrecioVenta(request.precioVenta());
                     producto.setPrecioCompra(request.precioCompra() != null ? request.precioCompra() : BigDecimal.ZERO);
                     return ResponseEntity.ok(productoRepository.save(producto));

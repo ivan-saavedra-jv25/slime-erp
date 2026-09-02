@@ -39,6 +39,7 @@ const GRUPOS: NavGroup[] = [
     icono: 'inventory_2',
     items: [
       { ruta: '/productos', label: 'Productos', icono: 'inventory_2', permiso: 'PRODUCTOS_VER' },
+      { ruta: '/categorias', label: 'Categorías', icono: 'category', permiso: 'CATEGORIAS_VER' },
       { ruta: '/bodegas', label: 'Bodegas', icono: 'warehouse', permiso: 'BODEGAS_VER' },
     ],
   },

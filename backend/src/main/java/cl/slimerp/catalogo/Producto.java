@@ -31,6 +31,12 @@ public class Producto {
     @Column(length = 500)
     private String descripcion;
 
+    @Column(name = "categoria_id")
+    private Long categoriaId;
+
+    @Column(name = "subcategoria_id")
+    private Long subcategoriaId;
+
     @Column(name = "precio_venta", nullable = false, precision = 14, scale = 2)
     @Builder.Default
     private BigDecimal precioVenta = BigDecimal.ZERO;

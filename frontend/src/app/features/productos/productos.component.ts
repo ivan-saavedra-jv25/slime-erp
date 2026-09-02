@@ -6,8 +6,10 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
 import { ProductoService, ProductoRequest } from '../../core/services/producto.service';
+import { CategoriaService } from '../../core/services/categoria.service';
+import { SubcategoriaService } from '../../core/services/subcategoria.service';
 import { AuthService } from '../../core/services/auth.service';
-import { Producto } from '../../core/models/models';
+import { Categoria, Producto, Subcategoria } from '../../core/models/models';
 
 @Component({
   selector: 'app-productos',
@@ -17,8 +19,10 @@ import { Producto } from '../../core/models/models';
   styleUrl: './productos.component.scss',
 })
 export class ProductosComponent implements OnInit {
-  columnas = ['sku', 'nombre', 'precioVenta', 'acciones'];
+  columnas = ['sku', 'nombre', 'categoria', 'precioVenta', 'acciones'];
   productos: Producto[] = [];
+  categorias: Categoria[] = [];
+  subcategoriasDisponibles: Subcategoria[] = [];
   error = '';
   guardando = false;
   editandoId: number | null = null;
@@ -26,17 +30,37 @@ export class ProductosComponent implements OnInit {
   sku = '';
   nombre = '';
   descripcion = '';
+  categoriaId: number | null = null;
+  subcategoriaId: number | null = null;
   precioVenta = 0;
   precioCompra = 0;
 
-  constructor(private productoService: ProductoService, public auth: AuthService) {}
+  constructor(
+    private productoService: ProductoService,
+    private categoriaService: CategoriaService,
+    private subcategoriaService: SubcategoriaService,
+    public auth: AuthService
+  ) {}
 
   ngOnInit(): void {
     this.cargar();
+    this.categoriaService.listar().subscribe((data) => (this.categorias = data));
   }
 
   cargar(): void {
     this.productoService.listar().subscribe((productos) => (this.productos = productos));
+  }
+
+  nombreCategoria(id: number | null): string {
+    return this.categorias.find((c) => c.id === id)?.nombre ?? '';
+  }
+
+  onCategoriaChange(): void {
+    this.subcategoriaId = null;
+    this.subcategoriasDisponibles = [];
+    if (this.categoriaId != null) {
+      this.subcategoriaService.listar(this.categoriaId).subscribe((data) => (this.subcategoriasDisponibles = data));
+    }
   }
 
   editar(producto: Producto): void {
@@ -46,6 +70,15 @@ export class ProductosComponent implements OnInit {
     this.descripcion = producto.descripcion ?? '';
     this.precioVenta = producto.precioVenta;
     this.precioCompra = producto.precioCompra;
+    this.categoriaId = producto.categoriaId;
+    this.subcategoriaId = null;
+    this.subcategoriasDisponibles = [];
+    if (this.categoriaId != null) {
+      this.subcategoriaService.listar(this.categoriaId).subscribe((data) => {
+        this.subcategoriasDisponibles = data;
+        this.subcategoriaId = producto.subcategoriaId;
+      });
+    }
   }
 
   cancelarEdicion(): void {
@@ -59,6 +92,8 @@ export class ProductosComponent implements OnInit {
       sku: this.sku || null,
       nombre: this.nombre,
       descripcion: this.descripcion,
+      categoriaId: this.categoriaId,
+      subcategoriaId: this.subcategoriaId,
       precioVenta: this.precioVenta,
       precioCompra: this.precioCompra,
     };
@@ -98,6 +133,9 @@ export class ProductosComponent implements OnInit {
     this.sku = '';
     this.nombre = '';
     this.descripcion = '';
+    this.categoriaId = null;
+    this.subcategoriaId = null;
+    this.subcategoriasDisponibles = [];
     this.precioVenta = 0;
     this.precioCompra = 0;
   }

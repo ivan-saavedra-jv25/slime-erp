@@ -5,6 +5,8 @@ export type Permiso =
   | 'CLIENTES_EDITAR'
   | 'PRODUCTOS_VER'
   | 'PRODUCTOS_EDITAR'
+  | 'CATEGORIAS_VER'
+  | 'CATEGORIAS_EDITAR'
   | 'BODEGAS_VER'
   | 'BODEGAS_EDITAR'
   | 'USUARIOS_VER'
@@ -52,9 +54,26 @@ export interface Producto {
   sku: string | null;
   nombre: string;
   descripcion: string | null;
+  categoriaId: number | null;
+  subcategoriaId: number | null;
   precioVenta: number;
   precioCompra: number;
   activo: boolean;
+}
+
+export interface Categoria {
+  id: number;
+  nombre: string;
+  activo: boolean;
+  fechaCreacion: string;
+}
+
+export interface Subcategoria {
+  id: number;
+  categoriaId: number;
+  nombre: string;
+  activo: boolean;
+  fechaCreacion: string;
 }
 
 export interface Bodega {
