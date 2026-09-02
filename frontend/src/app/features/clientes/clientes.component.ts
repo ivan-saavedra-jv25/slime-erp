@@ -1,6 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { MatTableModule } from '@angular/material/table';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatButtonModule } from '@angular/material/button';
@@ -17,9 +19,10 @@ import { Cliente } from '../../core/models/models';
   templateUrl: './clientes.component.html',
   styleUrl: './clientes.component.scss',
 })
-export class ClientesComponent implements OnInit {
+export class ClientesComponent implements OnInit, OnDestroy {
   columnas = ['nombre', 'rut', 'email', 'telefono', 'acciones'];
   clientes: Cliente[] = [];
+  total = 0;
   error = '';
   guardando = false;
   editandoId: number | null = null;
@@ -39,43 +42,42 @@ export class ClientesComponent implements OnInit {
   comuna = '';
   ciudad = '';
 
+  private readonly busqueda$ = new Subject<string>();
+
   constructor(private clienteService: ClienteService, public auth: AuthService) {}
 
   ngOnInit(): void {
+    this.busqueda$.pipe(debounceTime(300), distinctUntilChanged()).subscribe(() => {
+      this.paginaActual = 0;
+      this.cargar();
+    });
     this.cargar();
   }
 
+  ngOnDestroy(): void {
+    this.busqueda$.complete();
+  }
+
   cargar(): void {
-    this.clienteService.listar().subscribe((clientes) => {
-      this.clientes = clientes;
-      this.paginaActual = 0;
+    this.clienteService.listarPagina(this.filtro, this.paginaActual, this.tamanoPagina).subscribe((resp) => {
+      if (!resp.contenido.length && this.paginaActual > 0) {
+        this.paginaActual = Math.max(0, this.paginaActual - 1);
+        this.cargar();
+        return;
+      }
+      this.clientes = resp.contenido;
+      this.total = resp.total;
     });
   }
 
-  get clientesFiltrados(): Cliente[] {
-    const q = this.filtro.trim().toLowerCase();
-    if (!q) return this.clientes;
-    return this.clientes.filter(
-      (c) =>
-        c.nombre.toLowerCase().includes(q) ||
-        (c.rut ?? '').toLowerCase().includes(q) ||
-        (c.email ?? '').toLowerCase().includes(q) ||
-        (c.telefono ?? '').toLowerCase().includes(q)
-    );
-  }
-
-  get clientesPagina(): Cliente[] {
-    const inicio = this.paginaActual * this.tamanoPagina;
-    return this.clientesFiltrados.slice(inicio, inicio + this.tamanoPagina);
-  }
-
   onFiltroChange(): void {
-    this.paginaActual = 0;
+    this.busqueda$.next(this.filtro);
   }
 
   onPageChange(event: PageEvent): void {
     this.paginaActual = event.pageIndex;
     this.tamanoPagina = event.pageSize;
+    this.cargar();
   }
 
   editar(cliente: Cliente): void {

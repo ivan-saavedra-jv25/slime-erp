@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { Producto } from '../models/models';
+import { PaginaResponse, Producto } from '../models/models';
 
 export interface ProductoRequest {
   sku?: string | null;
@@ -22,6 +22,12 @@ export class ProductoService {
 
   listar(): Observable<Producto[]> {
     return this.http.get<Producto[]>(this.base);
+  }
+
+  listarPagina(q: string, pagina: number, tamano: number): Observable<PaginaResponse<Producto>> {
+    const params: Record<string, string> = { pagina: String(pagina), tamano: String(tamano) };
+    if (q) params['q'] = q;
+    return this.http.get<PaginaResponse<Producto>>(`${this.base}/pagina`, { params });
   }
 
   crear(request: ProductoRequest): Observable<Producto> {

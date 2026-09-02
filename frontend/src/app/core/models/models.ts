@@ -48,6 +48,11 @@ export interface Usuario {
   fechaCreacion: string;
 }
 
+export interface PaginaResponse<T> {
+  contenido: T[];
+  total: number;
+}
+
 export interface Cliente {
   id: number;
   nombre: string;

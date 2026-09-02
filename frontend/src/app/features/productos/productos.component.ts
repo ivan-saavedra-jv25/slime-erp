@@ -1,6 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { MatTableModule } from '@angular/material/table';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatButtonModule } from '@angular/material/button';
@@ -19,9 +21,10 @@ import { Categoria, Producto, Subcategoria } from '../../core/models/models';
   templateUrl: './productos.component.html',
   styleUrl: './productos.component.scss',
 })
-export class ProductosComponent implements OnInit {
+export class ProductosComponent implements OnInit, OnDestroy {
   columnas = ['sku', 'nombre', 'categoria', 'precioVenta', 'acciones'];
   productos: Producto[] = [];
+  total = 0;
   categorias: Categoria[] = [];
   subcategoriasDisponibles: Subcategoria[] = [];
   error = '';
@@ -41,6 +44,8 @@ export class ProductosComponent implements OnInit {
   precioVenta = 0;
   precioCompra = 0;
 
+  private readonly busqueda$ = new Subject<string>();
+
   constructor(
     private productoService: ProductoService,
     private categoriaService: CategoriaService,
@@ -49,14 +54,27 @@ export class ProductosComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.cargar();
     this.categoriaService.listar().subscribe((data) => (this.categorias = data));
+    this.busqueda$.pipe(debounceTime(300), distinctUntilChanged()).subscribe(() => {
+      this.paginaActual = 0;
+      this.cargar();
+    });
+    this.cargar();
+  }
+
+  ngOnDestroy(): void {
+    this.busqueda$.complete();
   }
 
   cargar(): void {
-    this.productoService.listar().subscribe((productos) => {
-      this.productos = productos;
-      this.paginaActual = 0;
+    this.productoService.listarPagina(this.filtro, this.paginaActual, this.tamanoPagina).subscribe((resp) => {
+      if (!resp.contenido.length && this.paginaActual > 0) {
+        this.paginaActual = Math.max(0, this.paginaActual - 1);
+        this.cargar();
+        return;
+      }
+      this.productos = resp.contenido;
+      this.total = resp.total;
     });
   }
 
@@ -64,29 +82,14 @@ export class ProductosComponent implements OnInit {
     return this.categorias.find((c) => c.id === id)?.nombre ?? '';
   }
 
-  get productosFiltrados(): Producto[] {
-    const q = this.filtro.trim().toLowerCase();
-    if (!q) return this.productos;
-    return this.productos.filter(
-      (p) =>
-        p.nombre.toLowerCase().includes(q) ||
-        (p.sku ?? '').toLowerCase().includes(q) ||
-        this.nombreCategoria(p.categoriaId).toLowerCase().includes(q)
-    );
-  }
-
-  get productosPagina(): Producto[] {
-    const inicio = this.paginaActual * this.tamanoPagina;
-    return this.productosFiltrados.slice(inicio, inicio + this.tamanoPagina);
-  }
-
   onFiltroChange(): void {
-    this.paginaActual = 0;
+    this.busqueda$.next(this.filtro);
   }
 
   onPageChange(event: PageEvent): void {
     this.paginaActual = event.pageIndex;
     this.tamanoPagina = event.pageSize;
+    this.cargar();
   }
 
   onCategoriaChange(): void {

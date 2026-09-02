@@ -1,7 +1,10 @@
 package cl.slimerp.catalogo;
 
+import cl.slimerp.common.PaginaResponse;
 import cl.slimerp.config.TenantContext;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -23,6 +26,20 @@ public class ProductoController {
     @PreAuthorize("hasAuthority('PRODUCTOS_VER')")
     public List<Producto> listar() {
         return productoRepository.findByTenantIdAndActivoTrue(TenantContext.getTenantId());
+    }
+
+    // Listado paginado y con búsqueda server-side, usado por la pantalla de
+    // mantenedor de Productos. El listado completo (arriba) se mantiene para
+    // los buscadores en memoria de Ventas/Compras/Bodegas/etc.
+    @GetMapping("/pagina")
+    @PreAuthorize("hasAuthority('PRODUCTOS_VER')")
+    public PaginaResponse<Producto> listarPagina(
+            @RequestParam(required = false) String q,
+            @RequestParam(defaultValue = "0") int pagina,
+            @RequestParam(defaultValue = "10") int tamano) {
+        String busqueda = "%" + (q == null ? "" : q.trim().toLowerCase()) + "%";
+        var pageable = PageRequest.of(pagina, tamano, Sort.by("nombre").ascending());
+        return PaginaResponse.de(productoRepository.buscar(TenantContext.getTenantId(), busqueda, pageable));
     }
 
     @GetMapping("/{id}")
