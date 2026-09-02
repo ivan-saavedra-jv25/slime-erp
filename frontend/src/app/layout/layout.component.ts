@@ -47,6 +47,15 @@ const GRUPOS: NavGroup[] = [
     ],
   },
   {
+    key: 'tesoreria',
+    titulo: 'Tesorería',
+    icono: 'account_balance',
+    items: [
+      { ruta: '/tesoreria/cuentas', label: 'Cuentas por cobrar', icono: 'account_balance', permiso: 'TESORERIA_VER' },
+      { ruta: '/tesoreria/historial', label: 'Historial de pagos', icono: 'history', permiso: 'TESORERIA_VER' },
+    ],
+  },
+  {
     key: 'contactos',
     titulo: 'Contactos',
     icono: 'group',

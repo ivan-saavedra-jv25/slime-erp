@@ -26,6 +26,23 @@ export const routes: Routes = [
           import('./features/ventas/ventas-historial.component').then((m) => m.VentasHistorialComponent),
       },
       {
+        path: 'tesoreria/cuentas',
+        loadComponent: () =>
+          import('./features/tesoreria/tesoreria-cuentas.component').then((m) => m.TesoreriaCuentasComponent),
+      },
+      {
+        path: 'tesoreria/cuentas/:id',
+        loadComponent: () =>
+          import('./features/tesoreria/tesoreria-cuenta-detalle.component').then(
+            (m) => m.TesoreriaCuentaDetalleComponent
+          ),
+      },
+      {
+        path: 'tesoreria/historial',
+        loadComponent: () =>
+          import('./features/tesoreria/tesoreria-historial.component').then((m) => m.TesoreriaHistorialComponent),
+      },
+      {
         path: 'compras',
         loadComponent: () => import('./features/compras/compras.component').then((m) => m.ComprasComponent),
       },

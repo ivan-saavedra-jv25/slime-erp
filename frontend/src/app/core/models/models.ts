@@ -19,6 +19,9 @@ export type Permiso =
   | 'VENTAS_EDITAR'
   | 'COMPRAS_VER'
   | 'COMPRAS_EDITAR'
+  | 'TESORERIA_VER'
+  | 'TESORERIA_EDITAR'
+  | 'TESORERIA_ANULAR'
   | 'USUARIOS_VER'
   | 'USUARIOS_EDITAR'
   | 'EMPRESAS_ADMINISTRAR';
@@ -204,6 +207,61 @@ export interface Compra {
   total: number;
   observacion: string | null;
   detalle: CompraDetalle[];
+}
+
+export type EstadoCuentaPorCobrar = 'DEUDA' | 'PARCIAL' | 'PAGADO' | 'ANULADO';
+export type EstadoTransaccion = 'CONFIRMADA' | 'ANULADA';
+export type MedioPago = 'EFECTIVO' | 'TRANSFERENCIA' | 'TARJETA' | 'CHEQUE';
+
+export interface CuentaPorCobrar {
+  id: number;
+  ventaId: number;
+  clienteId: number;
+  fechaGeneracion: string;
+  montoTotal: number;
+  montoPagado: number;
+  saldoPendiente: number;
+  estado: EstadoCuentaPorCobrar;
+  fechaUltimoPago: string | null;
+  observaciones: string | null;
+  usuarioAnuloId: number | null;
+  fechaAnulacion: string | null;
+  motivoAnulacion: string | null;
+}
+
+export interface TransaccionPago {
+  id: number;
+  cuentaPorCobrarId: number;
+  ventaId: number;
+  clienteId: number;
+  fecha: string;
+  monto: number;
+  medioPago: MedioPago;
+  estado: EstadoTransaccion;
+  usuarioId: number | null;
+  observaciones: string | null;
+  transferenciaBancoOrigen: string | null;
+  transferenciaBancoDestino: string | null;
+  transferenciaNumeroOperacion: string | null;
+  transferenciaFecha: string | null;
+  tarjetaEntidad: string | null;
+  tarjetaTipo: string | null;
+  tarjetaNumeroOperacion: string | null;
+  tarjetaFecha: string | null;
+  chequeBanco: string | null;
+  chequeNumero: string | null;
+  chequeFechaEmision: string | null;
+  chequeFechaPago: string | null;
+  motivoAnulacion: string | null;
+}
+
+export interface ResumenTesoreria {
+  totalPorCobrar: number;
+  totalCobrado: number;
+  saldoPendiente: number;
+  cuentasEnDeuda: number;
+  cuentasParciales: number;
+  cuentasPagadas: number;
 }
 
 export interface Empresa {

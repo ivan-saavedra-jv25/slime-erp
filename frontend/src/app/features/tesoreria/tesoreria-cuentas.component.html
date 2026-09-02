@@ -1,0 +1,111 @@
+<div class="page-header">
+  <h1>Cuentas por cobrar</h1>
+  <a mat-stroked-button routerLink="/tesoreria/historial">
+    <mat-icon>history</mat-icon>
+    Historial de pagos
+  </a>
+</div>
+
+@if (resumen) {
+  <section class="kpi-grid">
+    <mat-card class="kpi-card">
+      <span class="kpi-label">Total por cobrar</span>
+      <span class="kpi-value">{{ resumen.totalPorCobrar }}</span>
+    </mat-card>
+    <mat-card class="kpi-card">
+      <span class="kpi-label">Total cobrado</span>
+      <span class="kpi-value">{{ resumen.totalCobrado }}</span>
+    </mat-card>
+    <mat-card class="kpi-card">
+      <span class="kpi-label">Saldo pendiente</span>
+      <span class="kpi-value">{{ resumen.saldoPendiente }}</span>
+    </mat-card>
+    <mat-card class="kpi-card">
+      <span class="kpi-label">En deuda</span>
+      <span class="kpi-value">{{ resumen.cuentasEnDeuda }}</span>
+    </mat-card>
+    <mat-card class="kpi-card">
+      <span class="kpi-label">Parciales</span>
+      <span class="kpi-value">{{ resumen.cuentasParciales }}</span>
+    </mat-card>
+    <mat-card class="kpi-card">
+      <span class="kpi-label">Pagadas</span>
+      <span class="kpi-value">{{ resumen.cuentasPagadas }}</span>
+    </mat-card>
+  </section>
+}
+
+<mat-card class="form-panel">
+  <div class="filtros-grid">
+    <div class="form-group">
+      <label for="filtroTexto">Buscar</label>
+      <input
+        id="filtroTexto"
+        type="text"
+        placeholder="Cliente o N° de venta (V-12)..."
+        [(ngModel)]="filtroTexto"
+        name="filtroTexto"
+      />
+    </div>
+    <div class="form-group">
+      <label for="filtroCliente">Cliente</label>
+      <select id="filtroCliente" name="filtroCliente" [(ngModel)]="filtroCliente">
+        <option [ngValue]="null">Todos</option>
+        @for (c of clientes; track c.id) {
+          <option [ngValue]="c.id">{{ c.nombre }}</option>
+        }
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="filtroEstado">Estado</label>
+      <select id="filtroEstado" name="filtroEstado" [(ngModel)]="filtroEstado">
+        <option [ngValue]="null">Todos</option>
+        <option value="DEUDA">En deuda</option>
+        <option value="PARCIAL">Parcial</option>
+        <option value="PAGADO">Pagado</option>
+        <option value="ANULADO">Anulado</option>
+      </select>
+    </div>
+  </div>
+
+  @if (cargando) {
+    <p class="empty-state">Cargando cuentas...</p>
+  }
+
+  @if (!cargando && !cuentasFiltradas.length) {
+    <p class="empty-state">No hay cuentas por cobrar que coincidan con el filtro.</p>
+  }
+
+  @if (!cargando && cuentasFiltradas.length) {
+    <table class="historial-table">
+      <thead>
+        <tr>
+          <th>Cliente</th>
+          <th>Venta</th>
+          <th class="right">Total</th>
+          <th class="right">Pagado</th>
+          <th class="right">Saldo</th>
+          <th>Estado</th>
+          <th class="right"></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (c of cuentasFiltradas; track c.id) {
+          <tr>
+            <td>{{ nombreCliente(c.clienteId) }}</td>
+            <td>V-{{ c.ventaId }}</td>
+            <td class="right">{{ c.montoTotal }}</td>
+            <td class="right">{{ c.montoPagado }}</td>
+            <td class="right">{{ c.saldoPendiente }}</td>
+            <td><span [class]="'tag ' + tagEstado(c.estado)">{{ etiquetaEstado(c.estado) }}</span></td>
+            <td class="right">
+              <a mat-button routerLink="/tesoreria/cuentas/{{ c.id }}">
+                {{ puedeRegistrarPago(c) && auth.tienePermiso('TESORERIA_EDITAR') ? 'Registrar pago' : 'Ver' }}
+              </a>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</mat-card>

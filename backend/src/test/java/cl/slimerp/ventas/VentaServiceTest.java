@@ -8,6 +8,7 @@ import cl.slimerp.inventario.MovimientoInventarioRepository;
 import cl.slimerp.inventario.StockProductoBodega;
 import cl.slimerp.inventario.StockProductoBodegaRepository;
 import cl.slimerp.inventario.StockService;
+import cl.slimerp.tesoreria.CuentaPorCobrarService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,6 +33,7 @@ class VentaServiceTest {
     private FormaPagoRepository formaPagoRepository;
     private StockProductoBodegaRepository stockRepository;
     private StockService stockService;
+    private CuentaPorCobrarService cuentaPorCobrarService;
     private VentaService service;
 
     private final Map<String, StockProductoBodega> stockPorClave = new HashMap<>();
@@ -41,6 +43,8 @@ class VentaServiceTest {
     private final Cliente cliente = Cliente.builder().id(1L).tenantId(1L).nombre("Cliente Uno").activo(true).build();
     private final FormaPago formaPagoContado = FormaPago.builder().id(1L).tenantId(1L).nombre("Efectivo")
             .categoria(CategoriaFormaPago.CONTADO).activo(true).build();
+    private final FormaPago formaPagoCredito = FormaPago.builder().id(2L).tenantId(1L).nombre("Crédito 30 días")
+            .categoria(CategoriaFormaPago.CREDITO).activo(true).build();
     private final Producto producto = Producto.builder().id(10L).tenantId(1L).nombre("Producto X")
             .precioVenta(new BigDecimal("1000")).activo(true).build();
 
@@ -56,8 +60,9 @@ class VentaServiceTest {
         stockPorClave.clear();
 
         stockService = new StockService(stockRepository, bodegaRepository, movimientoRepository);
+        cuentaPorCobrarService = mock(CuentaPorCobrarService.class);
         service = new VentaService(ventaRepository, clienteRepository, productoRepository, bodegaRepository,
-                formaPagoRepository, stockService);
+                formaPagoRepository, stockService, cuentaPorCobrarService);
 
         TenantContext.setTenantId(tenantId);
 
@@ -76,6 +81,7 @@ class VentaServiceTest {
 
         when(clienteRepository.findByIdAndTenantIdAndActivoTrue(1L, tenantId)).thenReturn(Optional.of(cliente));
         when(formaPagoRepository.findByIdAndTenantIdAndActivoTrue(1L, tenantId)).thenReturn(Optional.of(formaPagoContado));
+        when(formaPagoRepository.findByIdAndTenantIdAndActivoTrue(2L, tenantId)).thenReturn(Optional.of(formaPagoCredito));
         when(bodegaRepository.findByIdAndTenantIdAndActivoTrue(1L, tenantId)).thenReturn(Optional.of(bodega));
         when(bodegaRepository.findByTenantIdAndPrincipalTrueAndActivoTrue(tenantId)).thenReturn(Optional.of(bodega));
         when(productoRepository.findByIdAndTenantIdAndActivoTrue(10L, tenantId)).thenReturn(Optional.of(producto));
@@ -98,7 +104,12 @@ class VentaServiceTest {
     }
 
     private VentaRequest request(TipoDocumentoVenta tipo, boolean exento, BigDecimal descuento, BigDecimal precioUnitario, BigDecimal cantidad) {
-        return new VentaRequest(1L, 1L, 1L, tipo, exento, null, descuento,
+        return request(1L, tipo, exento, descuento, precioUnitario, cantidad);
+    }
+
+    private VentaRequest request(Long formaPagoId, TipoDocumentoVenta tipo, boolean exento, BigDecimal descuento,
+                                  BigDecimal precioUnitario, BigDecimal cantidad) {
+        return new VentaRequest(1L, formaPagoId, 1L, tipo, exento, null, descuento,
                 List.of(new VentaRequest.Item(10L, cantidad, precioUnitario)));
     }
 
@@ -168,6 +179,20 @@ class VentaServiceTest {
         var req = request(TipoDocumentoVenta.FACTURA, false, null, new BigDecimal("1000"), new BigDecimal("999"));
 
         assertThrows(IllegalArgumentException.class, () -> service.crear(req));
+    }
+
+    @Test
+    void creaCuentaPorCobrarCuandoLaFormaDePagoEsCredito() {
+        Venta venta = service.crear(request(2L, TipoDocumentoVenta.FACTURA, false, null, new BigDecimal("1000"), BigDecimal.ONE));
+
+        verify(cuentaPorCobrarService).crearParaVenta(venta);
+    }
+
+    @Test
+    void noCreaCuentaPorCobrarCuandoLaFormaDePagoEsContado() {
+        service.crear(request(1L, TipoDocumentoVenta.FACTURA, false, null, new BigDecimal("1000"), BigDecimal.ONE));
+
+        verify(cuentaPorCobrarService, never()).crearParaVenta(any());
     }
 
     @Test

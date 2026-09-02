@@ -1,0 +1,93 @@
+<div class="page-header">
+  <h1>Historial de pagos</h1>
+  <a mat-stroked-button routerLink="/tesoreria/cuentas">
+    <mat-icon>arrow_back</mat-icon>
+    Cuentas por cobrar
+  </a>
+</div>
+
+<mat-card class="form-panel">
+  <div class="filtros-grid">
+    <div class="form-group">
+      <label for="filtroCliente">Cliente</label>
+      <select id="filtroCliente" name="filtroCliente" [(ngModel)]="filtroClienteId" (ngModelChange)="buscar()">
+        <option [ngValue]="null">Todos</option>
+        @for (c of clientes; track c.id) {
+          <option [ngValue]="c.id">{{ c.nombre }}</option>
+        }
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="filtroEstado">Estado</label>
+      <select id="filtroEstado" name="filtroEstado" [(ngModel)]="filtroEstado" (ngModelChange)="buscar()">
+        <option [ngValue]="null">Todos</option>
+        <option value="CONFIRMADA">Confirmada</option>
+        <option value="ANULADA">Anulada</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="filtroMedio">Medio de pago</label>
+      <select id="filtroMedio" name="filtroMedio" [(ngModel)]="filtroMedioPago" (ngModelChange)="buscar()">
+        <option [ngValue]="null">Todos</option>
+        <option value="EFECTIVO">Efectivo</option>
+        <option value="TRANSFERENCIA">Transferencia</option>
+        <option value="TARJETA">Tarjeta</option>
+        <option value="CHEQUE">Cheque</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="fechaDesde">Desde</label>
+      <input id="fechaDesde" type="date" [(ngModel)]="filtroFechaDesde" name="fechaDesde" (ngModelChange)="buscar()" />
+    </div>
+    <div class="form-group">
+      <label for="fechaHasta">Hasta</label>
+      <input id="fechaHasta" type="date" [(ngModel)]="filtroFechaHasta" name="fechaHasta" (ngModelChange)="buscar()" />
+    </div>
+    <div class="form-group filtros-grid__limpiar">
+      <button type="button" mat-stroked-button (click)="limpiarFiltros()">Limpiar filtros</button>
+    </div>
+  </div>
+
+  @if (cargando) {
+    <p class="empty-state">Buscando pagos...</p>
+  }
+
+  @if (!cargando && !pagos.length) {
+    <p class="empty-state">No hay pagos que coincidan con el filtro.</p>
+  }
+
+  @if (!cargando && pagos.length) {
+    <table class="historial-table">
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Cliente</th>
+          <th>Venta</th>
+          <th>Medio</th>
+          <th class="right">Monto</th>
+          <th>Estado</th>
+          <th class="right"></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (p of pagos; track p.id) {
+          <tr>
+            <td>{{ p.fecha | date: 'short' }}</td>
+            <td>{{ nombreCliente(p.clienteId) }}</td>
+            <td>V-{{ p.ventaId }}</td>
+            <td>{{ p.medioPago | titlecase }}</td>
+            <td class="right">{{ p.monto }}</td>
+            <td>
+              <span class="tag" [class.tag--success]="p.estado === 'CONFIRMADA'">
+                {{ p.estado === 'CONFIRMADA' ? 'Confirmada' : 'Anulada' }}
+              </span>
+            </td>
+            <td class="right">
+              <a mat-button routerLink="/tesoreria/cuentas/{{ p.cuentaPorCobrarId }}">Ver cuenta</a>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</mat-card>

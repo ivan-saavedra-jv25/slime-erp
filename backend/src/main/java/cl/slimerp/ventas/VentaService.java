@@ -1,6 +1,8 @@
 package cl.slimerp.ventas;
 
+import cl.slimerp.catalogo.CategoriaFormaPago;
 import cl.slimerp.catalogo.ClienteRepository;
+import cl.slimerp.catalogo.FormaPago;
 import cl.slimerp.catalogo.FormaPagoRepository;
 import cl.slimerp.catalogo.Producto;
 import cl.slimerp.catalogo.ProductoRepository;
@@ -9,6 +11,7 @@ import cl.slimerp.inventario.Bodega;
 import cl.slimerp.inventario.BodegaRepository;
 import cl.slimerp.inventario.StockService;
 import cl.slimerp.inventario.TipoMovimiento;
+import cl.slimerp.tesoreria.CuentaPorCobrarService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,16 +28,19 @@ public class VentaService {
     private final BodegaRepository bodegaRepository;
     private final FormaPagoRepository formaPagoRepository;
     private final StockService stockService;
+    private final CuentaPorCobrarService cuentaPorCobrarService;
 
     public VentaService(VentaRepository ventaRepository, ClienteRepository clienteRepository,
                          ProductoRepository productoRepository, BodegaRepository bodegaRepository,
-                         FormaPagoRepository formaPagoRepository, StockService stockService) {
+                         FormaPagoRepository formaPagoRepository, StockService stockService,
+                         CuentaPorCobrarService cuentaPorCobrarService) {
         this.ventaRepository = ventaRepository;
         this.clienteRepository = clienteRepository;
         this.productoRepository = productoRepository;
         this.bodegaRepository = bodegaRepository;
         this.formaPagoRepository = formaPagoRepository;
         this.stockService = stockService;
+        this.cuentaPorCobrarService = cuentaPorCobrarService;
     }
 
     @Transactional
@@ -44,7 +50,7 @@ public class VentaService {
         clienteRepository.findByIdAndTenantIdAndActivoTrue(request.clienteId(), tenantId)
                 .orElseThrow(() -> new IllegalArgumentException("Cliente no encontrado: " + request.clienteId()));
 
-        formaPagoRepository.findByIdAndTenantIdAndActivoTrue(request.formaPagoId(), tenantId)
+        FormaPago formaPago = formaPagoRepository.findByIdAndTenantIdAndActivoTrue(request.formaPagoId(), tenantId)
                 .orElseThrow(() -> new IllegalArgumentException("Forma de pago no encontrada: " + request.formaPagoId()));
 
         Bodega bodega = request.bodegaId() != null
@@ -100,6 +106,10 @@ public class VentaService {
         for (VentaRequest.Item item : request.items()) {
             stockService.sumar(tenantId, item.productoId(), bodega.getId(),
                     item.cantidad().negate(), TipoMovimiento.SALIDA_VENTA, null, venta.getId());
+        }
+
+        if (formaPago.getCategoria() == CategoriaFormaPago.CREDITO && venta.getMontoTotal().signum() > 0) {
+            cuentaPorCobrarService.crearParaVenta(venta);
         }
 
         return venta;

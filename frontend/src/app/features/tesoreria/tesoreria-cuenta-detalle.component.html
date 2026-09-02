@@ -1,0 +1,262 @@
+@if (cargando) {
+  <p class="empty-state">Cargando cuenta...</p>
+}
+
+@if (!cargando && !cuenta) {
+  <p class="page-error">Cuenta por cobrar no encontrada.</p>
+}
+
+@if (!cargando && cuenta) {
+  <div class="page-header">
+    <h1>Cuenta por cobrar — V-{{ cuenta.ventaId }}</h1>
+    <a mat-stroked-button routerLink="/tesoreria/cuentas">
+      <mat-icon>arrow_back</mat-icon>
+      Volver
+    </a>
+  </div>
+
+  <div class="two-col">
+    <mat-card class="form-panel">
+      <h2>Datos de la cuenta</h2>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Cliente</label>
+          <input type="text" [value]="cliente?.nombre || '—'" readonly />
+        </div>
+        <div class="form-group">
+          <label>Estado</label>
+          <input type="text" [value]="etiquetaEstado[cuenta.estado]" readonly />
+        </div>
+        <div class="form-group">
+          <label>Fecha de generación</label>
+          <input type="text" [value]="cuenta.fechaGeneracion | date: 'short'" readonly />
+        </div>
+        <div class="form-group">
+          <label>Fecha del último pago</label>
+          <input type="text" [value]="(cuenta.fechaUltimoPago | date: 'short') || '—'" readonly />
+        </div>
+      </div>
+      @if (cuenta.estado === 'ANULADO') {
+        <p class="detail-obs"><strong>Motivo de anulación:</strong> {{ cuenta.motivoAnulacion }}</p>
+      }
+    </mat-card>
+
+    <mat-card class="form-panel">
+      <h2>Totales</h2>
+      <div class="totals-group">
+        <div class="totals-row">
+          <span class="totals-row__label">Monto total</span>
+          <span class="totals-row__value">{{ cuenta.montoTotal }}</span>
+        </div>
+        <div class="totals-row">
+          <span class="totals-row__label">Pagado</span>
+          <span class="totals-row__value">{{ cuenta.montoPagado }}</span>
+        </div>
+        <div class="totals-row totals-row--total">
+          <span class="totals-row__label">Saldo pendiente</span>
+          <span class="totals-row__value">{{ cuenta.saldoPendiente }}</span>
+        </div>
+      </div>
+    </mat-card>
+  </div>
+
+  <mat-card class="form-panel">
+    <div class="panel-header-row">
+      <h2>Pagos registrados</h2>
+      <div class="panel-actions">
+        @if (puedeRegistrarPago && auth.tienePermiso('TESORERIA_EDITAR')) {
+          <button type="button" mat-stroked-button (click)="toggleFormularioPago()">
+            <mat-icon>payments</mat-icon>
+            {{ formularioPagoAbierto ? 'Cancelar' : 'Registrar pago' }}
+          </button>
+        }
+        @if (cuenta.estado !== 'ANULADO' && cuenta.estado !== 'PAGADO' && auth.tienePermiso('TESORERIA_ANULAR')) {
+          <button type="button" mat-stroked-button color="warn" (click)="toggleAnularCuenta()">
+            <mat-icon>block</mat-icon>
+            {{ anulandoCuenta ? 'Cancelar' : 'Anular cuenta' }}
+          </button>
+        }
+      </div>
+    </div>
+
+    @if (anulandoCuenta) {
+      <div class="inline-form">
+        <div class="form-group">
+          <label for="motivoAnulacionCuenta">Motivo de la anulación<span class="required-mark">*</span></label>
+          <input
+            id="motivoAnulacionCuenta"
+            type="text"
+            [(ngModel)]="motivoAnulacionCuenta"
+            name="motivoAnulacionCuenta"
+            placeholder="Ej: venta anulada por error"
+          />
+        </div>
+        @if (errorAnulacionCuenta) {
+          <p class="field-error">{{ errorAnulacionCuenta }}</p>
+        }
+        <button
+          type="button"
+          mat-flat-button
+          color="warn"
+          [disabled]="!motivoAnulacionCuenta.trim()"
+          (click)="confirmarAnulacionCuenta()"
+        >
+          Confirmar anulación
+        </button>
+      </div>
+    }
+
+    @if (formularioPagoAbierto) {
+      <div class="inline-form">
+        <div class="tipo-grid">
+          @for (medio of mediosPago; track medio.value) {
+            <button
+              type="button"
+              class="tipo-card"
+              [class.tipo-card--active]="pagoForm.medioPago === medio.value"
+              (click)="seleccionarMedio(medio.value)"
+            >
+              <span class="tipo-card__label">{{ medio.label }}</span>
+            </button>
+          }
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="pagoMonto">Monto<span class="required-mark">*</span></label>
+            <input id="pagoMonto" type="number" [(ngModel)]="pagoForm.monto" name="pagoMonto" [max]="cuenta.saldoPendiente" />
+            <span class="hint">Saldo pendiente: {{ cuenta.saldoPendiente }}</span>
+          </div>
+
+          @if (pagoForm.medioPago === 'TRANSFERENCIA') {
+            <div class="form-group">
+              <label for="bancoOrigen">Banco de origen<span class="required-mark">*</span></label>
+              <input id="bancoOrigen" type="text" [(ngModel)]="pagoForm.transferenciaBancoOrigen" name="bancoOrigen" />
+            </div>
+            <div class="form-group">
+              <label for="bancoDestino">Banco de destino<span class="required-mark">*</span></label>
+              <input id="bancoDestino" type="text" [(ngModel)]="pagoForm.transferenciaBancoDestino" name="bancoDestino" />
+            </div>
+            <div class="form-group">
+              <label for="numOpTransferencia">N° de operación</label>
+              <input id="numOpTransferencia" type="text" [(ngModel)]="pagoForm.transferenciaNumeroOperacion" name="numOpTransferencia" />
+            </div>
+          }
+
+          @if (pagoForm.medioPago === 'TARJETA') {
+            <div class="form-group">
+              <label for="tarjetaEntidad">Entidad<span class="required-mark">*</span></label>
+              <input id="tarjetaEntidad" type="text" [(ngModel)]="pagoForm.tarjetaEntidad" name="tarjetaEntidad" />
+            </div>
+            <div class="form-group">
+              <label for="tarjetaTipo">Tipo</label>
+              <input id="tarjetaTipo" type="text" placeholder="Débito / Crédito" [(ngModel)]="pagoForm.tarjetaTipo" name="tarjetaTipo" />
+            </div>
+            <div class="form-group">
+              <label for="numOpTarjeta">N° de operación</label>
+              <input id="numOpTarjeta" type="text" [(ngModel)]="pagoForm.tarjetaNumeroOperacion" name="numOpTarjeta" />
+            </div>
+          }
+
+          @if (pagoForm.medioPago === 'CHEQUE') {
+            <div class="form-group">
+              <label for="chequeBanco">Banco<span class="required-mark">*</span></label>
+              <input id="chequeBanco" type="text" [(ngModel)]="pagoForm.chequeBanco" name="chequeBanco" />
+            </div>
+            <div class="form-group">
+              <label for="chequeNumero">N° de cheque<span class="required-mark">*</span></label>
+              <input id="chequeNumero" type="text" [(ngModel)]="pagoForm.chequeNumero" name="chequeNumero" />
+            </div>
+          }
+
+          <div class="form-group span-2">
+            <label for="pagoObs">Observaciones <span class="hint">(opcional)</span></label>
+            <textarea id="pagoObs" rows="2" [(ngModel)]="pagoForm.observaciones" name="pagoObs"></textarea>
+          </div>
+        </div>
+
+        @if (errorPago) {
+          <p class="field-error">{{ errorPago }}</p>
+        }
+
+        <button
+          type="button"
+          mat-flat-button
+          color="primary"
+          [disabled]="montoInvalido || guardandoPago"
+          (click)="confirmarPago()"
+        >
+          <mat-icon>check_circle</mat-icon>
+          {{ guardandoPago ? 'Guardando...' : 'Confirmar pago' }}
+        </button>
+      </div>
+    }
+
+    <table class="historial-table">
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Medio</th>
+          <th class="right">Monto</th>
+          <th>Estado</th>
+          <th class="right"></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (p of pagos; track p.id) {
+          <tr>
+            <td>{{ p.fecha | date: 'short' }}</td>
+            <td>{{ p.medioPago | titlecase }}</td>
+            <td class="right">{{ p.monto }}</td>
+            <td>
+              <span class="tag" [class.tag--success]="p.estado === 'CONFIRMADA'">
+                {{ p.estado === 'CONFIRMADA' ? 'Confirmada' : 'Anulada' }}
+              </span>
+            </td>
+            <td class="right">
+              @if (p.estado === 'CONFIRMADA' && auth.tienePermiso('TESORERIA_ANULAR')) {
+                <button type="button" mat-button color="warn" (click)="toggleAnularPago(p.id)">
+                  {{ pagoAnulandoId === p.id ? 'Cancelar' : 'Anular' }}
+                </button>
+              }
+            </td>
+          </tr>
+          @if (pagoAnulandoId === p.id) {
+            <tr>
+              <td colspan="5">
+                <div class="inline-form">
+                  <div class="form-group">
+                    <label for="motivoPago{{ p.id }}">Motivo de la anulación<span class="required-mark">*</span></label>
+                    <input
+                      id="motivoPago{{ p.id }}"
+                      type="text"
+                      [(ngModel)]="motivoAnulacionPago"
+                      name="motivoPago{{ p.id }}"
+                    />
+                  </div>
+                  @if (errorAnulacionPago) {
+                    <p class="field-error">{{ errorAnulacionPago }}</p>
+                  }
+                  <button
+                    type="button"
+                    mat-flat-button
+                    color="warn"
+                    [disabled]="!motivoAnulacionPago.trim()"
+                    (click)="confirmarAnulacionPago(p.id)"
+                  >
+                    Confirmar anulación
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        }
+        @if (!pagos.length) {
+          <tr>
+            <td colspan="5" class="empty-state">Aún no hay pagos registrados.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </mat-card>
+}
