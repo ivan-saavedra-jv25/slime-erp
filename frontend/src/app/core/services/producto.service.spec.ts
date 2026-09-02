@@ -26,7 +26,7 @@ describe('ProductoService', () => {
   });
 
   it('crear hace POST con el body recibido', () => {
-    const request = { sku: 'SKU-1', nombre: 'Producto Uno', precioVenta: 1000, controlaStock: true };
+    const request = { sku: 'SKU-1', nombre: 'Producto Uno', precioVenta: 1000 };
     service.crear(request).subscribe();
     const req = httpMock.expectOne(`${environment.apiUrl}/productos`);
     expect(req.request.method).toBe('POST');

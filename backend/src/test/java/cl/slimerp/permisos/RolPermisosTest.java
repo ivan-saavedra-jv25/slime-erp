@@ -15,32 +15,33 @@ class RolPermisosTest {
     }
 
     @Test
-    void adminTieneClientesProductosYUsuarios() {
+    void adminTieneClientesProductosBodegasYUsuarios() {
         assertEquals(
                 Set.of(Permiso.CLIENTES_VER, Permiso.CLIENTES_EDITAR,
                         Permiso.PRODUCTOS_VER, Permiso.PRODUCTOS_EDITAR,
+                        Permiso.BODEGAS_VER, Permiso.BODEGAS_EDITAR,
                         Permiso.USUARIOS_VER, Permiso.USUARIOS_EDITAR),
                 RolPermisos.permisosDe(Rol.ADMIN));
     }
 
     @Test
-    void vendedorSoloVeProductosYGestionaClientes() {
+    void vendedorSoloVeProductosYBodegasYGestionaClientes() {
         assertEquals(
-                Set.of(Permiso.CLIENTES_VER, Permiso.CLIENTES_EDITAR, Permiso.PRODUCTOS_VER),
+                Set.of(Permiso.CLIENTES_VER, Permiso.CLIENTES_EDITAR, Permiso.PRODUCTOS_VER, Permiso.BODEGAS_VER),
                 RolPermisos.permisosDe(Rol.VENDEDOR));
     }
 
     @Test
-    void compradorGestionaProductos() {
+    void compradorGestionaProductosYBodegas() {
         assertEquals(
-                Set.of(Permiso.PRODUCTOS_VER, Permiso.PRODUCTOS_EDITAR),
+                Set.of(Permiso.PRODUCTOS_VER, Permiso.PRODUCTOS_EDITAR, Permiso.BODEGAS_VER, Permiso.BODEGAS_EDITAR),
                 RolPermisos.permisosDe(Rol.COMPRADOR));
     }
 
     @Test
     void visualizadorSoloLee() {
         assertEquals(
-                Set.of(Permiso.CLIENTES_VER, Permiso.PRODUCTOS_VER),
+                Set.of(Permiso.CLIENTES_VER, Permiso.PRODUCTOS_VER, Permiso.BODEGAS_VER),
                 RolPermisos.permisosDe(Rol.VISUALIZADOR));
     }
 }

@@ -1,0 +1,110 @@
+<h1>Bodegas</h1>
+
+@if (error) {
+  <p class="page-error">{{ error }}</p>
+}
+
+<div class="bodegas-layout">
+  <mat-card class="form-panel bodegas-panel">
+    @if (auth.tienePermiso('BODEGAS_EDITAR')) {
+      <h2>{{ editandoId ? 'Editar bodega' : 'Nueva bodega' }}</h2>
+      <form #f="ngForm" (ngSubmit)="guardar()" novalidate>
+        <div class="form-group" [class.has-error]="nombreCtrl.invalid && nombreCtrl.touched">
+          <label for="nombre">Nombre<span class="required-mark">*</span></label>
+          <input id="nombre" name="nombre" [(ngModel)]="nombre" required #nombreCtrl="ngModel" />
+          @if (nombreCtrl.invalid && nombreCtrl.touched) {
+            <span class="field-error">El nombre es obligatorio.</span>
+          }
+        </div>
+
+        <div class="form-actions">
+          @if (editandoId) {
+            <button mat-button type="button" (click)="cancelarEdicion()">Cancelar</button>
+          }
+          <button mat-flat-button color="primary" type="submit" [disabled]="guardando || f.invalid">
+            {{ guardando ? 'Guardando...' : editandoId ? 'Guardar cambios' : 'Agregar bodega' }}
+          </button>
+        </div>
+      </form>
+    }
+
+    <table mat-table [dataSource]="bodegas" class="mat-elevation-z1">
+      <ng-container matColumnDef="nombre">
+        <th mat-header-cell *matHeaderCellDef>Bodega</th>
+        <td mat-cell *matCellDef="let b">
+          {{ b.nombre }}
+          @if (b.principal) {
+            <span class="tag">Principal</span>
+          }
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="acciones">
+        <th mat-header-cell *matHeaderCellDef></th>
+        <td mat-cell *matCellDef="let b">
+          @if (auth.tienePermiso('BODEGAS_EDITAR')) {
+            <button mat-icon-button (click)="editar(b); $event.stopPropagation()"><mat-icon>edit</mat-icon></button>
+            @if (!b.principal) {
+              <button mat-icon-button (click)="eliminar(b); $event.stopPropagation()">
+                <mat-icon>delete</mat-icon>
+              </button>
+            }
+          }
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="columnasBodegas"></tr>
+      <tr
+        mat-row
+        *matRowDef="let row; columns: columnasBodegas"
+        class="selectable-row"
+        [class.selected]="bodegaSeleccionada?.id === row.id"
+        (click)="seleccionar(row)"
+      ></tr>
+    </table>
+    @if (!bodegas.length) {
+      <p class="empty-state">Aún no hay bodegas.</p>
+    }
+  </mat-card>
+
+  <mat-card class="form-panel inventario-panel">
+    <h2>
+      Inventario
+      @if (bodegaSeleccionada) {
+        <span class="hint">de {{ bodegaSeleccionada.nombre }}</span>
+      }
+    </h2>
+
+    @if (!bodegaSeleccionada) {
+      <p class="form-section-hint">Selecciona una bodega de la izquierda para ver su inventario.</p>
+    } @else {
+      <div class="form-group">
+        <label for="filtroProducto">Buscar producto</label>
+        <input id="filtroProducto" name="filtroProducto" placeholder="SKU o nombre..." [(ngModel)]="filtroProducto" />
+      </div>
+
+      <table mat-table [dataSource]="inventarioFiltrado" class="mat-elevation-z1">
+        <ng-container matColumnDef="sku">
+          <th mat-header-cell *matHeaderCellDef>SKU</th>
+          <td mat-cell *matCellDef="let i">{{ i.sku }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="nombre">
+          <th mat-header-cell *matHeaderCellDef>Producto</th>
+          <td mat-cell *matCellDef="let i">{{ i.nombre }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="cantidad">
+          <th mat-header-cell *matHeaderCellDef>Cantidad</th>
+          <td mat-cell *matCellDef="let i">{{ i.cantidad }}</td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="columnasInventario"></tr>
+        <tr mat-row *matRowDef="let row; columns: columnasInventario"></tr>
+      </table>
+      @if (!inventarioFiltrado.length) {
+        <p class="empty-state">Sin productos que coincidan con la búsqueda.</p>
+      }
+    }
+  </mat-card>
+</div>

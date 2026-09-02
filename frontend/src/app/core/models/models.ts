@@ -5,6 +5,8 @@ export type Permiso =
   | 'CLIENTES_EDITAR'
   | 'PRODUCTOS_VER'
   | 'PRODUCTOS_EDITAR'
+  | 'BODEGAS_VER'
+  | 'BODEGAS_EDITAR'
   | 'USUARIOS_VER'
   | 'USUARIOS_EDITAR'
   | 'EMPRESAS_ADMINISTRAR';
@@ -52,9 +54,28 @@ export interface Producto {
   descripcion: string | null;
   precioVenta: number;
   precioCompra: number;
-  stock: number;
-  controlaStock: boolean;
   activo: boolean;
+}
+
+export interface Bodega {
+  id: number;
+  nombre: string;
+  principal: boolean;
+  activo: boolean;
+  fechaCreacion: string;
+}
+
+export interface StockPorBodega {
+  bodegaId: number;
+  bodegaNombre: string;
+  cantidad: number;
+}
+
+export interface InventarioItem {
+  productoId: number;
+  sku: string | null;
+  nombre: string;
+  cantidad: number;
 }
 
 export interface Empresa {

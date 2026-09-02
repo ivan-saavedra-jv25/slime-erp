@@ -32,12 +32,11 @@ class ProductoControllerTest {
 
     @Test
     void crearUsaCerosPorDefectoParaCamposOpcionalesNulos() {
-        var request = new ProductoRequest("SKU-1", "Producto Uno", "desc", new BigDecimal("1000"), null, null, true);
+        var request = new ProductoRequest("SKU-1", "Producto Uno", "desc", new BigDecimal("1000"), null);
 
         var response = controller.crear(request);
 
         assertEquals(BigDecimal.ZERO, response.getBody().getPrecioCompra());
-        assertEquals(BigDecimal.ZERO, response.getBody().getStock());
         assertEquals(1L, response.getBody().getTenantId());
     }
 
@@ -57,7 +56,7 @@ class ProductoControllerTest {
         when(productoRepository.findByIdAndTenantIdAndActivoTrue(99L, 1L)).thenReturn(Optional.empty());
 
         var response = controller.actualizar(99L,
-                new ProductoRequest("SKU-X", "X", null, BigDecimal.TEN, null, null, true));
+                new ProductoRequest("SKU-X", "X", null, BigDecimal.TEN, null));
 
         assertEquals(404, response.getStatusCode().value());
     }

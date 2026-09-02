@@ -68,7 +68,7 @@ class AuthControllerTest {
 
         assertEquals(200, response.getStatusCode().value());
         assertEquals("token-123", response.getBody().token());
-        Set<String> permisosEsperados = Set.of("CLIENTES_VER", "CLIENTES_EDITAR", "PRODUCTOS_VER");
+        Set<String> permisosEsperados = Set.of("CLIENTES_VER", "CLIENTES_EDITAR", "PRODUCTOS_VER", "BODEGAS_VER");
         assertEquals(permisosEsperados, Set.copyOf(response.getBody().permisos()));
         assertEquals(RolPermisos.permisosDe(Rol.VENDEDOR).size(), response.getBody().permisos().size());
     }

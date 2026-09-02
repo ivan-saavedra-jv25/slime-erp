@@ -43,8 +43,6 @@ public class ProductoController {
                 .descripcion(request.descripcion())
                 .precioVenta(request.precioVenta())
                 .precioCompra(request.precioCompra() != null ? request.precioCompra() : BigDecimal.ZERO)
-                .stock(request.stock() != null ? request.stock() : BigDecimal.ZERO)
-                .controlaStock(request.controlaStock())
                 .build();
         return ResponseEntity.ok(productoRepository.save(producto));
     }
@@ -59,8 +57,6 @@ public class ProductoController {
                     producto.setDescripcion(request.descripcion());
                     producto.setPrecioVenta(request.precioVenta());
                     producto.setPrecioCompra(request.precioCompra() != null ? request.precioCompra() : BigDecimal.ZERO);
-                    producto.setStock(request.stock() != null ? request.stock() : BigDecimal.ZERO);
-                    producto.setControlaStock(request.controlaStock());
                     return ResponseEntity.ok(productoRepository.save(producto));
                 })
                 .orElseGet(() -> ResponseEntity.notFound().build());

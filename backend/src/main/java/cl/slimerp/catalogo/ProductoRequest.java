@@ -10,8 +10,6 @@ public record ProductoRequest(
         @NotBlank String nombre,
         String descripcion,
         @NotNull BigDecimal precioVenta,
-        BigDecimal precioCompra,
-        BigDecimal stock,
-        boolean controlaStock
+        BigDecimal precioCompra
 ) {
 }

@@ -17,7 +17,7 @@ import { Producto } from '../../core/models/models';
   styleUrl: './productos.component.scss',
 })
 export class ProductosComponent implements OnInit {
-  columnas = ['sku', 'nombre', 'precioVenta', 'stock', 'acciones'];
+  columnas = ['sku', 'nombre', 'precioVenta', 'acciones'];
   productos: Producto[] = [];
   error = '';
   guardando = false;
@@ -28,8 +28,6 @@ export class ProductosComponent implements OnInit {
   descripcion = '';
   precioVenta = 0;
   precioCompra = 0;
-  stock = 0;
-  controlaStock = true;
 
   constructor(private productoService: ProductoService, public auth: AuthService) {}
 
@@ -48,8 +46,6 @@ export class ProductosComponent implements OnInit {
     this.descripcion = producto.descripcion ?? '';
     this.precioVenta = producto.precioVenta;
     this.precioCompra = producto.precioCompra;
-    this.stock = producto.stock;
-    this.controlaStock = producto.controlaStock;
   }
 
   cancelarEdicion(): void {
@@ -65,8 +61,6 @@ export class ProductosComponent implements OnInit {
       descripcion: this.descripcion,
       precioVenta: this.precioVenta,
       precioCompra: this.precioCompra,
-      stock: this.stock,
-      controlaStock: this.controlaStock,
     };
     this.guardando = true;
     const obs = this.editandoId
@@ -106,7 +100,5 @@ export class ProductosComponent implements OnInit {
     this.descripcion = '';
     this.precioVenta = 0;
     this.precioCompra = 0;
-    this.stock = 0;
-    this.controlaStock = true;
   }
 }

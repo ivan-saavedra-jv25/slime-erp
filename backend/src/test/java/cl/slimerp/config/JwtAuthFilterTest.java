@@ -50,7 +50,8 @@ class JwtAuthFilterTest {
         assertTrue(autoridades.contains("CLIENTES_VER"));
         assertTrue(autoridades.contains("CLIENTES_EDITAR"));
         assertTrue(autoridades.contains("PRODUCTOS_VER"));
-        assertEquals(4, autoridades.size());
+        assertTrue(autoridades.contains("BODEGAS_VER"));
+        assertEquals(5, autoridades.size());
         verify(chain).doFilter(request, response);
     }
 

@@ -1,19 +1,18 @@
-package cl.slimerp.catalogo;
+package cl.slimerp.inventario;
 
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "producto")
+@Table(name = "bodega")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Producto {
+public class Bodega {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -22,22 +21,12 @@ public class Producto {
     @Column(name = "tenant_id", nullable = false)
     private Long tenantId;
 
-    @Column(length = 50)
-    private String sku;
-
     @Column(nullable = false, length = 150)
     private String nombre;
 
-    @Column(length = 500)
-    private String descripcion;
-
-    @Column(name = "precio_venta", nullable = false, precision = 14, scale = 2)
+    @Column(nullable = false)
     @Builder.Default
-    private BigDecimal precioVenta = BigDecimal.ZERO;
-
-    @Column(name = "precio_compra", nullable = false, precision = 14, scale = 2)
-    @Builder.Default
-    private BigDecimal precioCompra = BigDecimal.ZERO;
+    private boolean principal = false;
 
     @Column(nullable = false)
     @Builder.Default

@@ -20,13 +20,15 @@ public final class RolPermisos {
         MAPA.put(Rol.ADMIN, EnumSet.of(
                 Permiso.CLIENTES_VER, Permiso.CLIENTES_EDITAR,
                 Permiso.PRODUCTOS_VER, Permiso.PRODUCTOS_EDITAR,
+                Permiso.BODEGAS_VER, Permiso.BODEGAS_EDITAR,
                 Permiso.USUARIOS_VER, Permiso.USUARIOS_EDITAR));
         MAPA.put(Rol.VENDEDOR, EnumSet.of(
-                Permiso.CLIENTES_VER, Permiso.CLIENTES_EDITAR, Permiso.PRODUCTOS_VER));
+                Permiso.CLIENTES_VER, Permiso.CLIENTES_EDITAR, Permiso.PRODUCTOS_VER, Permiso.BODEGAS_VER));
         MAPA.put(Rol.COMPRADOR, EnumSet.of(
-                Permiso.PRODUCTOS_VER, Permiso.PRODUCTOS_EDITAR));
+                Permiso.PRODUCTOS_VER, Permiso.PRODUCTOS_EDITAR,
+                Permiso.BODEGAS_VER, Permiso.BODEGAS_EDITAR));
         MAPA.put(Rol.VISUALIZADOR, EnumSet.of(
-                Permiso.CLIENTES_VER, Permiso.PRODUCTOS_VER));
+                Permiso.CLIENTES_VER, Permiso.PRODUCTOS_VER, Permiso.BODEGAS_VER));
     }
 
     private RolPermisos() {

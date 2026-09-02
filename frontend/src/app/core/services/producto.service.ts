@@ -10,8 +10,6 @@ export interface ProductoRequest {
   descripcion?: string;
   precioVenta: number;
   precioCompra?: number;
-  stock?: number;
-  controlaStock: boolean;
 }
 
 @Injectable({ providedIn: 'root' })
