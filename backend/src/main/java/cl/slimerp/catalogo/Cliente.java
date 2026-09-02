@@ -36,6 +36,19 @@ public class Cliente {
     @Column(length = 255)
     private String direccion;
 
+    // Datos tributarios del receptor DTE (nullable: se exigen al emitir factura, no al crear el cliente)
+    @Column(name = "razon_social", length = 200)
+    private String razonSocial;
+
+    @Column(length = 100)
+    private String giro;
+
+    @Column(length = 60)
+    private String comuna;
+
+    @Column(length = 60)
+    private String ciudad;
+
     @Column(nullable = false)
     @Builder.Default
     private boolean activo = true;

@@ -7,6 +7,10 @@ public record ClienteRequest(
         String rut,
         String email,
         String telefono,
-        String direccion
+        String direccion,
+        String razonSocial,
+        String giro,
+        String comuna,
+        String ciudad
 ) {
 }

@@ -42,6 +42,10 @@ public class ClienteController {
                 .email(request.email())
                 .telefono(request.telefono())
                 .direccion(request.direccion())
+                .razonSocial(request.razonSocial())
+                .giro(request.giro())
+                .comuna(request.comuna())
+                .ciudad(request.ciudad())
                 .build();
         return ResponseEntity.ok(clienteRepository.save(cliente));
     }
@@ -56,6 +60,10 @@ public class ClienteController {
                     cliente.setEmail(request.email());
                     cliente.setTelefono(request.telefono());
                     cliente.setDireccion(request.direccion());
+                    cliente.setRazonSocial(request.razonSocial());
+                    cliente.setGiro(request.giro());
+                    cliente.setComuna(request.comuna());
+                    cliente.setCiudad(request.ciudad());
                     return ResponseEntity.ok(clienteRepository.save(cliente));
                 })
                 .orElseGet(() -> ResponseEntity.notFound().build());

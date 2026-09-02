@@ -10,6 +10,10 @@ export interface ClienteRequest {
   email?: string;
   telefono?: string;
   direccion?: string;
+  razonSocial?: string;
+  giro?: string;
+  comuna?: string;
+  ciudad?: string;
 }
 
 @Injectable({ providedIn: 'root' })

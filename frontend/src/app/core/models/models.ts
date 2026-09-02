@@ -38,6 +38,10 @@ export interface Cliente {
   email: string | null;
   telefono: string | null;
   direccion: string | null;
+  razonSocial: string | null;
+  giro: string | null;
+  comuna: string | null;
+  ciudad: string | null;
   activo: boolean;
 }
 

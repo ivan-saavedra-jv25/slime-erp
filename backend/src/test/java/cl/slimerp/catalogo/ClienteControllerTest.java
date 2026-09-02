@@ -31,7 +31,7 @@ class ClienteControllerTest {
 
     @Test
     void crearAsociaElClienteAlTenantDelContexto() {
-        var request = new ClienteRequest("Cliente Uno", "1-9", "c1@demo.cl", "+56911111111", "Calle 1");
+        var request = new ClienteRequest("Cliente Uno", "1-9", "c1@demo.cl", "+56911111111", "Calle 1", null, null, null, null);
 
         var response = controller.crear(request);
 
@@ -55,7 +55,7 @@ class ClienteControllerTest {
     void actualizarDevuelve404SiNoExisteEnElTenant() {
         when(clienteRepository.findByIdAndTenantIdAndActivoTrue(99L, 1L)).thenReturn(Optional.empty());
 
-        var response = controller.actualizar(99L, new ClienteRequest("X", null, null, null, null));
+        var response = controller.actualizar(99L, new ClienteRequest("X", null, null, null, null, null, null, null, null));
 
         assertEquals(404, response.getStatusCode().value());
     }
