@@ -29,39 +29,12 @@ const DASHBOARD: NavItem = { ruta: '/dashboard', label: 'Dashboard', icono: 'das
 
 const GRUPOS: NavGroup[] = [
   {
-    key: 'ventas',
-    titulo: 'Ventas',
+    key: 'operacion',
+    titulo: 'Operación',
     icono: 'point_of_sale',
     items: [
-      { ruta: '/ventas', label: 'Nueva venta', icono: 'point_of_sale', permiso: 'VENTAS_VER', exact: true },
-      { ruta: '/ventas/historial', label: 'Historial', icono: 'history', permiso: 'VENTAS_VER' },
-    ],
-  },
-  {
-    key: 'compras',
-    titulo: 'Compras',
-    icono: 'shopping_cart',
-    items: [
-      { ruta: '/compras', label: 'Nueva compra', icono: 'shopping_cart', permiso: 'COMPRAS_VER', exact: true },
-      { ruta: '/compras/historial', label: 'Historial', icono: 'history', permiso: 'COMPRAS_VER' },
-    ],
-  },
-  {
-    key: 'tesoreria',
-    titulo: 'Tesorería',
-    icono: 'account_balance',
-    items: [
-      { ruta: '/tesoreria/cuentas', label: 'Cuentas por cobrar', icono: 'account_balance', permiso: 'TESORERIA_VER' },
-      { ruta: '/tesoreria/historial', label: 'Historial de pagos', icono: 'history', permiso: 'TESORERIA_VER' },
-    ],
-  },
-  {
-    key: 'contactos',
-    titulo: 'Contactos',
-    icono: 'group',
-    items: [
-      { ruta: '/clientes', label: 'Clientes', icono: 'group', permiso: 'CLIENTES_VER' },
-      { ruta: '/proveedores', label: 'Proveedores', icono: 'local_shipping', permiso: 'PROVEEDORES_VER' },
+      { ruta: '/ventas', label: 'Ventas', icono: 'point_of_sale', permiso: 'VENTAS_VER' },
+      { ruta: '/compras', label: 'Compras', icono: 'shopping_cart', permiso: 'COMPRAS_VER' },
     ],
   },
   {
@@ -82,6 +55,24 @@ const GRUPOS: NavGroup[] = [
     items: [
       { ruta: '/movimientos', label: 'Movimientos', icono: 'swap_horiz', permiso: 'MOVIMIENTOS_VER', exact: true },
       { ruta: '/movimientos/historial', label: 'Historial', icono: 'history', permiso: 'MOVIMIENTOS_VER' },
+    ],
+  },
+  {
+    key: 'tesoreria',
+    titulo: 'Tesorería',
+    icono: 'account_balance',
+    items: [
+      { ruta: '/tesoreria/cuentas', label: 'Cuentas por cobrar', icono: 'account_balance_wallet', permiso: 'TESORERIA_VER' },
+      { ruta: '/tesoreria/historial', label: 'Historial de pagos', icono: 'history', permiso: 'TESORERIA_VER' },
+    ],
+  },
+  {
+    key: 'contactos',
+    titulo: 'Contactos',
+    icono: 'group',
+    items: [
+      { ruta: '/clientes', label: 'Clientes', icono: 'group', permiso: 'CLIENTES_VER' },
+      { ruta: '/proveedores', label: 'Proveedores', icono: 'local_shipping', permiso: 'PROVEEDORES_VER' },
     ],
   },
   {
