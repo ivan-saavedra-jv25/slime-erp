@@ -1,0 +1,74 @@
+<h1>Roles y permisos</h1>
+
+@if (error) {
+  <p class="page-error">{{ error }}</p>
+}
+
+<mat-card class="form-panel">
+  <h2>Usuario</h2>
+  <div class="form-grid">
+    <div class="form-group span-2">
+      <label for="usuarioSeleccionado">Usuario</label>
+      <select
+        id="usuarioSeleccionado"
+        name="usuarioSeleccionado"
+        [(ngModel)]="usuarioSeleccionadoId"
+        (ngModelChange)="seleccionarUsuario()"
+      >
+        <option [ngValue]="null" disabled>Selecciona un usuario</option>
+        @for (u of usuarios; track u.id) {
+          <option [ngValue]="u.id">{{ u.nombre }} ({{ u.email }})</option>
+        }
+      </select>
+    </div>
+  </div>
+</mat-card>
+
+@if (cargando) {
+  <p class="empty-state">Cargando permisos...</p>
+}
+
+@if (!cargando && rolUsuario) {
+  <mat-card class="form-panel">
+    <h2>Rol: {{ rolUsuario }}</h2>
+    <p class="form-section-hint">
+      Los permisos marcados y bloqueados vienen del rol del usuario. Marca permisos adicionales para darle acceso
+      extra.
+    </p>
+
+    @for (grupo of grupos; track grupo.titulo) {
+      <h3 class="form-section-title">{{ grupo.titulo }}</h3>
+      @for (p of grupo.permisos; track p.valor) {
+        <label class="checkbox-row">
+          <input
+            type="checkbox"
+            [checked]="estaMarcado(p.valor)"
+            [disabled]="esDelRol(p.valor)"
+            (change)="alternar(p.valor)"
+          />
+          {{ p.label }}
+          @if (esDelRol(p.valor)) {
+            <span class="hint">(incluido por el rol)</span>
+          }
+        </label>
+      }
+    }
+
+    @if (mensajeExito) {
+      <p class="field-success">{{ mensajeExito }}</p>
+    }
+
+    <div class="form-actions">
+      <button
+        type="button"
+        mat-flat-button
+        color="primary"
+        [disabled]="guardando || !auth.tienePermiso('USUARIOS_EDITAR')"
+        (click)="guardar()"
+      >
+        <mat-icon>save</mat-icon>
+        {{ guardando ? 'Guardando...' : 'Guardar permisos' }}
+      </button>
+    </div>
+  </mat-card>
+}
