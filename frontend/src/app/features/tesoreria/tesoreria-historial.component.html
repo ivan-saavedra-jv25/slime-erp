@@ -76,7 +76,7 @@
             <td>{{ nombreCliente(p.clienteId) }}</td>
             <td>V-{{ p.ventaId }}</td>
             <td>{{ p.medioPago | titlecase }}</td>
-            <td class="right">{{ p.monto }}</td>
+            <td class="right">{{ p.monto | moneda }}</td>
             <td>
               <span class="tag" [class.tag--success]="p.estado === 'CONFIRMADA'">
                 {{ p.estado === 'CONFIRMADA' ? 'Confirmada' : 'Anulada' }}

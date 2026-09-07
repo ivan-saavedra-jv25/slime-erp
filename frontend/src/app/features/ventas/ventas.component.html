@@ -12,9 +12,6 @@
   @if (error) {
     <p class="page-error">{{ error }}</p>
   }
-  @if (mensaje) {
-    <p class="page-mensaje">{{ mensaje }}</p>
-  }
 
   <div class="two-col">
     <mat-card class="form-panel">
@@ -29,13 +26,19 @@
             placeholder="Buscar por nombre o RUT..."
             [(ngModel)]="filtroCliente"
             name="filtroCliente"
+            (ngModelChange)="onFiltroClienteChange()"
           />
-          @if (filtroCliente && clientesFiltrados.length) {
+          @if (filtroCliente && clientesResultados.length) {
             <div class="search-results">
-              @for (c of clientesFiltrados; track c.id) {
+              @for (c of clientesResultados; track c.id) {
                 <div class="search-results__item" (click)="seleccionarCliente(c)">
                   <span class="search-results__nombre">{{ c.nombre }}</span>
-                  <span class="search-results__sku">{{ c.rut || '—' }}</span>
+                  <span class="search-results__sku">RUT: {{ c.rut || '—' }}</span>
+                </div>
+              }
+              @if (clientesTotal > clientesResultados.length) {
+                <div class="search-results__hint">
+                  Mostrando {{ clientesResultados.length }} de {{ clientesTotal }} · sigue escribiendo para acotar
                 </div>
               }
             </div>
@@ -127,14 +130,26 @@
             placeholder="Buscar producto..."
             [(ngModel)]="filtroProducto"
             name="filtroProducto"
+            (ngModelChange)="onFiltroProductoChange()"
             (keydown.enter)="stagePrimeroFiltrado()"
           />
-          @if (filtroProducto && productosFiltrados.length) {
+          @if (filtroProducto && productosResultados.length) {
             <div class="search-results">
-              @for (p of productosFiltrados; track p.id) {
+              @for (p of productosResultados; track p.id) {
                 <div class="search-results__item" (click)="stageProducto(p)">
                   <span class="search-results__nombre">{{ p.nombre }}</span>
-                  <span class="search-results__sku">SKU: {{ p.sku || '—' }} · {{ p.precioVenta }}</span>
+                  <span class="search-results__sku">SKU: {{ p.sku || '—' }} · {{ p.precioVenta | moneda }}</span>
+                  <span
+                    class="search-results__stock"
+                    [class.search-results__stock--zero]="stockEnBodega(p.id) <= 0"
+                  >
+                    Stock en bodega: {{ stockEnBodega(p.id) }}
+                  </span>
+                </div>
+              }
+              @if (productosTotal > productosResultados.length) {
+                <div class="search-results__hint">
+                  Mostrando {{ productosResultados.length }} de {{ productosTotal }} · sigue escribiendo para acotar
                 </div>
               }
             </div>
@@ -189,9 +204,9 @@
             <td>{{ i + 1 }}</td>
             <td>{{ skuProducto(it.productoId) }}</td>
             <td>{{ nombreProducto(it.productoId) }}</td>
-            <td class="right">{{ it.precioUnitario }}</td>
+            <td class="right">{{ it.precioUnitario | moneda }}</td>
             <td class="right">{{ it.cantidad }}</td>
-            <td class="right">{{ it.cantidad * it.precioUnitario }}</td>
+            <td class="right">{{ (it.cantidad * it.precioUnitario) | moneda }}</td>
             <td class="right">
               <button type="button" mat-icon-button (click)="editarItem(i)"><mat-icon>edit</mat-icon></button>
               <button type="button" mat-icon-button (click)="quitarItem(i)"><mat-icon>delete</mat-icon></button>
@@ -223,7 +238,7 @@
         </div>
         <div class="totals-row">
           <span class="totals-row__label">Sub-total</span>
-          <span class="totals-row__value">{{ subtotalActual }}</span>
+          <span class="totals-row__value">{{ subtotalActual | moneda }}</span>
         </div>
       </div>
 
@@ -231,16 +246,16 @@
         @if (!sinIva) {
           <div class="totals-row">
             <span class="totals-row__label">Neto</span>
-            <span class="totals-row__value">{{ netoActual }}</span>
+            <span class="totals-row__value">{{ netoActual | moneda }}</span>
           </div>
           <div class="totals-row">
             <span class="totals-row__label">IVA (19%)</span>
-            <span class="totals-row__value">{{ ivaActual }}</span>
+            <span class="totals-row__value">{{ ivaActual | moneda }}</span>
           </div>
         }
         <div class="totals-row totals-row--total">
           <span class="totals-row__label">Total</span>
-          <span class="totals-row__value">{{ totalActual }}</span>
+          <span class="totals-row__value">{{ totalActual | moneda }}</span>
         </div>
 
         <button

@@ -9,11 +9,12 @@ import { CompraService } from '../../core/services/compra.service';
 import { ProveedorService } from '../../core/services/proveedor.service';
 import { ProductoService } from '../../core/services/producto.service';
 import { BodegaService } from '../../core/services/bodega.service';
+import { MonedaPipe } from '../../core/pipes/moneda.pipe';
 
 @Component({
   selector: 'app-compras-historial',
   standalone: true,
-  imports: [CommonModule, RouterLink, MatButtonModule, MatIconModule, MatCardModule],
+  imports: [CommonModule, RouterLink, MatButtonModule, MatIconModule, MatCardModule, MonedaPipe],
   templateUrl: './compras-historial.component.html',
   styleUrl: './compras-historial.component.scss',
 })

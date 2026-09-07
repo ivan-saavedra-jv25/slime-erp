@@ -2,12 +2,12 @@
 :root {
   /* Neutros */
   --gray-950: #0f172a;
-  --gray-900: #111827;
+  --gray-900: #172033;
   --gray-700: #374151;
-  --gray-500: #6b7280;
+  --gray-500: #64748b;
   --gray-400: #9ca3af;
   --gray-300: #d1d5db;
-  --gray-200: #e5e7eb;
+  --gray-200: #d9e0ea;
   --gray-100: #f3f4f6;
   --gray-50: #f9fafb;
   --white: #ffffff;
@@ -18,30 +18,30 @@
   --brand-light: #374151;
 
   /* Primario — interacción (botones, links, foco) */
-  --primary-dark: #1e4ecc;
-  --primary-base: #295eff;
+  --primary-dark: #1d4ed8;
+  --primary-base: #2563eb;
   --primary-light: #5c82ff;
   --primary-lighter: #a9bfff;
   --primary-background: #eef2ff;
 
   /* Barra superior institucional */
-  --topbar-gradient-from: #002884;
-  --topbar-gradient-to: #001b4c;
+  --topbar-gradient-from: #082b73;
+  --topbar-gradient-to: #0f2b6b;
   --topbar-shadow: rgba(0, 27, 76, 0.22);
 
   /* Sidebar */
-  --sidebar-border: #ced7e0;
+  --sidebar-border: #d9e0ea;
   --sidebar-hover: #fafbff;
   --sidebar-text: #2a343d;
   --sidebar-icon: #8393a3;
   --sidebar-subitem-text: #52677b;
 
   /* Estados de sistema */
-  --success-base: #059669;
+  --success-base: #10b981;
   --success-background: #ecfdf5;
-  --warning-base: #d97706;
+  --warning-base: #f59e0b;
   --warning-background: #fffbeb;
-  --error-base: #dc2626;
+  --error-base: #ef4444;
   --error-background: #fef2f2;
   --info-base: #0284c7;
   --info-background: #f0f9ff;
@@ -54,7 +54,7 @@
   --text-link: var(--primary-base);
   --text-on-brand: var(--white);
 
-  --surface-page: #f5f9ff;
+  --surface-page: #f6f8fc;
   --surface-card: var(--white);
   --surface-subtle: var(--gray-100);
   --surface-brand: var(--brand-base);

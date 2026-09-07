@@ -38,6 +38,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'tesoreria/clientes/:clienteId',
+        loadComponent: () =>
+          import('./features/tesoreria/tesoreria-cliente-detalle.component').then(
+            (m) => m.TesoreriaClienteDetalleComponent
+          ),
+      },
+      {
         path: 'tesoreria/historial',
         loadComponent: () =>
           import('./features/tesoreria/tesoreria-historial.component').then((m) => m.TesoreriaHistorialComponent),

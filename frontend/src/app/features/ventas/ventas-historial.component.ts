@@ -9,6 +9,7 @@ import { VentaService } from '../../core/services/venta.service';
 import { ClienteService } from '../../core/services/cliente.service';
 import { ProductoService } from '../../core/services/producto.service';
 import { FormaPagoService } from '../../core/services/forma-pago.service';
+import { MonedaPipe } from '../../core/pipes/moneda.pipe';
 
 const ETIQUETAS: Record<TipoDocumentoVenta, string> = {
   BOLETA: 'Boleta',
@@ -25,7 +26,7 @@ const TAGS: Record<TipoDocumentoVenta, string> = {
 @Component({
   selector: 'app-ventas-historial',
   standalone: true,
-  imports: [CommonModule, RouterLink, MatButtonModule, MatIconModule, MatCardModule],
+  imports: [CommonModule, RouterLink, MatButtonModule, MatIconModule, MatCardModule, MonedaPipe],
   templateUrl: './ventas-historial.component.html',
   styleUrl: './ventas-historial.component.scss',
 })

@@ -46,15 +46,15 @@
       <div class="totals-group">
         <div class="totals-row">
           <span class="totals-row__label">Monto total</span>
-          <span class="totals-row__value">{{ cuenta.montoTotal }}</span>
+          <span class="totals-row__value">{{ cuenta.montoTotal | moneda }}</span>
         </div>
         <div class="totals-row">
           <span class="totals-row__label">Pagado</span>
-          <span class="totals-row__value">{{ cuenta.montoPagado }}</span>
+          <span class="totals-row__value">{{ cuenta.montoPagado | moneda }}</span>
         </div>
         <div class="totals-row totals-row--total">
           <span class="totals-row__label">Saldo pendiente</span>
-          <span class="totals-row__value">{{ cuenta.saldoPendiente }}</span>
+          <span class="totals-row__value">{{ cuenta.saldoPendiente | moneda }}</span>
         </div>
       </div>
     </mat-card>
@@ -125,7 +125,7 @@
           <div class="form-group">
             <label for="pagoMonto">Monto<span class="required-mark">*</span></label>
             <input id="pagoMonto" type="number" [(ngModel)]="pagoForm.monto" name="pagoMonto" [max]="cuenta.saldoPendiente" />
-            <span class="hint">Saldo pendiente: {{ cuenta.saldoPendiente }}</span>
+            <span class="hint">Saldo pendiente: {{ cuenta.saldoPendiente | moneda }}</span>
           </div>
 
           @if (pagoForm.medioPago === 'TRANSFERENCIA') {
@@ -207,7 +207,7 @@
           <tr>
             <td>{{ p.fecha | date: 'short' }}</td>
             <td>{{ p.medioPago | titlecase }}</td>
-            <td class="right">{{ p.monto }}</td>
+            <td class="right">{{ p.monto | moneda }}</td>
             <td>
               <span class="tag" [class.tag--success]="p.estado === 'CONFIRMADA'">
                 {{ p.estado === 'CONFIRMADA' ? 'Confirmada' : 'Anulada' }}

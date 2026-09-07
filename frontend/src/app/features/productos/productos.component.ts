@@ -13,11 +13,12 @@ import { CategoriaService } from '../../core/services/categoria.service';
 import { SubcategoriaService } from '../../core/services/subcategoria.service';
 import { AuthService } from '../../core/services/auth.service';
 import { Categoria, Producto, Subcategoria } from '../../core/models/models';
+import { MonedaPipe } from '../../core/pipes/moneda.pipe';
 
 @Component({
   selector: 'app-productos',
   standalone: true,
-  imports: [CommonModule, FormsModule, MatTableModule, MatPaginatorModule, MatButtonModule, MatIconModule, MatCardModule],
+  imports: [CommonModule, FormsModule, MatTableModule, MatPaginatorModule, MatButtonModule, MatIconModule, MatCardModule, MonedaPipe],
   templateUrl: './productos.component.html',
   styleUrl: './productos.component.scss',
 })

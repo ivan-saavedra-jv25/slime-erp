@@ -1,10 +1,14 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import Swal from 'sweetalert2';
 import { Bodega, Cliente, FormaPago, InventarioItem, Producto, TipoDocumentoVenta, VentaItem } from '../../core/models/models';
 import { ClienteService } from '../../core/services/cliente.service';
 import { ProductoService } from '../../core/services/producto.service';
@@ -13,6 +17,8 @@ import { FormaPagoService } from '../../core/services/forma-pago.service';
 import { StockService } from '../../core/services/stock.service';
 import { VentaService } from '../../core/services/venta.service';
 import { AuthService } from '../../core/services/auth.service';
+import { VentaPdfDialogComponent } from './venta-pdf-dialog.component';
+import { MonedaPipe } from '../../core/pipes/moneda.pipe';
 
 interface ItemStaged {
   productoId: number | null;
@@ -28,16 +34,26 @@ function itemVacio(): ItemStaged {
 @Component({
   selector: 'app-ventas',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, MatButtonModule, MatIconModule, MatCardModule],
+  imports: [CommonModule, FormsModule, RouterLink, MatButtonModule, MatIconModule, MatCardModule, MatDialogModule, MonedaPipe],
   templateUrl: './ventas.component.html',
   styleUrl: './ventas.component.scss',
 })
-export class VentasComponent implements OnInit {
-  clientes: Cliente[] = [];
-  productos: Producto[] = [];
+export class VentasComponent implements OnInit, OnDestroy {
   bodegas: Bodega[] = [];
   formasPago: FormaPago[] = [];
   inventarioBodega: InventarioItem[] = [];
+
+  clienteSeleccionadoObj: Cliente | null = null;
+  clientesResultados: Cliente[] = [];
+  clientesTotal = 0;
+
+  productosResultados: Producto[] = [];
+  productosTotal = 0;
+  private readonly productosConocidos = new Map<number, Producto>();
+
+  private readonly LIMITE_RESULTADOS = 8;
+  private readonly busquedaCliente$ = new Subject<string>();
+  private readonly busquedaProducto$ = new Subject<string>();
 
   readonly tiposDocumento: { value: TipoDocumentoVenta; label: string; desc: string }[] = [
     { value: 'BOLETA', label: 'Boleta', desc: 'Afecta: detalle en bruto (IVA incluido), el total se desglosa. Puede marcarse como exenta.' },
@@ -55,7 +71,6 @@ export class VentasComponent implements OnInit {
   items: VentaItem[] = [];
   guardando = false;
   error = '';
-  mensaje = '';
 
   filtroCliente = '';
   filtroProducto = '';
@@ -69,12 +84,11 @@ export class VentasComponent implements OnInit {
     private formaPagoService: FormaPagoService,
     private stockService: StockService,
     private ventaService: VentaService,
+    private dialog: MatDialog,
     public auth: AuthService
   ) {}
 
   ngOnInit(): void {
-    this.clienteService.listar().subscribe((data) => (this.clientes = data));
-    this.productoService.listar().subscribe((data) => (this.productos = data));
     this.formaPagoService.listar().subscribe((data) => (this.formasPago = data));
     this.bodegaService.listar().subscribe((data) => {
       this.bodegas = data;
@@ -84,6 +98,14 @@ export class VentasComponent implements OnInit {
         this.onBodegaChange();
       }
     });
+
+    this.busquedaCliente$.pipe(debounceTime(300), distinctUntilChanged()).subscribe((q) => this.buscarClientes(q));
+    this.busquedaProducto$.pipe(debounceTime(300), distinctUntilChanged()).subscribe((q) => this.buscarProductos(q));
+  }
+
+  ngOnDestroy(): void {
+    this.busquedaCliente$.complete();
+    this.busquedaProducto$.complete();
   }
 
   onBodegaChange(): void {
@@ -94,7 +116,7 @@ export class VentasComponent implements OnInit {
     this.stockService.inventarioPorBodega(this.bodegaId).subscribe((data) => (this.inventarioBodega = data));
   }
 
-  private stockEnBodega(productoId: number): number {
+  stockEnBodega(productoId: number): number {
     return this.inventarioBodega.find((i) => i.productoId === productoId)?.cantidad ?? 0;
   }
 
@@ -121,32 +143,59 @@ export class VentasComponent implements OnInit {
   }
 
   get clienteSeleccionado(): Cliente | null {
-    return this.clientes.find((c) => c.id === this.clienteId) ?? null;
+    return this.clienteSeleccionadoObj;
   }
 
-  get clientesFiltrados(): Cliente[] {
-    const q = this.filtroCliente.trim().toLowerCase();
-    if (!q) return [];
-    return this.clientes.filter((c) => c.nombre.toLowerCase().includes(q) || (c.rut ?? '').toLowerCase().includes(q));
+  onFiltroClienteChange(): void {
+    this.busquedaCliente$.next(this.filtroCliente);
+  }
+
+  private buscarClientes(q: string): void {
+    const texto = q.trim();
+    if (!texto) {
+      this.clientesResultados = [];
+      this.clientesTotal = 0;
+      return;
+    }
+    this.clienteService.listarPagina(texto, 0, this.LIMITE_RESULTADOS).subscribe((resp) => {
+      this.clientesResultados = resp.contenido;
+      this.clientesTotal = resp.total;
+    });
   }
 
   seleccionarCliente(cliente: Cliente): void {
     this.clienteId = cliente.id;
+    this.clienteSeleccionadoObj = cliente;
     this.filtroCliente = '';
+    this.clientesResultados = [];
   }
 
   cambiarCliente(): void {
     this.clienteId = null;
+    this.clienteSeleccionadoObj = null;
     this.filtroCliente = '';
   }
 
-  get productosFiltrados(): Producto[] {
-    const q = this.filtroProducto.trim().toLowerCase();
-    if (!q) return [];
-    return this.productos.filter((p) => p.nombre.toLowerCase().includes(q) || (p.sku ?? '').toLowerCase().includes(q));
+  onFiltroProductoChange(): void {
+    this.busquedaProducto$.next(this.filtroProducto);
+  }
+
+  private buscarProductos(q: string): void {
+    const texto = q.trim();
+    if (!texto) {
+      this.productosResultados = [];
+      this.productosTotal = 0;
+      return;
+    }
+    this.productoService.listarPagina(texto, 0, this.LIMITE_RESULTADOS).subscribe((resp) => {
+      this.productosResultados = resp.contenido;
+      this.productosTotal = resp.total;
+      resp.contenido.forEach((p) => this.productosConocidos.set(p.id, p));
+    });
   }
 
   stageProducto(producto: Producto): void {
+    this.productosConocidos.set(producto.id, producto);
     this.itemStaged = {
       productoId: producto.id,
       descripcion: producto.nombre,
@@ -155,10 +204,11 @@ export class VentasComponent implements OnInit {
     };
     this.itemError = null;
     this.filtroProducto = '';
+    this.productosResultados = [];
   }
 
   stagePrimeroFiltrado(): void {
-    const primero = this.productosFiltrados[0];
+    const primero = this.productosResultados[0];
     if (primero) this.stageProducto(primero);
   }
 
@@ -170,7 +220,7 @@ export class VentasComponent implements OnInit {
     if (!this.itemStaged.productoId || this.itemStaged.cantidad <= 0) return;
     this.itemError = null;
 
-    const producto = this.productos.find((p) => p.id === this.itemStaged.productoId)!;
+    const producto = this.productosConocidos.get(this.itemStaged.productoId)!;
     const existente = this.items.find((it) => it.productoId === this.itemStaged.productoId);
     const yaEnCarrito = existente?.cantidad ?? 0;
     const stockDisponible = this.stockEnBodega(producto.id);
@@ -208,11 +258,11 @@ export class VentasComponent implements OnInit {
   }
 
   nombreProducto(id: number): string {
-    return this.productos.find((p) => p.id === id)?.nombre ?? String(id);
+    return this.productosConocidos.get(id)?.nombre ?? String(id);
   }
 
   skuProducto(id: number): string {
-    return this.productos.find((p) => p.id === id)?.sku ?? '—';
+    return this.productosConocidos.get(id)?.sku ?? '—';
   }
 
   get subtotalActual(): number {
@@ -248,7 +298,6 @@ export class VentasComponent implements OnInit {
     if (!this.puedeConfirmar) return;
     this.guardando = true;
     this.error = '';
-    this.mensaje = '';
 
     this.ventaService
       .crear({
@@ -263,7 +312,6 @@ export class VentasComponent implements OnInit {
       })
       .subscribe({
         next: (venta) => {
-          this.mensaje = `Venta #${venta.id} registrada correctamente. Total: ${venta.montoTotal}.`;
           this.clienteId = null;
           this.formaPagoId = null;
           this.observacion = '';
@@ -273,11 +321,36 @@ export class VentasComponent implements OnInit {
           this.itemError = null;
           this.guardando = false;
           this.onBodegaChange();
+          this.mostrarComprobante(venta.id);
         },
         error: (err) => {
           this.error = err?.error?.error ?? 'Ocurrió un error al registrar la venta.';
           this.guardando = false;
         },
       });
+  }
+
+  private mostrarComprobante(ventaId: number): void {
+    Swal.fire({
+      title: 'Venta generada',
+      text: `La venta #${ventaId} se generó con éxito.`,
+      icon: 'success',
+      confirmButtonText: 'Ver comprobante',
+    }).then(() => {
+      this.ventaService.obtenerPdf(ventaId).subscribe({
+        next: (blob) => {
+          const url = URL.createObjectURL(blob);
+          const dialogRef = this.dialog.open(VentaPdfDialogComponent, {
+            data: { ventaId, url },
+            width: '90vw',
+            maxWidth: '1200px',
+          });
+          dialogRef.afterClosed().subscribe(() => URL.revokeObjectURL(url));
+        },
+        error: () => {
+          Swal.fire('No se pudo cargar el comprobante', '', 'error');
+        },
+      });
+    });
   }
 }

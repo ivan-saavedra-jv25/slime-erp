@@ -8,11 +8,12 @@ import { MatCardModule } from '@angular/material/card';
 import { Cliente, EstadoTransaccion, MedioPago, TransaccionPago } from '../../core/models/models';
 import { ClienteService } from '../../core/services/cliente.service';
 import { FiltrosHistorialPago, TransaccionPagoService } from '../../core/services/transaccion-pago.service';
+import { MonedaPipe } from '../../core/pipes/moneda.pipe';
 
 @Component({
   selector: 'app-tesoreria-historial',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, MatButtonModule, MatIconModule, MatCardModule],
+  imports: [CommonModule, FormsModule, RouterLink, MatButtonModule, MatIconModule, MatCardModule, MonedaPipe],
   templateUrl: './tesoreria-historial.component.html',
   styleUrl: './tesoreria-historial.component.scss',
 })

@@ -32,4 +32,8 @@ export class VentaService {
   crear(request: VentaRequest): Observable<Venta> {
     return this.http.post<Venta>(this.base, request);
   }
+
+  obtenerPdf(id: number): Observable<Blob> {
+    return this.http.get(`${this.base}/${id}/pdf`, { responseType: 'blob' });
+  }
 }

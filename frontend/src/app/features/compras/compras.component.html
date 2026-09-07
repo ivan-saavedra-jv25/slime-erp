@@ -110,7 +110,7 @@
               @for (p of productosFiltrados; track p.id) {
                 <div class="search-results__item" (click)="stageProducto(p)">
                   <span class="search-results__nombre">{{ p.nombre }}</span>
-                  <span class="search-results__sku">SKU: {{ p.sku || '—' }} · {{ p.precioCompra }}</span>
+                  <span class="search-results__sku">SKU: {{ p.sku || '—' }} · {{ p.precioCompra | moneda }}</span>
                 </div>
               }
             </div>
@@ -162,9 +162,9 @@
             <td>{{ i + 1 }}</td>
             <td>{{ skuProducto(it.productoId) }}</td>
             <td>{{ nombreProducto(it.productoId) }}</td>
-            <td class="right">{{ it.precioUnitario }}</td>
+            <td class="right">{{ it.precioUnitario | moneda }}</td>
             <td class="right">{{ it.cantidad }}</td>
-            <td class="right">{{ it.cantidad * it.precioUnitario }}</td>
+            <td class="right">{{ (it.cantidad * it.precioUnitario) | moneda }}</td>
             <td class="right">
               <button type="button" mat-icon-button (click)="editarItem(i)"><mat-icon>edit</mat-icon></button>
               <button type="button" mat-icon-button (click)="quitarItem(i)"><mat-icon>delete</mat-icon></button>
@@ -187,7 +187,7 @@
       <div class="totals-group">
         <div class="totals-row totals-row--total">
           <span class="totals-row__label">Total</span>
-          <span class="totals-row__value">{{ totalActual }}</span>
+          <span class="totals-row__value">{{ totalActual | moneda }}</span>
         </div>
 
         <button

@@ -10,6 +10,7 @@ import { CuentaPorCobrarService } from '../../core/services/cuenta-por-cobrar.se
 import { TransaccionPagoRequest, TransaccionPagoService } from '../../core/services/transaccion-pago.service';
 import { ClienteService } from '../../core/services/cliente.service';
 import { AuthService } from '../../core/services/auth.service';
+import { MonedaPipe } from '../../core/pipes/moneda.pipe';
 
 const ETIQUETAS: Record<EstadoCuentaPorCobrar, string> = {
   DEUDA: 'En deuda',
@@ -25,7 +26,7 @@ function pagoVacio(): TransaccionPagoRequest {
 @Component({
   selector: 'app-tesoreria-cuenta-detalle',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, MatButtonModule, MatIconModule, MatCardModule],
+  imports: [CommonModule, FormsModule, RouterLink, MatButtonModule, MatIconModule, MatCardModule, MonedaPipe],
   templateUrl: './tesoreria-cuenta-detalle.component.html',
   styleUrl: './tesoreria-cuenta-detalle.component.scss',
 })

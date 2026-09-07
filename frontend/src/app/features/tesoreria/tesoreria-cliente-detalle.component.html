@@ -1,0 +1,95 @@
+@if (cargando) {
+  <p class="empty-state">Cargando cliente...</p>
+}
+
+@if (!cargando && !cliente) {
+  <p class="page-error">Cliente no encontrado.</p>
+}
+
+@if (!cargando && cliente) {
+  <div class="page-header">
+    <h1>Cuenta corriente — {{ cliente.nombre }}</h1>
+    <a mat-stroked-button routerLink="/tesoreria/cuentas">
+      <mat-icon>arrow_back</mat-icon>
+      Volver
+    </a>
+  </div>
+
+  <mat-card class="form-panel">
+    <h2>Datos del cliente</h2>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>RUT</label>
+        <input type="text" [value]="cliente.rut || '—'" readonly />
+      </div>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="text" [value]="cliente.email || '—'" readonly />
+      </div>
+      <div class="form-group span-2">
+        <label>Dirección</label>
+        <input type="text" [value]="cliente.direccion || '—'" readonly />
+      </div>
+    </div>
+  </mat-card>
+
+  <section class="kpi-grid">
+    <mat-card class="kpi-card">
+      <span class="kpi-label">Total facturado</span>
+      <span class="kpi-value">{{ totalFacturado | moneda }}</span>
+    </mat-card>
+    <mat-card class="kpi-card">
+      <span class="kpi-label">Total pagado</span>
+      <span class="kpi-value">{{ totalPagado | moneda }}</span>
+    </mat-card>
+    <mat-card class="kpi-card">
+      <span class="kpi-label">Saldo pendiente</span>
+      <span class="kpi-value">{{ saldoPendiente | moneda }}</span>
+    </mat-card>
+    <mat-card class="kpi-card">
+      <span class="kpi-label">Cuentas en deuda</span>
+      <span class="kpi-value">{{ cuentasEnDeuda }}</span>
+    </mat-card>
+  </section>
+
+  <mat-card class="form-panel">
+    <h2>Historial de cuentas por cobrar</h2>
+
+    @if (!cuentas.length) {
+      <p class="empty-state">Este cliente no tiene cuentas por cobrar registradas.</p>
+    }
+
+    @if (cuentas.length) {
+      <table class="historial-table">
+        <thead>
+          <tr>
+            <th>Venta</th>
+            <th>Fecha</th>
+            <th class="right">Total</th>
+            <th class="right">Pagado</th>
+            <th class="right">Saldo</th>
+            <th>Estado</th>
+            <th class="right"></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (c of cuentas; track c.id) {
+            <tr>
+              <td>V-{{ c.ventaId }}</td>
+              <td>{{ c.fechaGeneracion | date: 'short' }}</td>
+              <td class="right">{{ c.montoTotal | moneda }}</td>
+              <td class="right">{{ c.montoPagado | moneda }}</td>
+              <td class="right">{{ c.saldoPendiente | moneda }}</td>
+              <td><span [class]="'tag ' + tagEstado(c.estado)">{{ etiquetaEstado(c.estado) }}</span></td>
+              <td class="right">
+                <a mat-button routerLink="/tesoreria/cuentas/{{ c.id }}">
+                  {{ puedeRegistrarPago(c) && auth.tienePermiso('TESORERIA_EDITAR') ? 'Registrar pago' : 'Ver' }}
+                </a>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </mat-card>
+}

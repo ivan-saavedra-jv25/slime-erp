@@ -10,15 +10,15 @@
   <section class="kpi-grid">
     <mat-card class="kpi-card">
       <span class="kpi-label">Total por cobrar</span>
-      <span class="kpi-value">{{ resumen.totalPorCobrar }}</span>
+      <span class="kpi-value">{{ resumen.totalPorCobrar | moneda }}</span>
     </mat-card>
     <mat-card class="kpi-card">
       <span class="kpi-label">Total cobrado</span>
-      <span class="kpi-value">{{ resumen.totalCobrado }}</span>
+      <span class="kpi-value">{{ resumen.totalCobrado | moneda }}</span>
     </mat-card>
     <mat-card class="kpi-card">
       <span class="kpi-label">Saldo pendiente</span>
-      <span class="kpi-value">{{ resumen.saldoPendiente }}</span>
+      <span class="kpi-value">{{ resumen.saldoPendiente | moneda }}</span>
     </mat-card>
     <mat-card class="kpi-card">
       <span class="kpi-label">En deuda</span>
@@ -35,6 +35,41 @@
   </section>
 }
 
+@if (deudaPorCliente.length) {
+  <mat-card class="form-panel">
+    <h2>Deuda por cliente</h2>
+    <p class="form-section-hint">Haz clic en un cliente para ver el detalle de su cuenta corriente.</p>
+    <table class="historial-table">
+      <thead>
+        <tr>
+          <th>Cliente</th>
+          <th class="right">Cuentas en deuda</th>
+          <th class="right">Saldo total adeudado</th>
+          <th class="right"></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (d of deudaPorCliente; track d.clienteId) {
+          <tr class="clickable-row" [routerLink]="['/tesoreria/clientes', d.clienteId]">
+            <td>{{ d.nombre }}</td>
+            <td class="right">{{ d.cantidadCuentas }}</td>
+            <td class="right">{{ d.saldoPendiente | moneda }}</td>
+            <td class="right"><mat-icon class="clickable-row__chevron">chevron_right</mat-icon></td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </mat-card>
+}
+
+<div class="toggle-row">
+  <button type="button" mat-stroked-button (click)="mostrarTodas = !mostrarTodas">
+    <mat-icon>{{ mostrarTodas ? 'expand_less' : 'expand_more' }}</mat-icon>
+    {{ mostrarTodas ? 'Ocultar todas las cuentas' : 'Ver todas las cuentas' }}
+  </button>
+</div>
+
+@if (mostrarTodas) {
 <mat-card class="form-panel">
   <div class="filtros-grid">
     <div class="form-group">
@@ -94,9 +129,9 @@
           <tr>
             <td>{{ nombreCliente(c.clienteId) }}</td>
             <td>V-{{ c.ventaId }}</td>
-            <td class="right">{{ c.montoTotal }}</td>
-            <td class="right">{{ c.montoPagado }}</td>
-            <td class="right">{{ c.saldoPendiente }}</td>
+            <td class="right">{{ c.montoTotal | moneda }}</td>
+            <td class="right">{{ c.montoPagado | moneda }}</td>
+            <td class="right">{{ c.saldoPendiente | moneda }}</td>
             <td><span [class]="'tag ' + tagEstado(c.estado)">{{ etiquetaEstado(c.estado) }}</span></td>
             <td class="right">
               <a mat-button routerLink="/tesoreria/cuentas/{{ c.id }}">
@@ -109,3 +144,4 @@
     </table>
   }
 </mat-card>
+}

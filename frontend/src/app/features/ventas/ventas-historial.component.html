@@ -39,7 +39,7 @@
             </td>
             <td>{{ nombreCliente(v.clienteId) }}</td>
             <td>{{ nombreFormaPago(v.formaPagoId) }}</td>
-            <td class="right">{{ v.montoTotal }}</td>
+            <td class="right">{{ v.montoTotal | moneda }}</td>
             <td class="right">
               <button type="button" mat-icon-button (click)="toggleDetalle(v.id)">
                 <mat-icon>{{ detalleAbierto === v.id ? 'expand_less' : 'expand_more' }}</mat-icon>
@@ -69,21 +69,21 @@
                           <td>{{ skuProducto(item.productoId) }}</td>
                           <td>{{ nombreProducto(item.productoId) }}</td>
                           <td class="right">{{ item.cantidad }}</td>
-                          <td class="right">{{ item.precioUnitario }}</td>
-                          <td class="right">{{ item.subtotal }}</td>
+                          <td class="right">{{ item.precioUnitario | moneda }}</td>
+                          <td class="right">{{ item.subtotal | moneda }}</td>
                         </tr>
                       }
                     </tbody>
                   </table>
                   <div class="detail-totales">
                     @if (v.descuento) {
-                      <span>Descuento: {{ v.descuento }}</span>
+                      <span>Descuento: {{ v.descuento | moneda }}</span>
                     }
                     @if (!sinIva(v)) {
-                      <span>Neto: {{ v.montoNeto }}</span>
-                      <span>IVA: {{ v.montoIva }}</span>
+                      <span>Neto: {{ v.montoNeto | moneda }}</span>
+                      <span>IVA: {{ v.montoIva | moneda }}</span>
                     }
-                    <span><strong>Total: {{ v.montoTotal }}</strong></span>
+                    <span><strong>Total: {{ v.montoTotal | moneda }}</strong></span>
                   </div>
                 </div>
               </td>

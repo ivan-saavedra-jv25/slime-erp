@@ -11,6 +11,7 @@ import { ProductoService } from '../../core/services/producto.service';
 import { BodegaService } from '../../core/services/bodega.service';
 import { CompraService } from '../../core/services/compra.service';
 import { AuthService } from '../../core/services/auth.service';
+import { MonedaPipe, formatearCLP } from '../../core/pipes/moneda.pipe';
 
 interface ItemStaged {
   productoId: number | null;
@@ -26,7 +27,7 @@ function itemVacio(): ItemStaged {
 @Component({
   selector: 'app-compras',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, MatButtonModule, MatIconModule, MatCardModule],
+  imports: [CommonModule, FormsModule, RouterLink, MatButtonModule, MatIconModule, MatCardModule, MonedaPipe],
   templateUrl: './compras.component.html',
   styleUrl: './compras.component.scss',
 })
@@ -175,7 +176,7 @@ export class ComprasComponent implements OnInit {
       })
       .subscribe({
         next: (compra) => {
-          this.mensaje = `Compra #${compra.id} registrada correctamente. Total: ${compra.total}.`;
+          this.mensaje = `Compra #${compra.id} registrada correctamente. Total: ${formatearCLP(compra.total)}.`;
           this.proveedorId = null;
           this.observacion = '';
           this.items = [];

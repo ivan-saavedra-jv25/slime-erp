@@ -32,6 +32,10 @@ export class ClienteService {
     return this.http.get<PaginaResponse<Cliente>>(`${this.base}/pagina`, { params });
   }
 
+  obtener(id: number): Observable<Cliente> {
+    return this.http.get<Cliente>(`${this.base}/${id}`);
+  }
+
   crear(request: ClienteRequest): Observable<Cliente> {
     return this.http.post<Cliente>(this.base, request);
   }
