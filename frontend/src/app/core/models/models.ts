@@ -48,6 +48,12 @@ export interface Usuario {
   fechaCreacion: string;
 }
 
+export interface PermisosUsuario {
+  rol: Rol;
+  permisosRol: Permiso[];
+  permisosExtra: Permiso[];
+}
+
 export interface PaginaResponse<T> {
   contenido: T[];
   total: number;

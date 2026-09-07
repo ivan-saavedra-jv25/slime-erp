@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { Usuario, Rol } from '../models/models';
+import { Permiso, PermisosUsuario, Usuario, Rol } from '../models/models';
 
 export interface UsuarioRequest {
   nombre: string;
@@ -33,5 +33,13 @@ export class UsuarioService {
 
   desactivar(id: number): Observable<void> {
     return this.http.delete<void>(`${this.base}/${id}`);
+  }
+
+  obtenerPermisos(id: number): Observable<PermisosUsuario> {
+    return this.http.get<PermisosUsuario>(`${this.base}/${id}/permisos`);
+  }
+
+  guardarPermisosExtra(id: number, permisos: Permiso[]): Observable<void> {
+    return this.http.put<void>(`${this.base}/${id}/permisos-extra`, { permisos });
   }
 }
