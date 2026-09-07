@@ -1,5 +1,6 @@
 package cl.slimerp.config;
 
+import cl.slimerp.permisos.Permiso;
 import cl.slimerp.permisos.PermisoEfectivoService;
 import cl.slimerp.tenant.Rol;
 import io.jsonwebtoken.Claims;
@@ -8,6 +9,8 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -18,6 +21,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Valida el JWT en cada request, autentica al usuario ante Spring Security con
@@ -27,6 +31,8 @@ import java.util.List;
  */
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
+
+    private static final Logger log = LoggerFactory.getLogger(JwtAuthFilter.class);
 
     private final JwtService jwtService;
     private final PermisoEfectivoService permisoEfectivoService;
@@ -57,7 +63,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
                 List<SimpleGrantedAuthority> authorities = new ArrayList<>();
                 authorities.add(new SimpleGrantedAuthority("ROLE_" + rol));
-                permisoEfectivoService.calcular(tenantId, usuarioId, Rol.valueOf(rol))
+                calcularPermisosEfectivos(tenantId, usuarioId, Rol.valueOf(rol))
                         .forEach(permiso -> authorities.add(new SimpleGrantedAuthority(permiso.name())));
 
                 var authentication = new UsernamePasswordAuthenticationToken(email, null, authorities);
@@ -72,6 +78,22 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
         } finally {
             TenantContext.clear();
+        }
+    }
+
+    /**
+     * Una falla al leer los permisos extra (por ejemplo, la base de datos caída)
+     * ocurre antes del DispatcherServlet, así que {@code GlobalExceptionHandler}
+     * nunca la ve. Se deja registrada con su traza antes de relanzarla para que
+     * el problema sea diagnosticable y no un error opaco del contenedor.
+     */
+    private Set<Permiso> calcularPermisosEfectivos(Long tenantId, Long usuarioId, Rol rol) {
+        try {
+            return permisoEfectivoService.calcular(tenantId, usuarioId, rol);
+        } catch (RuntimeException ex) {
+            log.warn("No se pudieron calcular los permisos efectivos del usuario {} (tenant {})",
+                    usuarioId, tenantId, ex);
+            throw ex;
         }
     }
 }

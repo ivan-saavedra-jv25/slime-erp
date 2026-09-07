@@ -59,9 +59,6 @@ const GRUPOS_PERMISOS: GrupoPermiso[] = [
     { valor: 'USUARIOS_VER', label: 'Ver usuarios' },
     { valor: 'USUARIOS_EDITAR', label: 'Editar usuarios' },
   ] },
-  { titulo: 'Empresas', permisos: [
-    { valor: 'EMPRESAS_ADMINISTRAR', label: 'Administrar empresas' },
-  ] },
 ];
 
 @Component({
@@ -106,8 +103,8 @@ export class RolesPermisosComponent implements OnInit {
         this.permisosMarcados = new Set([...data.permisosRol, ...data.permisosExtra]);
         this.cargando = false;
       },
-      error: () => {
-        this.error = 'No se pudo cargar los permisos del usuario.';
+      error: (err) => {
+        this.error = err?.error?.error ?? 'No se pudo cargar los permisos del usuario.';
         this.cargando = false;
       },
     });
@@ -141,9 +138,9 @@ export class RolesPermisosComponent implements OnInit {
         this.guardando = false;
         this.mensajeExito = 'Permisos actualizados.';
       },
-      error: () => {
+      error: (err) => {
         this.guardando = false;
-        this.error = 'Ocurrió un error al guardar los permisos.';
+        this.error = err?.error?.error ?? 'Ocurrió un error al guardar los permisos.';
       },
     });
   }
