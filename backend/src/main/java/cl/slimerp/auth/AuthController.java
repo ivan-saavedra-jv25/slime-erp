@@ -2,7 +2,7 @@ package cl.slimerp.auth;
 
 import cl.slimerp.config.JwtService;
 import cl.slimerp.permisos.Permiso;
-import cl.slimerp.permisos.RolPermisos;
+import cl.slimerp.permisos.PermisoEfectivoService;
 import cl.slimerp.tenant.Tenant;
 import cl.slimerp.tenant.TenantRepository;
 import cl.slimerp.tenant.Usuario;
@@ -21,13 +21,16 @@ public class AuthController {
     private final TenantRepository tenantRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final PermisoEfectivoService permisoEfectivoService;
 
     public AuthController(UsuarioRepository usuarioRepository, TenantRepository tenantRepository,
-                           PasswordEncoder passwordEncoder, JwtService jwtService) {
+                           PasswordEncoder passwordEncoder, JwtService jwtService,
+                           PermisoEfectivoService permisoEfectivoService) {
         this.usuarioRepository = usuarioRepository;
         this.tenantRepository = tenantRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
+        this.permisoEfectivoService = permisoEfectivoService;
     }
 
     @PostMapping("/login")
@@ -49,7 +52,8 @@ public class AuthController {
         String token = jwtService.generarToken(
                 usuario.getId(), usuario.getTenantId(), usuario.getEmail(), usuario.getRol().name());
 
-        var permisos = RolPermisos.permisosDe(usuario.getRol()).stream().map(Permiso::name).toList();
+        var permisos = permisoEfectivoService.calcular(usuario.getTenantId(), usuario.getId(), usuario.getRol())
+                .stream().map(Permiso::name).toList();
 
         return ResponseEntity.ok(new LoginResponse(
                 token, usuario.getId(), usuario.getTenantId(), tenant.getNombre(), usuario.getNombre(),

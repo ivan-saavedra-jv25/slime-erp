@@ -1,6 +1,7 @@
 package cl.slimerp.auth;
 
 import cl.slimerp.config.JwtService;
+import cl.slimerp.permisos.PermisoEfectivoService;
 import cl.slimerp.permisos.RolPermisos;
 import cl.slimerp.tenant.Rol;
 import cl.slimerp.tenant.Tenant;
@@ -24,6 +25,7 @@ class AuthControllerTest {
     private TenantRepository tenantRepository;
     private PasswordEncoder passwordEncoder;
     private JwtService jwtService;
+    private PermisoEfectivoService permisoEfectivoService;
     private AuthController authController;
 
     @BeforeEach
@@ -32,7 +34,9 @@ class AuthControllerTest {
         tenantRepository = mock(TenantRepository.class);
         passwordEncoder = mock(PasswordEncoder.class);
         jwtService = mock(JwtService.class);
-        authController = new AuthController(usuarioRepository, tenantRepository, passwordEncoder, jwtService);
+        permisoEfectivoService = mock(PermisoEfectivoService.class);
+        authController = new AuthController(usuarioRepository, tenantRepository, passwordEncoder, jwtService,
+                permisoEfectivoService);
     }
 
     private Usuario usuario() {
@@ -57,12 +61,13 @@ class AuthControllerTest {
     }
 
     @Test
-    void loginIncluyeLosPermisosDelRolDelUsuario() {
+    void loginIncluyeLosPermisosEfectivosDelUsuario() {
         when(usuarioRepository.findFirstByEmailAndActivoTrue("user@demo.cl")).thenReturn(Optional.of(usuario()));
         when(passwordEncoder.matches("clave", "hash")).thenReturn(true);
         Tenant tenantActivo = Tenant.builder().id(10L).nombre("Empresa X").rut("1-9").activo(true).build();
         when(tenantRepository.findById(10L)).thenReturn(Optional.of(tenantActivo));
         when(jwtService.generarToken(1L, 10L, "user@demo.cl", "VENDEDOR")).thenReturn("token-123");
+        when(permisoEfectivoService.calcular(10L, 1L, Rol.VENDEDOR)).thenReturn(RolPermisos.permisosDe(Rol.VENDEDOR));
 
         var response = authController.login(request());
 
@@ -72,6 +77,21 @@ class AuthControllerTest {
                 "BODEGAS_VER", "FORMAS_PAGO_VER", "MOVIMIENTOS_VER", "MOVIMIENTOS_EDITAR",
                 "VENTAS_VER", "VENTAS_EDITAR", "TESORERIA_VER", "TESORERIA_EDITAR");
         assertEquals(permisosEsperados, Set.copyOf(response.getBody().permisos()));
-        assertEquals(RolPermisos.permisosDe(Rol.VENDEDOR).size(), response.getBody().permisos().size());
+    }
+
+    @Test
+    void loginIncluyeLosPermisosExtraAdemasDeLosDelRol() {
+        when(usuarioRepository.findFirstByEmailAndActivoTrue("user@demo.cl")).thenReturn(Optional.of(usuario()));
+        when(passwordEncoder.matches("clave", "hash")).thenReturn(true);
+        Tenant tenantActivo = Tenant.builder().id(10L).nombre("Empresa X").rut("1-9").activo(true).build();
+        when(tenantRepository.findById(10L)).thenReturn(Optional.of(tenantActivo));
+        when(jwtService.generarToken(1L, 10L, "user@demo.cl", "VENDEDOR")).thenReturn("token-123");
+        Set<cl.slimerp.permisos.Permiso> conExtra = java.util.EnumSet.copyOf(RolPermisos.permisosDe(Rol.VENDEDOR));
+        conExtra.add(cl.slimerp.permisos.Permiso.COMPRAS_VER);
+        when(permisoEfectivoService.calcular(10L, 1L, Rol.VENDEDOR)).thenReturn(conExtra);
+
+        var response = authController.login(request());
+
+        assertTrue(response.getBody().permisos().contains("COMPRAS_VER"));
     }
 }
