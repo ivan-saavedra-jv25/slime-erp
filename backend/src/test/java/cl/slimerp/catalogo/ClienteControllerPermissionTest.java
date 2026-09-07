@@ -2,6 +2,7 @@ package cl.slimerp.catalogo;
 
 import cl.slimerp.config.JwtService;
 import cl.slimerp.config.TenantContext;
+import cl.slimerp.permisos.PermisoEfectivoService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +37,9 @@ class ClienteControllerPermissionTest {
 
     @MockBean
     private JwtService jwtService;
+
+    @MockBean
+    private PermisoEfectivoService permisoEfectivoService;
 
     @AfterEach
     void tearDown() {
