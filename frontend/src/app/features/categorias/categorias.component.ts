@@ -1,7 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { MatTableModule } from '@angular/material/table';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
@@ -13,16 +16,35 @@ import { Categoria, Subcategoria } from '../../core/models/models';
 @Component({
   selector: 'app-categorias',
   standalone: true,
-  imports: [CommonModule, FormsModule, MatTableModule, MatButtonModule, MatIconModule, MatCardModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    MatTableModule,
+    MatPaginatorModule,
+    MatButtonModule,
+    MatIconModule,
+    MatCardModule,
+  ],
   templateUrl: './categorias.component.html',
   styleUrl: './categorias.component.scss',
 })
-export class CategoriasComponent implements OnInit {
+export class CategoriasComponent implements OnInit, OnDestroy {
   columnasCategorias = ['nombre', 'acciones'];
   columnasSubcategorias = ['nombre', 'acciones'];
 
   categorias: Categoria[] = [];
+  totalCategorias = 0;
+  filtroCategorias = '';
+  paginaCategorias = 0;
+  tamanoCategorias = 10;
+  readonly opcionesTamano = [10, 25, 50];
+
   subcategorias: Subcategoria[] = [];
+  totalSubcategorias = 0;
+  filtroSubcategorias = '';
+  paginaSubcategorias = 0;
+  tamanoSubcategorias = 10;
+
   categoriaSeleccionada: Categoria | null = null;
   error = '';
 
@@ -34,6 +56,9 @@ export class CategoriasComponent implements OnInit {
   editandoSubcategoriaId: number | null = null;
   guardandoSubcategoria = false;
 
+  private readonly busquedaCategorias$ = new Subject<string>();
+  private readonly busquedaSubcategorias$ = new Subject<string>();
+
   constructor(
     private categoriaService: CategoriaService,
     private subcategoriaService: SubcategoriaService,
@@ -41,17 +66,82 @@ export class CategoriasComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.busquedaCategorias$.pipe(debounceTime(300), distinctUntilChanged()).subscribe(() => {
+      this.paginaCategorias = 0;
+      this.cargarCategorias();
+    });
+    this.busquedaSubcategorias$.pipe(debounceTime(300), distinctUntilChanged()).subscribe(() => {
+      this.paginaSubcategorias = 0;
+      this.cargarSubcategorias();
+    });
     this.cargarCategorias();
   }
 
+  ngOnDestroy(): void {
+    this.busquedaCategorias$.complete();
+    this.busquedaSubcategorias$.complete();
+  }
+
   cargarCategorias(): void {
-    this.categoriaService.listar().subscribe((data) => (this.categorias = data));
+    this.categoriaService
+      .listarPagina(this.filtroCategorias, this.paginaCategorias, this.tamanoCategorias)
+      .subscribe((resp) => {
+        if (!resp.contenido.length && this.paginaCategorias > 0) {
+          this.paginaCategorias = Math.max(0, this.paginaCategorias - 1);
+          this.cargarCategorias();
+          return;
+        }
+        this.categorias = resp.contenido;
+        this.totalCategorias = resp.total;
+      });
+  }
+
+  onFiltroCategoriasChange(): void {
+    this.busquedaCategorias$.next(this.filtroCategorias);
+  }
+
+  onPageCategoriasChange(event: PageEvent): void {
+    this.paginaCategorias = event.pageIndex;
+    this.tamanoCategorias = event.pageSize;
+    this.cargarCategorias();
+  }
+
+  cargarSubcategorias(): void {
+    if (!this.categoriaSeleccionada) return;
+    this.subcategoriaService
+      .listarPagina(
+        this.categoriaSeleccionada.id,
+        this.filtroSubcategorias,
+        this.paginaSubcategorias,
+        this.tamanoSubcategorias
+      )
+      .subscribe((resp) => {
+        if (!resp.contenido.length && this.paginaSubcategorias > 0) {
+          this.paginaSubcategorias = Math.max(0, this.paginaSubcategorias - 1);
+          this.cargarSubcategorias();
+          return;
+        }
+        this.subcategorias = resp.contenido;
+        this.totalSubcategorias = resp.total;
+      });
+  }
+
+  onFiltroSubcategoriasChange(): void {
+    this.busquedaSubcategorias$.next(this.filtroSubcategorias);
+  }
+
+  onPageSubcategoriasChange(event: PageEvent): void {
+    this.paginaSubcategorias = event.pageIndex;
+    this.tamanoSubcategorias = event.pageSize;
+    this.cargarSubcategorias();
   }
 
   seleccionar(categoria: Categoria): void {
     this.categoriaSeleccionada = categoria;
     this.cancelarEdicionSubcategoria();
-    this.subcategoriaService.listar(categoria.id).subscribe((data) => (this.subcategorias = data));
+    this.filtroSubcategorias = '';
+    this.paginaSubcategorias = 0;
+    this.cargarSubcategorias();
   }
 
   editarCategoria(categoria: Categoria): void {
@@ -94,6 +184,7 @@ export class CategoriasComponent implements OnInit {
         if (this.categoriaSeleccionada?.id === categoria.id) {
           this.categoriaSeleccionada = null;
           this.subcategorias = [];
+          this.totalSubcategorias = 0;
         }
         this.cargarCategorias();
       },
@@ -129,7 +220,7 @@ export class CategoriasComponent implements OnInit {
         this.guardandoSubcategoria = false;
         this.editandoSubcategoriaId = null;
         this.nombreSubcategoria = '';
-        this.seleccionar(this.categoriaSeleccionada!);
+        this.cargarSubcategorias();
       },
       error: (err) => {
         this.guardandoSubcategoria = false;
@@ -143,7 +234,7 @@ export class CategoriasComponent implements OnInit {
       next: () => {
         this.error = '';
         if (this.editandoSubcategoriaId === subcategoria.id) this.cancelarEdicionSubcategoria();
-        if (this.categoriaSeleccionada) this.seleccionar(this.categoriaSeleccionada);
+        this.cargarSubcategorias();
       },
       error: (err) => {
         this.error = err?.error?.error ?? 'Ocurrió un error. Intenta nuevamente.';

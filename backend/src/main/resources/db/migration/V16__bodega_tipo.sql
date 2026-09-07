@@ -1,0 +1,3 @@
+ALTER TABLE bodega ADD COLUMN tipo VARCHAR(20) NOT NULL DEFAULT 'BODEGAJE';
+
+UPDATE bodega SET tipo = 'PRINCIPAL' WHERE principal = true;

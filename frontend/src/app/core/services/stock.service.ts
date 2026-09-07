@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { InventarioItem, StockPorBodega } from '../models/models';
+import { InventarioItem, PaginaResponse, StockPorBodega } from '../models/models';
 
 export interface AjusteStockRequest {
   productoId: number;
@@ -22,6 +22,21 @@ export class StockService {
 
   inventarioPorBodega(bodegaId: number): Observable<InventarioItem[]> {
     return this.http.get<InventarioItem[]>(`${this.base}/inventario`, { params: { bodegaId } });
+  }
+
+  inventarioPorBodegaPagina(
+    bodegaId: number,
+    q: string,
+    pagina: number,
+    tamano: number
+  ): Observable<PaginaResponse<InventarioItem>> {
+    const params: Record<string, string> = {
+      bodegaId: String(bodegaId),
+      pagina: String(pagina),
+      tamano: String(tamano),
+    };
+    if (q) params['q'] = q;
+    return this.http.get<PaginaResponse<InventarioItem>>(`${this.base}/inventario/pagina`, { params });
   }
 
   ajustar(request: AjusteStockRequest): Observable<StockPorBodega[]> {

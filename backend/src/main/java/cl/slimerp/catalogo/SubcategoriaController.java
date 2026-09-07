@@ -1,7 +1,10 @@
 package cl.slimerp.catalogo;
 
+import cl.slimerp.common.PaginaResponse;
 import cl.slimerp.config.TenantContext;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -27,6 +30,22 @@ public class SubcategoriaController {
         return categoriaId != null
                 ? subcategoriaRepository.findByTenantIdAndCategoriaIdAndActivoTrue(tenantId, categoriaId)
                 : subcategoriaRepository.findByTenantIdAndActivoTrue(tenantId);
+    }
+
+    // Listado paginado y con búsqueda server-side de las subcategorías de una
+    // categoría, usado por la pantalla de mantenedor de Categorías. El
+    // listado completo (arriba) se mantiene para los buscadores en memoria.
+    @GetMapping("/pagina")
+    @PreAuthorize("hasAuthority('CATEGORIAS_VER')")
+    public PaginaResponse<Subcategoria> listarPagina(
+            @RequestParam Long categoriaId,
+            @RequestParam(required = false) String q,
+            @RequestParam(defaultValue = "0") int pagina,
+            @RequestParam(defaultValue = "10") int tamano) {
+        String busqueda = "%" + (q == null ? "" : q.trim().toLowerCase()) + "%";
+        var pageable = PageRequest.of(pagina, tamano, Sort.by("nombre").ascending());
+        return PaginaResponse.de(
+                subcategoriaRepository.buscar(TenantContext.getTenantId(), categoriaId, busqueda, pageable));
     }
 
     @PostMapping

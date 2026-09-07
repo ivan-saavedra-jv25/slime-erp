@@ -17,6 +17,15 @@
           }
         </div>
 
+        <div class="form-group">
+          <label for="tipo">Tipo<span class="required-mark">*</span></label>
+          <select id="tipo" name="tipo" [(ngModel)]="tipo" required>
+            @for (t of tipos; track t) {
+              <option [value]="t">{{ etiquetaTipo(t) }}</option>
+            }
+          </select>
+        </div>
+
         <div class="form-actions">
           @if (editandoId) {
             <button mat-button type="button" (click)="cancelarEdicion()">Cancelar</button>
@@ -27,6 +36,17 @@
         </div>
       </form>
     }
+
+    <div class="form-group">
+      <label for="filtroBodegas">Buscar</label>
+      <input
+        id="filtroBodegas"
+        name="filtroBodegas"
+        placeholder="Nombre de la bodega..."
+        [(ngModel)]="filtroBodegas"
+        (ngModelChange)="onFiltroBodegasChange()"
+      />
+    </div>
 
     <table mat-table [dataSource]="bodegas" class="mat-elevation-z1">
       <ng-container matColumnDef="nombre">
@@ -39,10 +59,26 @@
         </td>
       </ng-container>
 
+      <ng-container matColumnDef="tipo">
+        <th mat-header-cell *matHeaderCellDef>Tipo</th>
+        <td mat-cell *matCellDef="let b">
+          <span class="tag" [ngClass]="tagTipo(b.tipo)">{{ etiquetaTipo(b.tipo) }}</span>
+        </td>
+      </ng-container>
+
       <ng-container matColumnDef="acciones">
         <th mat-header-cell *matHeaderCellDef></th>
         <td mat-cell *matCellDef="let b">
           @if (auth.tienePermiso('BODEGAS_EDITAR')) {
+            @if (!b.principal) {
+              <button
+                mat-icon-button
+                title="Marcar como principal"
+                (click)="marcarPrincipal(b); $event.stopPropagation()"
+              >
+                <mat-icon>star</mat-icon>
+              </button>
+            }
             <button mat-icon-button (click)="editar(b); $event.stopPropagation()"><mat-icon>edit</mat-icon></button>
             @if (!b.principal) {
               <button mat-icon-button (click)="eliminar(b); $event.stopPropagation()">
@@ -63,8 +99,17 @@
       ></tr>
     </table>
     @if (!bodegas.length) {
-      <p class="empty-state">Aún no hay bodegas.</p>
+      <p class="empty-state">No hay bodegas que coincidan con la búsqueda.</p>
     }
+
+    <mat-paginator
+      [length]="totalBodegas"
+      [pageIndex]="paginaBodegas"
+      [pageSize]="tamanoBodegas"
+      [pageSizeOptions]="opcionesTamano"
+      (page)="onPageBodegasChange($event)"
+      showFirstLastButtons
+    ></mat-paginator>
   </mat-card>
 
   <mat-card class="form-panel inventario-panel">
@@ -80,10 +125,16 @@
     } @else {
       <div class="form-group">
         <label for="filtroProducto">Buscar producto</label>
-        <input id="filtroProducto" name="filtroProducto" placeholder="SKU o nombre..." [(ngModel)]="filtroProducto" />
+        <input
+          id="filtroProducto"
+          name="filtroProducto"
+          placeholder="SKU o nombre..."
+          [(ngModel)]="filtroProducto"
+          (ngModelChange)="onFiltroProductoChange()"
+        />
       </div>
 
-      <table mat-table [dataSource]="inventarioFiltrado" class="mat-elevation-z1">
+      <table mat-table [dataSource]="inventario" class="mat-elevation-z1">
         <ng-container matColumnDef="sku">
           <th mat-header-cell *matHeaderCellDef>SKU</th>
           <td mat-cell *matCellDef="let i">{{ i.sku }}</td>
@@ -102,9 +153,18 @@
         <tr mat-header-row *matHeaderRowDef="columnasInventario"></tr>
         <tr mat-row *matRowDef="let row; columns: columnasInventario"></tr>
       </table>
-      @if (!inventarioFiltrado.length) {
+      @if (!inventario.length) {
         <p class="empty-state">Sin productos que coincidan con la búsqueda.</p>
       }
+
+      <mat-paginator
+        [length]="totalInventario"
+        [pageIndex]="paginaInventario"
+        [pageSize]="tamanoInventario"
+        [pageSizeOptions]="opcionesTamano"
+        (page)="onPageInventarioChange($event)"
+        showFirstLastButtons
+      ></mat-paginator>
     }
   </mat-card>
 </div>

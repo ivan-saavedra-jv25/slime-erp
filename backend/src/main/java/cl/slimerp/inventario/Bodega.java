@@ -24,6 +24,11 @@ public class Bodega {
     @Column(nullable = false, length = 150)
     private String nombre;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    @Builder.Default
+    private TipoBodega tipo = TipoBodega.BODEGAJE;
+
     @Column(nullable = false)
     @Builder.Default
     private boolean principal = false;

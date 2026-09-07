@@ -34,6 +34,17 @@
       </form>
     }
 
+    <div class="form-group">
+      <label for="filtroCategorias">Buscar</label>
+      <input
+        id="filtroCategorias"
+        name="filtroCategorias"
+        placeholder="Nombre de la categoría..."
+        [(ngModel)]="filtroCategorias"
+        (ngModelChange)="onFiltroCategoriasChange()"
+      />
+    </div>
+
     <table mat-table [dataSource]="categorias" class="mat-elevation-z1">
       <ng-container matColumnDef="nombre">
         <th mat-header-cell *matHeaderCellDef>Categoría</th>
@@ -64,8 +75,17 @@
       ></tr>
     </table>
     @if (!categorias.length) {
-      <p class="empty-state">Aún no hay categorías.</p>
+      <p class="empty-state">No hay categorías que coincidan con la búsqueda.</p>
     }
+
+    <mat-paginator
+      [length]="totalCategorias"
+      [pageIndex]="paginaCategorias"
+      [pageSize]="tamanoCategorias"
+      [pageSizeOptions]="opcionesTamano"
+      (page)="onPageCategoriasChange($event)"
+      showFirstLastButtons
+    ></mat-paginator>
   </mat-card>
 
   <mat-card class="form-panel subcategorias-panel">
@@ -106,6 +126,17 @@
         </form>
       }
 
+      <div class="form-group">
+        <label for="filtroSubcategorias">Buscar</label>
+        <input
+          id="filtroSubcategorias"
+          name="filtroSubcategorias"
+          placeholder="Nombre de la subcategoría..."
+          [(ngModel)]="filtroSubcategorias"
+          (ngModelChange)="onFiltroSubcategoriasChange()"
+        />
+      </div>
+
       <table mat-table [dataSource]="subcategorias" class="mat-elevation-z1">
         <ng-container matColumnDef="nombre">
           <th mat-header-cell *matHeaderCellDef>Subcategoría</th>
@@ -126,8 +157,17 @@
         <tr mat-row *matRowDef="let row; columns: columnasSubcategorias"></tr>
       </table>
       @if (!subcategorias.length) {
-        <p class="empty-state">Esta categoría aún no tiene subcategorías.</p>
+        <p class="empty-state">No hay subcategorías que coincidan con la búsqueda.</p>
       }
+
+      <mat-paginator
+        [length]="totalSubcategorias"
+        [pageIndex]="paginaSubcategorias"
+        [pageSize]="tamanoSubcategorias"
+        [pageSizeOptions]="opcionesTamano"
+        (page)="onPageSubcategoriasChange($event)"
+        showFirstLastButtons
+      ></mat-paginator>
     }
   </mat-card>
 </div>

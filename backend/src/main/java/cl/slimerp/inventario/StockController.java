@@ -2,9 +2,13 @@ package cl.slimerp.inventario;
 
 import cl.slimerp.catalogo.Producto;
 import cl.slimerp.catalogo.ProductoRepository;
+import cl.slimerp.common.PaginaResponse;
 import cl.slimerp.config.TenantContext;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -55,6 +59,37 @@ public class StockController {
                         cantidades.getOrDefault(p.getId(), BigDecimal.ZERO)))
                 .sorted(Comparator.comparing(InventarioItem::nombre))
                 .collect(Collectors.toList());
+    }
+
+    // Listado paginado y con búsqueda server-side del inventario de una
+    // bodega, usado por la pantalla de mantenedor de Bodegas. Reutiliza la
+    // búsqueda por nombre/SKU de ProductoRepository y completa la cantidad
+    // en la bodega para cada producto de la página. El listado completo
+    // (arriba) se mantiene para otros usos.
+    @GetMapping("/inventario/pagina")
+    @PreAuthorize("hasAuthority('BODEGAS_VER')")
+    public PaginaResponse<InventarioItem> inventarioPorBodegaPagina(
+            @RequestParam Long bodegaId,
+            @RequestParam(required = false) String q,
+            @RequestParam(defaultValue = "0") int pagina,
+            @RequestParam(defaultValue = "10") int tamano) {
+        Long tenantId = TenantContext.getTenantId();
+        bodegaRepository.findByIdAndTenantIdAndActivoTrue(bodegaId, tenantId)
+                .orElseThrow(() -> new IllegalArgumentException("Bodega no encontrada: " + bodegaId));
+
+        String busqueda = "%" + (q == null ? "" : q.trim().toLowerCase()) + "%";
+        var pageable = PageRequest.of(pagina, tamano, Sort.by("nombre").ascending());
+        Page<Producto> productos = productoRepository.buscar(tenantId, busqueda, pageable);
+
+        Map<Long, BigDecimal> cantidades = stockRepository.findByTenantIdAndBodegaId(tenantId, bodegaId).stream()
+                .collect(Collectors.toMap(StockProductoBodega::getProductoId, StockProductoBodega::getCantidad));
+
+        List<InventarioItem> items = productos.getContent().stream()
+                .map(p -> new InventarioItem(p.getId(), p.getSku(), p.getNombre(),
+                        cantidades.getOrDefault(p.getId(), BigDecimal.ZERO)))
+                .collect(Collectors.toList());
+
+        return new PaginaResponse<>(items, productos.getTotalElements());
     }
 
     @GetMapping

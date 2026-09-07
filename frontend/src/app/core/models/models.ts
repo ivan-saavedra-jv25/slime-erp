@@ -105,9 +105,12 @@ export interface Subcategoria {
   fechaCreacion: string;
 }
 
+export type TipoBodega = 'PRINCIPAL' | 'VENTAS' | 'BODEGAJE' | 'MIXTA';
+
 export interface Bodega {
   id: number;
   nombre: string;
+  tipo: TipoBodega;
   principal: boolean;
   activo: boolean;
   fechaCreacion: string;

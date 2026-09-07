@@ -31,12 +31,13 @@ class BodegaControllerTest {
 
     @Test
     void crearAsociaLaBodegaAlTenantDelContexto() {
-        var request = new BodegaRequest("Sucursal Centro");
+        var request = new BodegaRequest("Sucursal Centro", TipoBodega.BODEGAJE);
 
         var response = controller.crear(request);
 
         assertEquals(1L, response.getBody().getTenantId());
         assertEquals("Sucursal Centro", response.getBody().getNombre());
+        assertEquals(TipoBodega.BODEGAJE, response.getBody().getTipo());
         assertFalse(response.getBody().isPrincipal());
     }
 
@@ -65,8 +66,47 @@ class BodegaControllerTest {
     void actualizarDevuelve404SiNoExisteEnElTenant() {
         when(bodegaRepository.findByIdAndTenantIdAndActivoTrue(99L, 1L)).thenReturn(Optional.empty());
 
-        var response = controller.actualizar(99L, new BodegaRequest("X"));
+        var response = controller.actualizar(99L, new BodegaRequest("X", TipoBodega.BODEGAJE));
 
         assertEquals(404, response.getStatusCode().value());
+    }
+
+    @Test
+    void marcarPrincipalQuitaLaMarcaALaBodegaAnteriorYLaAsignaALaNueva() {
+        Bodega actual = Bodega.builder().id(1L).tenantId(1L).nombre("Principal").tipo(TipoBodega.PRINCIPAL)
+                .principal(true).activo(true).build();
+        Bodega nueva = Bodega.builder().id(2L).tenantId(1L).nombre("Sucursal Norte").tipo(TipoBodega.BODEGAJE)
+                .principal(false).activo(true).build();
+        when(bodegaRepository.findByIdAndTenantIdAndActivoTrue(2L, 1L)).thenReturn(Optional.of(nueva));
+        when(bodegaRepository.findByTenantIdAndPrincipalTrueAndActivoTrue(1L)).thenReturn(Optional.of(actual));
+
+        var response = controller.marcarPrincipal(2L);
+
+        assertTrue(response.getBody().isPrincipal());
+        assertEquals(TipoBodega.PRINCIPAL, response.getBody().getTipo());
+        assertFalse(actual.isPrincipal());
+        assertEquals(TipoBodega.BODEGAJE, actual.getTipo());
+        verify(bodegaRepository).save(actual);
+        verify(bodegaRepository).save(nueva);
+    }
+
+    @Test
+    void marcarPrincipalEsIdempotenteSiYaEsLaPrincipal() {
+        Bodega actual = Bodega.builder().id(1L).tenantId(1L).nombre("Principal").tipo(TipoBodega.PRINCIPAL)
+                .principal(true).activo(true).build();
+        when(bodegaRepository.findByIdAndTenantIdAndActivoTrue(1L, 1L)).thenReturn(Optional.of(actual));
+        when(bodegaRepository.findByTenantIdAndPrincipalTrueAndActivoTrue(1L)).thenReturn(Optional.of(actual));
+
+        var response = controller.marcarPrincipal(1L);
+
+        assertTrue(response.getBody().isPrincipal());
+        verify(bodegaRepository, times(1)).save(actual);
+    }
+
+    @Test
+    void marcarPrincipalDevuelve400SiLaBodegaNoExiste() {
+        when(bodegaRepository.findByIdAndTenantIdAndActivoTrue(99L, 1L)).thenReturn(Optional.empty());
+
+        assertThrows(IllegalArgumentException.class, () -> controller.marcarPrincipal(99L));
     }
 }
