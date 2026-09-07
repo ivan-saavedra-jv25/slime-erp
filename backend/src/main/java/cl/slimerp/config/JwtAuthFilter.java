@@ -1,6 +1,6 @@
 package cl.slimerp.config;
 
-import cl.slimerp.permisos.RolPermisos;
+import cl.slimerp.permisos.PermisoEfectivoService;
 import cl.slimerp.tenant.Rol;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
@@ -21,16 +21,19 @@ import java.util.List;
 
 /**
  * Valida el JWT en cada request, autentica al usuario ante Spring Security con
- * el rol y los permisos de ese rol como autoridades, y deja el tenant_id
- * disponible en {@link TenantContext} para el resto del pipeline.
+ * el rol y los permisos efectivos (los del rol más los extra otorgados al
+ * usuario, ver {@link PermisoEfectivoService}) como autoridades, y deja el
+ * tenant_id disponible en {@link TenantContext} para el resto del pipeline.
  */
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
+    private final PermisoEfectivoService permisoEfectivoService;
 
-    public JwtAuthFilter(JwtService jwtService) {
+    public JwtAuthFilter(JwtService jwtService, PermisoEfectivoService permisoEfectivoService) {
         this.jwtService = jwtService;
+        this.permisoEfectivoService = permisoEfectivoService;
     }
 
     @Override
@@ -46,6 +49,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             try {
                 Claims claims = jwtService.parseClaims(token);
                 Long tenantId = Long.parseLong(claims.get("tenantId", String.class));
+                Long usuarioId = Long.parseLong(claims.getSubject());
                 String rol = claims.get("rol", String.class);
                 String email = claims.get("email", String.class);
 
@@ -53,7 +57,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
                 List<SimpleGrantedAuthority> authorities = new ArrayList<>();
                 authorities.add(new SimpleGrantedAuthority("ROLE_" + rol));
-                RolPermisos.permisosDe(Rol.valueOf(rol))
+                permisoEfectivoService.calcular(tenantId, usuarioId, Rol.valueOf(rol))
                         .forEach(permiso -> authorities.add(new SimpleGrantedAuthority(permiso.name())));
 
                 var authentication = new UsernamePasswordAuthenticationToken(email, null, authorities);
