@@ -39,6 +39,16 @@ describe('LayoutComponent', () => {
     expect(labels(layout)).toContain('Usuarios');
   });
 
+  it('muestra Roles y permisos si se tiene USUARIOS_VER', () => {
+    const { layout } = crear(['USUARIOS_VER']);
+    expect(labels(layout)).toContain('Roles y permisos');
+  });
+
+  it('oculta Roles y permisos si no se tiene USUARIOS_VER', () => {
+    const { layout } = crear(['CLIENTES_VER']);
+    expect(labels(layout)).not.toContain('Roles y permisos');
+  });
+
   it('oculta un grupo completo si no queda ningún ítem visible', () => {
     const { layout } = crear(['USUARIOS_VER']);
     expect(layout.grupos.find((g) => g.key === 'contactos')).toBeUndefined();

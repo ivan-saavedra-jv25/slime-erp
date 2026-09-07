@@ -98,6 +98,11 @@ export const routes: Routes = [
         loadComponent: () => import('./features/usuarios/usuarios.component').then((m) => m.UsuariosComponent),
       },
       {
+        path: 'usuarios/permisos',
+        loadComponent: () =>
+          import('./features/usuarios/roles-permisos.component').then((m) => m.RolesPermisosComponent),
+      },
+      {
         path: 'admin/empresas',
         loadComponent: () => import('./features/empresas/empresas.component').then((m) => m.EmpresasComponent),
       },

@@ -81,6 +81,7 @@ const GRUPOS: NavGroup[] = [
     icono: 'admin_panel_settings',
     items: [
       { ruta: '/usuarios', label: 'Usuarios', icono: 'manage_accounts', permiso: 'USUARIOS_VER' },
+      { ruta: '/usuarios/permisos', label: 'Roles y permisos', icono: 'admin_panel_settings', permiso: 'USUARIOS_VER' },
       { ruta: '/admin/empresas', label: 'Empresas', icono: 'apartment', permiso: 'EMPRESAS_ADMINISTRAR' },
     ],
   },
