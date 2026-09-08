@@ -354,15 +354,52 @@ export interface ResumenTesoreria {
   cuentasPagadas: number;
 }
 
+export type EstadoEmpresa = 'TRIAL' | 'ACTIVE' | 'SUSPENDED' | 'EXPIRED' | 'BLOCKED' | 'CANCELLED';
+
+export const ESTADOS_EMPRESA: EstadoEmpresa[] = ['TRIAL', 'ACTIVE', 'SUSPENDED', 'EXPIRED', 'BLOCKED', 'CANCELLED'];
+
+export const ETIQUETAS_ESTADO_EMPRESA: Record<EstadoEmpresa, string> = {
+  TRIAL: 'Prueba',
+  ACTIVE: 'Activa',
+  SUSPENDED: 'Suspendida',
+  EXPIRED: 'Vencida',
+  BLOCKED: 'Bloqueada',
+  CANCELLED: 'Cancelada',
+};
+
 export interface Empresa {
   id: number;
   nombre: string;
   rut: string;
+  businessName?: string | null;
   plan: string;
+  status: EstadoEmpresa;
   activo: boolean;
   fechaAlta: string;
+  lastAccessAt?: string | null;
   usuariosActivos: number;
   saldoPendiente: number;
+}
+
+export interface EmpresaDetalle extends Empresa {
+  usuariosTotales: number;
+  suscripcionEstado?: string | null;
+  alertasAbiertas: number;
+}
+
+export interface EmpresaFiltros {
+  page?: number;
+  limit?: number;
+  rut?: string;
+  razonSocial?: string;
+  nombreComercial?: string;
+  estado?: EstadoEmpresa;
+  plan?: string;
+}
+
+export interface CambiarEstadoRequest {
+  estado: EstadoEmpresa;
+  motivo: string;
 }
 
 export interface CrearEmpresaRequest {

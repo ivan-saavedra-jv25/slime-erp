@@ -12,5 +12,7 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
 
     long countByTenantIdAndActivoTrue(Long tenantId);
 
+    long countByTenantId(Long tenantId);
+
     List<Usuario> findByTenantIdIn(List<Long> tenantIds);
 }

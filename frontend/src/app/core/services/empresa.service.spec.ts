@@ -18,11 +18,28 @@ describe('EmpresaService', () => {
 
   afterEach(() => httpMock.verify());
 
-  it('listar hace GET a /admin/empresas', () => {
-    service.listar().subscribe();
-    const req = httpMock.expectOne(`${environment.adminApiUrl}/admin/empresas`);
+  it('listar hace GET con parámetros de filtro a /admin/empresas', () => {
+    service.listar({ page: 0, limit: 10, estado: 'ACTIVE', razonSocial: 'Demo' }).subscribe();
+    const req = httpMock.expectOne(
+      `${environment.adminApiUrl}/admin/empresas?page=0&limit=10&razonSocial=Demo&estado=ACTIVE`
+    );
     expect(req.request.method).toBe('GET');
-    req.flush([]);
+    req.flush({ content: [], totalElements: 0, totalPages: 0, number: 0, size: 10 });
+  });
+
+  it('detalle hace GET a /admin/empresas/{id}', () => {
+    service.detalle(5).subscribe();
+    const req = httpMock.expectOne(`${environment.adminApiUrl}/admin/empresas/5`);
+    expect(req.request.method).toBe('GET');
+    req.flush({});
+  });
+
+  it('cambiarEstado hace PATCH a /admin/empresas/{id}/estado', () => {
+    service.cambiarEstado(5, { estado: 'SUSPENDED', motivo: 'Impago' }).subscribe();
+    const req = httpMock.expectOne(`${environment.adminApiUrl}/admin/empresas/5/estado`);
+    expect(req.request.method).toBe('PATCH');
+    expect(req.request.body).toEqual({ estado: 'SUSPENDED', motivo: 'Impago' });
+    req.flush({});
   });
 
   it('crear hace POST con el body recibido', () => {

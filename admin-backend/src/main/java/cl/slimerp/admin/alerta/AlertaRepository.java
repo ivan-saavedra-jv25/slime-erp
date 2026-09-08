@@ -10,6 +10,8 @@ public interface AlertaRepository extends JpaRepository<Alerta, Long> {
 
     long countBySeverityAndStatus(String severity, String status);
 
+    long countByCompanyIdAndStatus(Long companyId, String status);
+
     List<Alerta> findByStatusOrderByCreadaEnDesc(String status);
 
     Page<Alerta> findByStatus(String status, Pageable pageable);

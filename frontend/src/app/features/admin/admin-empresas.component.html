@@ -1,7 +1,7 @@
 <div class="page-header">
   <div>
     <h1>Empresas</h1>
-    <p class="page-subtitle">Crea empresas, administra su habilitación y consulta su estatus.</p>
+    <p class="page-subtitle">Crea empresas, administra su estado y consulta su estatus operativo.</p>
   </div>
 </div>
 
@@ -62,10 +62,34 @@
 </mat-card>
 
 <mat-card class="table-panel">
-  <h2>Empresas del sistema</h2>
+  <div class="panel-toolbar">
+    <div>
+      <h2>Empresas del sistema</h2>
+      <p class="panel-hint">{{ totalElementos }} empresa(s) encontradas</p>
+    </div>
+    <div class="filtros">
+      <input
+        type="text"
+        placeholder="Buscar por razón social…"
+        [(ngModel)]="filtroTexto"
+        name="filtroTexto"
+        (keyup.enter)="aplicarFiltros()"
+      />
+      <select [(ngModel)]="filtroEstado" name="filtroEstado">
+        <option value="">Todos los estados</option>
+        @for (estado of estados; track estado) {
+          <option [value]="estado">{{ etiquetaEstado(estado) }}</option>
+        }
+      </select>
+      <button mat-stroked-button (click)="aplicarFiltros()">
+        <mat-icon>search</mat-icon>
+        Buscar
+      </button>
+    </div>
+  </div>
 
   @if (empresas.length === 0) {
-    <p class="empty-state">No hay empresas registradas.</p>
+    <p class="empty-state">No hay empresas que coincidan con la búsqueda.</p>
   } @else {
     <table mat-table [dataSource]="empresas" class="empresas-table">
       <ng-container matColumnDef="nombre">
@@ -92,12 +116,10 @@
         <th mat-header-cell *matHeaderCellDef class="right">Saldo pendiente</th>
         <td mat-cell *matCellDef="let e" class="right">{{ e.saldoPendiente | moneda }}</td>
       </ng-container>
-      <ng-container matColumnDef="activo">
+      <ng-container matColumnDef="status">
         <th mat-header-cell *matHeaderCellDef>Estado</th>
         <td mat-cell *matCellDef="let e">
-          <span [class]="'tag ' + (e.activo ? 'tag--success' : 'tag--error')">
-            {{ e.activo ? 'Activa' : 'Deshabilitada' }}
-          </span>
+          <span [class]="'tag ' + claseEstado(e.status)">{{ etiquetaEstado(e.status) }}</span>
         </td>
       </ng-container>
       <ng-container matColumnDef="fechaAlta">
@@ -107,14 +129,40 @@
       <ng-container matColumnDef="acciones">
         <th mat-header-cell *matHeaderCellDef class="right"></th>
         <td mat-cell *matCellDef="let e" class="right">
-          <button mat-stroked-button (click)="toggleEstado(e)">
-            <mat-icon>{{ e.activo ? 'block' : 'check_circle' }}</mat-icon>
-            {{ e.activo ? 'Deshabilitar' : 'Habilitar' }}
-          </button>
+          @if (cambiandoEstadoId !== e.id) {
+            <button mat-stroked-button (click)="abrirCambioEstado(e)">
+              <mat-icon>swap_horiz</mat-icon>
+              Cambiar estado
+            </button>
+          } @else {
+            <span class="estado-actions">
+              <select [(ngModel)]="nuevoEstado" name="nuevoEstado" class="estado-select">
+                <option value="">Elegir estado…</option>
+                @for (estado of estados; track estado) {
+                  <option [value]="estado">{{ etiquetaEstado(estado) }}</option>
+                }
+              </select>
+              <button mat-flat-button color="primary" [disabled]="!nuevoEstado" (click)="confirmarCambioEstado(e)">
+                Aplicar
+              </button>
+              <button mat-icon-button (click)="abrirCambioEstado(e)" aria-label="Cancelar">
+                <mat-icon>close</mat-icon>
+              </button>
+            </span>
+          }
         </td>
       </ng-container>
       <tr mat-header-row *matHeaderRowDef="columnas"></tr>
       <tr mat-row *matRowDef="let row; columns: columnas"></tr>
     </table>
+
+    <mat-paginator
+      [length]="totalElementos"
+      [pageSize]="tamanio"
+      [pageSizeOptions]="[10, 25, 50]"
+      [pageIndex]="pagina"
+      (page)="onPagina($event)"
+      showFirstLastButtons
+    ></mat-paginator>
   }
 </mat-card>

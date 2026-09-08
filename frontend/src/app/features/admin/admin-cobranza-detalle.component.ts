@@ -73,8 +73,8 @@ export class AdminCobranzaDetalleComponent implements OnInit {
     this.cobranzaService.obtener(id).subscribe({
       next: (cargo) => {
         this.cargo = cargo;
-        this.empresaService.listar().subscribe((empresas) => {
-          this.nombreEmpresa = empresas.find((e) => e.id === cargo.tenantId)?.nombre ?? `Empresa #${cargo.tenantId}`;
+        this.empresaService.listar({ limit: 100, page: 0 }).subscribe((p) => {
+          this.nombreEmpresa = p.content.find((e) => e.id === cargo.tenantId)?.nombre ?? `Empresa #${cargo.tenantId}`;
         });
         this.cargarPagos(id);
       },

@@ -1,26 +1,53 @@
-import { Component, inject, LOCALE_ID, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { EmpresaService } from '../../core/services/empresa.service';
-import { Empresa, CrearEmpresaRequest } from '../../core/models/models';
+import {
+  Empresa,
+  CrearEmpresaRequest,
+  EstadoEmpresa,
+  ESTADOS_EMPRESA,
+  ETIQUETAS_ESTADO_EMPRESA,
+} from '../../core/models/models';
 import { MonedaPipe } from '../../core/pipes/moneda.pipe';
 
 @Component({
   selector: 'app-admin-empresas',
   standalone: true,
-  imports: [CommonModule, FormsModule, MatTableModule, MatButtonModule, MatIconModule, MatCardModule, MonedaPipe],
+  imports: [
+    CommonModule,
+    FormsModule,
+    MatTableModule,
+    MatButtonModule,
+    MatIconModule,
+    MatCardModule,
+    MatPaginatorModule,
+    MonedaPipe,
+  ],
   templateUrl: './admin-empresas.component.html',
   styleUrl: './admin-empresas.component.scss',
 })
 export class AdminEmpresasComponent implements OnInit {
-  columnas = ['nombre', 'rut', 'plan', 'usuariosActivos', 'saldoPendiente', 'activo', 'fechaAlta', 'acciones'];
+  columnas = ['nombre', 'rut', 'plan', 'usuariosActivos', 'saldoPendiente', 'status', 'fechaAlta', 'acciones'];
   empresas: Empresa[] = [];
   error = '';
   guardando = false;
+
+  totalElementos = 0;
+  pagina = 0;
+  tamanio = 10;
+
+  filtroTexto = '';
+  filtroEstado: EstadoEmpresa | '' = '';
+  estados = ESTADOS_EMPRESA;
+
+  cambiandoEstadoId: number | null = null;
+  nuevoEstado: EstadoEmpresa | '' = '';
 
   nombre = '';
   rut = '';
@@ -37,9 +64,73 @@ export class AdminEmpresasComponent implements OnInit {
   }
 
   cargar(): void {
-    this.empresaService.listar().subscribe({
-      next: (empresas) => (this.empresas = empresas),
-      error: (err) => (this.error = err?.error?.error ?? 'Ocurrió un error al cargar las empresas.'),
+    const texto = this.filtroTexto.trim();
+    this.empresaService
+      .listar({
+        page: this.pagina,
+        limit: this.tamanio,
+        ...(texto ? { razonSocial: texto } : {}),
+        ...(this.filtroEstado ? { estado: this.filtroEstado } : {}),
+      })
+      .subscribe({
+        next: (p) => {
+          this.empresas = p.content;
+          this.totalElementos = p.totalElements;
+          this.error = '';
+        },
+        error: (err) => (this.error = err?.error?.error ?? 'Ocurrió un error al cargar las empresas.'),
+      });
+  }
+
+  aplicarFiltros(): void {
+    this.pagina = 0;
+    this.cargar();
+  }
+
+  onPagina(evento: PageEvent): void {
+    this.pagina = evento.pageIndex;
+    this.tamanio = evento.pageSize;
+    this.cargar();
+  }
+
+  etiquetaEstado(estado: EstadoEmpresa): string {
+    return ETIQUETAS_ESTADO_EMPRESA[estado] ?? estado;
+  }
+
+  claseEstado(estado: EstadoEmpresa): string {
+    switch (estado) {
+      case 'ACTIVE':
+        return 'tag--success';
+      case 'TRIAL':
+        return 'tag--info';
+      case 'EXPIRED':
+        return 'tag--warning';
+      case 'SUSPENDED':
+      case 'BLOCKED':
+      case 'CANCELLED':
+        return 'tag--error';
+      default:
+        return 'tag--neutral';
+    }
+  }
+
+  abrirCambioEstado(empresa: Empresa): void {
+    this.cambiandoEstadoId = this.cambiandoEstadoId === empresa.id ? null : empresa.id;
+    this.nuevoEstado = '';
+    this.error = '';
+  }
+
+  confirmarCambioEstado(empresa: Empresa): void {
+    if (!this.nuevoEstado) return;
+    this.empresaService.cambiarEstado(empresa.id, { estado: this.nuevoEstado, motivo: 'Cambio desde consola admin' }).subscribe({
+      next: () => {
+        this.cambiandoEstadoId = null;
+        this.nuevoEstado = '';
+        this.cargar();
+      },
+      error: (err) => {
+        this.error = err?.error?.error ?? 'Ocurrió un error al cambiar el estado.';
+      },
     });
   }
 

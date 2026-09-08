@@ -59,8 +59,8 @@ export class AdminUsuariosComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.empresaService.listar().subscribe({
-      next: (empresas) => (this.empresas = empresas),
+    this.empresaService.listar({ limit: 100, page: 0 }).subscribe({
+      next: (p) => (this.empresas = p.content),
       error: () => (this.error = 'No se pudieron cargar las empresas.'),
     });
     this.cargar();
