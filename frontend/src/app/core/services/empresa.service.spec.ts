@@ -20,7 +20,7 @@ describe('EmpresaService', () => {
 
   it('listar hace GET a /admin/empresas', () => {
     service.listar().subscribe();
-    const req = httpMock.expectOne(`${environment.apiUrl}/admin/empresas`);
+    const req = httpMock.expectOne(`${environment.adminApiUrl}/admin/empresas`);
     expect(req.request.method).toBe('GET');
     req.flush([]);
   });
@@ -28,7 +28,7 @@ describe('EmpresaService', () => {
   it('crear hace POST con el body recibido', () => {
     const request = { nombre: 'Empresa Nueva', rut: '76.111.222-3', adminNombre: 'Admin Uno', adminRut: '1-9', adminEmail: 'a1@demo.cl', adminPassword: 'clave123' };
     service.crear(request).subscribe();
-    const req = httpMock.expectOne(`${environment.apiUrl}/admin/empresas`);
+    const req = httpMock.expectOne(`${environment.adminApiUrl}/admin/empresas`);
     expect(req.request.method).toBe('POST');
     expect(req.request.body).toEqual(request);
     req.flush({});
@@ -36,14 +36,14 @@ describe('EmpresaService', () => {
 
   it('activar hace PATCH a /admin/empresas/{id}/activar', () => {
     service.activar(5).subscribe();
-    const req = httpMock.expectOne(`${environment.apiUrl}/admin/empresas/5/activar`);
+    const req = httpMock.expectOne(`${environment.adminApiUrl}/admin/empresas/5/activar`);
     expect(req.request.method).toBe('PATCH');
     req.flush({});
   });
 
   it('desactivar hace PATCH a /admin/empresas/{id}/desactivar', () => {
     service.desactivar(5).subscribe();
-    const req = httpMock.expectOne(`${environment.apiUrl}/admin/empresas/5/desactivar`);
+    const req = httpMock.expectOne(`${environment.adminApiUrl}/admin/empresas/5/desactivar`);
     expect(req.request.method).toBe('PATCH');
     req.flush({});
   });

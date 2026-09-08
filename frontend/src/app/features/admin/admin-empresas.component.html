@@ -1,0 +1,120 @@
+<div class="page-header">
+  <div>
+    <h1>Empresas</h1>
+    <p class="page-subtitle">Crea empresas, administra su habilitación y consulta su estatus.</p>
+  </div>
+</div>
+
+@if (error) {
+  <div class="alert error">{{ error }}</div>
+}
+
+<mat-card class="form-panel">
+  <h2>Nueva empresa</h2>
+  <p class="form-section-hint">Al crear la empresa se genera el tenant y su primer usuario administrador.</p>
+  <div class="form-grid">
+    <div class="form-group">
+      <label for="nombre">Nombre de la empresa *</label>
+      <input id="nombre" type="text" placeholder="Ej: Novedades Central S.A." [(ngModel)]="nombre" name="nombre" />
+    </div>
+    <div class="form-group">
+      <label for="rut">RUT *</label>
+      <input id="rut" type="text" placeholder="77.123.456-7" [(ngModel)]="rut" name="rut" />
+    </div>
+    <div class="form-group">
+      <label for="plan">Plan</label>
+      <select id="plan" name="plan" [(ngModel)]="plan">
+        <option value="">Sin plan (gratuito)</option>
+        <option value="básico">Básico</option>
+        <option value="profesional">Profesional</option>
+        <option value="empresarial">Empresarial</option>
+      </select>
+    </div>
+  </div>
+
+  <h3>Administrador inicial</h3>
+  <p class="form-section-hint">Será el único usuario que podrá iniciar sesión en la nueva empresa.</p>
+  <div class="form-grid">
+    <div class="form-group">
+      <label for="adminNombre">Nombre completo *</label>
+      <input id="adminNombre" type="text" placeholder="Ej: Juan Pérez" [(ngModel)]="adminNombre" name="adminNombre" />
+    </div>
+    <div class="form-group">
+      <label for="adminRut">RUT *</label>
+      <input id="adminRut" type="text" placeholder="11.222.333-4" [(ngModel)]="adminRut" name="adminRut" />
+    </div>
+    <div class="form-group">
+      <label for="adminEmail">Email *</label>
+      <input id="adminEmail" type="email" placeholder="juan@empresa.cl" [(ngModel)]="adminEmail" name="adminEmail" />
+    </div>
+    <div class="form-group">
+      <label for="adminPassword">Contraseña *</label>
+      <input id="adminPassword" type="password" [(ngModel)]="adminPassword" name="adminPassword" />
+    </div>
+  </div>
+
+  <div class="form-actions">
+    <button mat-flat-button color="primary" [disabled]="guardando || !formularioCompleto()" (click)="guardar()">
+      <mat-icon>business</mat-icon>
+      Crear empresa
+    </button>
+  </div>
+</mat-card>
+
+<mat-card class="table-panel">
+  <h2>Empresas del sistema</h2>
+
+  @if (empresas.length === 0) {
+    <p class="empty-state">No hay empresas registradas.</p>
+  } @else {
+    <table mat-table [dataSource]="empresas" class="empresas-table">
+      <ng-container matColumnDef="nombre">
+        <th mat-header-cell *matHeaderCellDef>Nombre</th>
+        <td mat-cell *matCellDef="let e">
+          <span class="text-strong">{{ e.nombre }}</span>
+        </td>
+      </ng-container>
+      <ng-container matColumnDef="rut">
+        <th mat-header-cell *matHeaderCellDef>RUT</th>
+        <td mat-cell *matCellDef="let e">{{ e.rut }}</td>
+      </ng-container>
+      <ng-container matColumnDef="plan">
+        <th mat-header-cell *matHeaderCellDef>Plan</th>
+        <td mat-cell *matCellDef="let e">
+          <span class="tag-clean">{{ e.plan || '—' }}</span>
+        </td>
+      </ng-container>
+      <ng-container matColumnDef="usuariosActivos">
+        <th mat-header-cell *matHeaderCellDef class="right">Usuarios</th>
+        <td mat-cell *matCellDef="let e" class="right">{{ e.usuariosActivos }}</td>
+      </ng-container>
+      <ng-container matColumnDef="saldoPendiente">
+        <th mat-header-cell *matHeaderCellDef class="right">Saldo pendiente</th>
+        <td mat-cell *matCellDef="let e" class="right">{{ e.saldoPendiente | moneda }}</td>
+      </ng-container>
+      <ng-container matColumnDef="activo">
+        <th mat-header-cell *matHeaderCellDef>Estado</th>
+        <td mat-cell *matCellDef="let e">
+          <span [class]="'tag ' + (e.activo ? 'tag--success' : 'tag--error')">
+            {{ e.activo ? 'Activa' : 'Deshabilitada' }}
+          </span>
+        </td>
+      </ng-container>
+      <ng-container matColumnDef="fechaAlta">
+        <th mat-header-cell *matHeaderCellDef>Alta</th>
+        <td mat-cell *matCellDef="let e">{{ (e.fechaAlta | slice:0:10) }}</td>
+      </ng-container>
+      <ng-container matColumnDef="acciones">
+        <th mat-header-cell *matHeaderCellDef class="right"></th>
+        <td mat-cell *matCellDef="let e" class="right">
+          <button mat-stroked-button (click)="toggleEstado(e)">
+            <mat-icon>{{ e.activo ? 'block' : 'check_circle' }}</mat-icon>
+            {{ e.activo ? 'Deshabilitar' : 'Habilitar' }}
+          </button>
+        </td>
+      </ng-container>
+      <tr mat-header-row *matHeaderRowDef="columnas"></tr>
+      <tr mat-row *matRowDef="let row; columns: columnas"></tr>
+    </table>
+  }
+</mat-card>

@@ -1,20 +1,20 @@
 import { Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap } from 'rxjs';
+import { Observable, of, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { LoginResponse, Permiso } from '../models/models';
+import { AdminSesion } from '../models/models';
 
-const STORAGE_KEY = 'slime_erp_session';
+const STORAGE_KEY = 'saavia_admin_session';
 
 @Injectable({ providedIn: 'root' })
-export class AuthService {
-  session = signal<LoginResponse | null>(this.leerSesionGuardada());
+export class AdminAuthService {
+  session = signal<AdminSesion | null>(this.leerSesionGuardada());
 
   constructor(private http: HttpClient) {}
 
-  login(email: string, password: string): Observable<LoginResponse> {
+  login(email: string, password: string): Observable<AdminSesion> {
     return this.http
-      .post<LoginResponse>(`${environment.apiUrl}/auth/login`, { email, password })
+      .post<AdminSesion>(`${environment.adminApiUrl}/admin/auth/login`, { email, password })
       .pipe(
         tap((res) => {
           localStorage.setItem(STORAGE_KEY, JSON.stringify(res));
@@ -23,9 +23,14 @@ export class AuthService {
       );
   }
 
-  logout(): void {
+  cerrarSesion(): Observable<void> {
+    const token = this.token;
     localStorage.removeItem(STORAGE_KEY);
     this.session.set(null);
+    if (!token) {
+      return of(void 0);
+    }
+    return this.http.post<void>(`${environment.adminApiUrl}/admin/auth/logout`, null);
   }
 
   get token(): string | null {
@@ -36,21 +41,21 @@ export class AuthService {
     return this.session() !== null;
   }
 
-  get esSuperAdmin(): boolean {
-    return this.session()?.rol === 'SUPER_ADMIN';
+  get adminRol(): string | undefined {
+    return this.session()?.adminRol;
   }
 
-  tienePermiso(permiso: Permiso): boolean {
+  tienePermiso(permiso: string): boolean {
     return this.session()?.permisos.includes(permiso) ?? false;
   }
 
-  private leerSesionGuardada(): LoginResponse | null {
+  private leerSesionGuardada(): AdminSesion | null {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) {
       return null;
     }
     try {
-      return JSON.parse(raw) as LoginResponse;
+      return JSON.parse(raw) as AdminSesion;
     } catch {
       localStorage.removeItem(STORAGE_KEY);
       return null;

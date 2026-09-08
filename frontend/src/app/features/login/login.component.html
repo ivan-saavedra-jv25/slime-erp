@@ -1,8 +1,8 @@
 <div class="login-page">
   <mat-card class="login-card">
     <form (ngSubmit)="ingresar()">
-      <h1>Slime ERP</h1>
-      <p class="subtitle">Ingresa a tu cuenta</p>
+      <h1>{{ modoAdmin ? 'Saavia Admin' : 'Slime ERP' }}</h1>
+      <p class="subtitle">{{ modoAdmin ? 'Consola administrativa de la plataforma' : 'Ingresa a tu cuenta' }}</p>
 
       <div class="form-group">
         <label for="email">Email</label>
@@ -22,7 +22,13 @@
         {{ cargando ? 'Ingresando...' : 'Ingresar' }}
       </button>
 
-      <p class="hint">Usuario demo: admin&#64;demo.cl / admin123</p>
+      @if (!modoAdmin) {
+        <p class="hint">Usuario demo: admin&#64;demo.cl / admin123</p>
+      }
+
+      <button mat-button type="button" class="modo-toggle" (click)="toggleModo()">
+        {{ modoAdmin ? 'Ir al acceso de empresa' : 'Acceso administrativo' }}
+      </button>
     </form>
   </mat-card>
 </div>

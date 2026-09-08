@@ -1,0 +1,130 @@
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-5);
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .two-col {
+    grid-template-columns: 1fr;
+  }
+}
+
+.detail-obs {
+  font: var(--font-body-sm);
+  color: var(--text-body);
+  margin: var(--space-3) 0 0;
+}
+
+.totals-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.totals-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font: var(--font-body-sm);
+  color: var(--text-body);
+}
+
+.totals-row--total {
+  font: var(--font-h3);
+  font-weight: 700;
+  color: var(--text-title);
+  border-top: var(--border-width-default) solid var(--border-default);
+  padding-top: var(--space-2);
+}
+
+.panel-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.panel-header-row h2 {
+  margin: 0;
+}
+
+.panel-actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.inline-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  margin-bottom: var(--space-4);
+  background: var(--surface-subtle);
+  border-radius: var(--radius-2);
+}
+
+.tipo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--space-3);
+}
+
+.tipo-card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-3);
+  border: var(--border-width-default) solid var(--border-default);
+  border-radius: var(--radius-2);
+  background: var(--surface-card);
+  cursor: pointer;
+  transition: border-color 0.15s, background-color 0.15s;
+}
+
+.tipo-card:hover {
+  background: var(--surface-subtle);
+}
+
+.tipo-card--active {
+  border-color: var(--primary-base);
+  background: var(--primary-background);
+}
+
+.tipo-card__label {
+  font: var(--font-body);
+  font-weight: 700;
+  color: var(--text-title);
+}
+
+.historial-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.historial-table th,
+.historial-table td {
+  text-align: left;
+  padding: var(--space-2) var(--space-3);
+  border-bottom: var(--border-width-default) solid var(--border-default);
+  font: var(--font-body-sm);
+}
+
+.historial-table th {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.right {
+  text-align: right;
+}
+
+@media (max-width: 640px) {
+  .historial-table th:nth-child(1),
+  .historial-table td:nth-child(1) {
+    display: none;
+  }
+}

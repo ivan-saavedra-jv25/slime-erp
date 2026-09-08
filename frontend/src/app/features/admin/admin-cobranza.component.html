@@ -1,0 +1,149 @@
+<div class="page-header">
+  <div>
+    <h1>Cobranza de empresas</h1>
+    <p class="page-subtitle">Cargos por concepto de suscripción o servicios facturados a las empresas del sistema.</p>
+  </div>
+</div>
+
+@if (error) {
+  <div class="alert error">{{ error }}</div>
+}
+
+@if (resumen) {
+  <section class="kpi-grid">
+    <mat-card class="kpi-card">
+      <span class="kpi-label">Total emitido</span>
+      <span class="kpi-value">{{ resumen.totalEmitido | moneda }}</span>
+    </mat-card>
+    <mat-card class="kpi-card">
+      <span class="kpi-label">Total cobrado</span>
+      <span class="kpi-value">{{ resumen.totalCobrado | moneda }}</span>
+    </mat-card>
+    <mat-card class="kpi-card">
+      <span class="kpi-label">Saldo pendiente</span>
+      <span class="kpi-value">{{ resumen.saldoPendiente | moneda }}</span>
+    </mat-card>
+    <mat-card class="kpi-card">
+      <span class="kpi-label">En deuda</span>
+      <span class="kpi-value">{{ resumen.cargosEnDeuda }}</span>
+    </mat-card>
+    <mat-card class="kpi-card">
+      <span class="kpi-label">Parciales</span>
+      <span class="kpi-value">{{ resumen.cargosParciales }}</span>
+    </mat-card>
+    <mat-card class="kpi-card">
+      <span class="kpi-label">Pagados</span>
+      <span class="kpi-value">{{ resumen.cargosPagados }}</span>
+    </mat-card>
+  </section>
+}
+
+<mat-card class="form-panel">
+  <h2>Emitir cargo</h2>
+  <p class="form-section-hint">Genera un cargo de cobranza por concepto de suscripción, arriendo mensual u otro servicio hacia una empresa.</p>
+  <div class="form-grid">
+    <div class="form-group">
+      <label for="nuevaTenantId">Empresa *</label>
+      <select id="nuevaTenantId" name="nuevaTenantId" [(ngModel)]="nuevaTenantId">
+        <option [ngValue]="null">Seleccionar empresa...</option>
+        @for (e of empresas; track e.id) {
+          <option [ngValue]="e.id">{{ e.nombre }}</option>
+        }
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="nuevoConcepto">Concepto *</label>
+      <input id="nuevoConcepto" type="text" placeholder="Ej: Suscripción plan profesional" [(ngModel)]="nuevoConcepto" name="nuevoConcepto" />
+    </div>
+    <div class="form-group">
+      <label for="nuevoPeriodo">Periodo *</label>
+      <input id="nuevoPeriodo" type="text" placeholder="Ej: 2026-09" [(ngModel)]="nuevoPeriodo" name="nuevoPeriodo" />
+    </div>
+    <div class="form-group">
+      <label for="nuevoMonto">Monto *</label>
+      <input id="nuevoMonto" type="number" min="1" step="0.01" placeholder="0" [(ngModel)]="nuevoMonto" name="nuevoMonto" />
+    </div>
+    <div class="form-group">
+      <label for="nuevaVencimiento">Fecha de vencimiento</label>
+      <input id="nuevaVencimiento" type="date" [(ngModel)]="nuevaVencimiento" name="nuevaVencimiento" />
+    </div>
+    <div class="form-group">
+      <label for="nuevasObservaciones">Observaciones</label>
+      <input id="nuevasObservaciones" type="text" placeholder="Nota opcional" [(ngModel)]="nuevasObservaciones" name="nuevasObservaciones" />
+    </div>
+  </div>
+
+  <div class="form-actions">
+    <button mat-flat-button color="primary" [disabled]="guardando || !formularioCompleto()" (click)="emitir()">
+      <mat-icon>receipt_long</mat-icon>
+      Emitir cargo
+    </button>
+  </div>
+</mat-card>
+
+<mat-card class="table-panel">
+  <h2>Cargos emitidos</h2>
+
+  <div class="filtros-grid">
+    <div class="form-group">
+      <label for="filtroEmpresa">Empresa</label>
+      <select id="filtroEmpresa" name="filtroEmpresa" [(ngModel)]="filtroEmpresa">
+        <option [ngValue]="null">Todas</option>
+        @for (e of empresas; track e.id) {
+          <option [ngValue]="e.id">{{ e.nombre }}</option>
+        }
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="filtroEstado">Estado</label>
+      <select id="filtroEstado" name="filtroEstado" [(ngModel)]="filtroEstado">
+        <option [ngValue]="null">Todos</option>
+        <option value="DEUDA">En deuda</option>
+        <option value="PARCIAL">Parcial</option>
+        <option value="PAGADO">Pagado</option>
+        <option value="ANULADO">Anulado</option>
+      </select>
+    </div>
+  </div>
+
+  @if (cargando) {
+    <p class="empty-state">Cargando cargos...</p>
+  }
+
+  @if (!cargando && !cargosFiltrados.length) {
+    <p class="empty-state">No hay cargos que coincidan con el filtro.</p>
+  }
+
+  @if (!cargando && cargosFiltrados.length) {
+    <table class="historial-table">
+      <thead>
+        <tr>
+          <th>Empresa</th>
+          <th>Concepto</th>
+          <th>Periodo</th>
+          <th class="right">Total</th>
+          <th class="right">Pagado</th>
+          <th class="right">Saldo</th>
+          <th>Estado</th>
+          <th class="right"></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (c of cargosFiltrados; track c.id) {
+          <tr>
+            <td class="text-strong">{{ nombreEmpresa(c.tenantId) }}</td>
+            <td>{{ c.concepto }}</td>
+            <td>{{ c.periodo }}</td>
+            <td class="right">{{ c.montoTotal | moneda }}</td>
+            <td class="right">{{ c.montoPagado | moneda }}</td>
+            <td class="right">{{ c.saldoPendiente | moneda }}</td>
+            <td><span [class]="'tag ' + tagEstado(c.estado)">{{ etiquetaEstado(c.estado) }}</span></td>
+            <td class="right">
+              <a mat-button [routerLink]="['/admin/cobranza', c.id]">Detalle</a>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</mat-card>

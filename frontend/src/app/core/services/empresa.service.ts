@@ -6,7 +6,7 @@ import { Empresa, CrearEmpresaRequest } from '../models/models';
 
 @Injectable({ providedIn: 'root' })
 export class EmpresaService {
-  private readonly base = `${environment.apiUrl}/admin/empresas`;
+  private readonly base = `${environment.adminApiUrl}/admin/empresas`;
 
   constructor(private http: HttpClient) {}
 

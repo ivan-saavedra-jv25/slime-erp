@@ -1,5 +1,24 @@
 export type Rol = 'SUPER_ADMIN' | 'ADMIN' | 'VENDEDOR' | 'COMPRADOR' | 'VISUALIZADOR';
 
+export type AdminRol = 'SUPER_ADMIN' | 'ADMIN' | 'SUPPORT' | 'FINANCE' | 'AUDITOR';
+
+export interface AdminSesion {
+  token: string;
+  adminId: number;
+  nombre: string;
+  email: string;
+  adminRol: AdminRol;
+  permisos: string[];
+}
+
+export interface Paginated<T> {
+  content: T[];
+  totalElements: number;
+  totalPages: number;
+  number: number;
+  size: number;
+}
+
 export type Permiso =
   | 'CLIENTES_VER'
   | 'CLIENTES_EDITAR'
@@ -52,6 +71,18 @@ export interface PermisosUsuario {
   rol: Rol;
   permisosRol: Permiso[];
   permisosExtra: Permiso[];
+}
+
+export interface UsuarioPlataforma {
+  id: number;
+  tenantId: number;
+  tenantNombre: string;
+  nombre: string;
+  rut: string;
+  email: string;
+  rol: Rol;
+  activo: boolean;
+  fechaCreacion: string;
 }
 
 export interface PaginaResponse<T> {
@@ -330,6 +361,8 @@ export interface Empresa {
   plan: string;
   activo: boolean;
   fechaAlta: string;
+  usuariosActivos: number;
+  saldoPendiente: number;
 }
 
 export interface CrearEmpresaRequest {
@@ -340,6 +373,66 @@ export interface CrearEmpresaRequest {
   adminRut: string;
   adminEmail: string;
   adminPassword: string;
+}
+
+export type EstadoCobranza = 'DEUDA' | 'PARCIAL' | 'PAGADO' | 'ANULADO';
+export type EstadoPagoCobranza = 'CONFIRMADA' | 'ANULADA';
+
+export interface CobranzaEmpresa {
+  id: number;
+  tenantId: number;
+  concepto: string;
+  periodo: string;
+  montoTotal: number;
+  montoPagado: number;
+  saldoPendiente: number;
+  estado: EstadoCobranza;
+  fechaEmision: string;
+  fechaVencimiento: string | null;
+  fechaUltimoPago: string | null;
+  observaciones: string | null;
+  fechaAnulacion: string | null;
+  motivoAnulacion: string | null;
+}
+
+export interface CobranzaPago {
+  id: number;
+  cobranzaEmpresaId: number;
+  tenantId: number;
+  fecha: string;
+  monto: number;
+  medioPago: MedioPago;
+  estado: EstadoPagoCobranza;
+  numeroOperacion: string | null;
+  observaciones: string | null;
+  usuarioAdminId: number | null;
+  fechaAnulacion: string | null;
+  motivoAnulacion: string | null;
+}
+
+export interface ResumenCobranza {
+  totalEmitido: number;
+  totalCobrado: number;
+  saldoPendiente: number;
+  cargosEnDeuda: number;
+  cargosParciales: number;
+  cargosPagados: number;
+}
+
+export interface EmitirCobranzaRequest {
+  tenantId: number;
+  concepto: string;
+  periodo: string;
+  montoTotal: number;
+  fechaVencimiento?: string | null;
+  observaciones?: string | null;
+}
+
+export interface PagoCobranzaRequest {
+  monto: number;
+  medioPago: MedioPago;
+  numeroOperacion?: string | null;
+  observaciones?: string | null;
 }
 
 export interface KpiResumen {

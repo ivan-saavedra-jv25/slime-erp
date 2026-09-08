@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
+import { adminGuard, negocioGuard } from './core/guards/admin.guard';
 import { sesionAbiertaGuard, sinSesionGuard } from './features/caja/core/guards/caja.guards';
 
 export const routes: Routes = [
@@ -8,9 +9,45 @@ export const routes: Routes = [
     loadComponent: () => import('./features/login/login.component').then((m) => m.LoginComponent),
   },
   {
+    path: 'plataforma',
+    redirectTo: '/admin/empresas',
+    pathMatch: 'full',
+  },
+  {
+    path: 'admin',
+    canActivate: [adminGuard],
+    loadComponent: () =>
+      import('./features/admin/admin-layout.component').then((m) => m.AdminLayoutComponent),
+    children: [
+      { path: '', redirectTo: 'empresas', pathMatch: 'full' },
+      {
+        path: 'empresas',
+        loadComponent: () =>
+          import('./features/admin/admin-empresas.component').then((m) => m.AdminEmpresasComponent),
+      },
+      {
+        path: 'usuarios',
+        loadComponent: () =>
+          import('./features/admin/admin-usuarios.component').then((m) => m.AdminUsuariosComponent),
+      },
+      {
+        path: 'cobranza',
+        loadComponent: () =>
+          import('./features/admin/admin-cobranza.component').then((m) => m.AdminCobranzaComponent),
+      },
+      {
+        path: 'cobranza/:id',
+        loadComponent: () =>
+          import('./features/admin/admin-cobranza-detalle.component').then(
+            (m) => m.AdminCobranzaDetalleComponent
+          ),
+      },
+    ],
+  },
+  {
     path: '',
     loadComponent: () => import('./layout/layout.component').then((m) => m.LayoutComponent),
-    canActivate: [authGuard],
+    canActivate: [authGuard, negocioGuard],
     children: [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
       {
@@ -175,10 +212,6 @@ export const routes: Routes = [
         path: 'usuarios/permisos',
         loadComponent: () =>
           import('./features/usuarios/roles-permisos.component').then((m) => m.RolesPermisosComponent),
-      },
-      {
-        path: 'admin/empresas',
-        loadComponent: () => import('./features/empresas/empresas.component').then((m) => m.EmpresasComponent),
       },
       {
         path: 'reportes/libro-ventas',

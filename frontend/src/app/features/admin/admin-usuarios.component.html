@@ -1,0 +1,183 @@
+<div class="page-header">
+  <div>
+    <h1>Usuarios</h1>
+    <p class="page-subtitle">Administra usuarios de todas las empresas: crea, edita, habilita o deshabilita y resetea contraseñas.</p>
+  </div>
+</div>
+
+@if (error) {
+  <div class="alert error">{{ error }}</div>
+}
+
+<mat-card class="form-panel">
+  <h2>{{ editandoId ? 'Editar usuario' : 'Nuevo usuario' }}</h2>
+  <p class="form-section-hint">
+    {{ editandoId ? 'Los cambios aplican a la empresa a la que pertenece el usuario.' : 'Al crear el usuario se asigna a la empresa seleccionada y puede iniciar sesión en esa aplicación.' }}
+  </p>
+  <div class="form-grid">
+    <div class="form-group">
+      <label for="tenantId">Empresa *</label>
+      <select id="tenantId" name="tenantId" [(ngModel)]="tenantId" [disabled]="!!editandoId">
+        <option [ngValue]="null">Seleccionar empresa...</option>
+        @for (e of empresas; track e.id) {
+          <option [ngValue]="e.id">{{ e.nombre }}</option>
+        }
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="nombre">Nombre *</label>
+      <input id="nombre" type="text" [(ngModel)]="nombre" name="nombre" />
+    </div>
+    <div class="form-group">
+      <label for="rut">RUT *</label>
+      <input id="rut" type="text" [(ngModel)]="rut" name="rut" />
+    </div>
+    <div class="form-group">
+      <label for="email">Email *</label>
+      <input id="email" type="email" [(ngModel)]="email" name="email" />
+    </div>
+    <div class="form-group">
+      <label for="password">{{ editandoId ? 'Nueva contraseña' : 'Contraseña *' }}
+        <span class="hint">{{ editandoId ? '(vacía para no cambiarla)' : '' }}</span>
+      </label>
+      <input id="password" type="password" autocomplete="new-password" [(ngModel)]="password" name="password" />
+    </div>
+    <div class="form-group">
+      <label for="rol">Rol *</label>
+      <select id="rol" name="rol" [(ngModel)]="rol">
+        @for (r of roles; track r) {
+          <option [value]="r">{{ labelRol(r) }}</option>
+        }
+      </select>
+    </div>
+  </div>
+
+  <div class="form-actions">
+    @if (editandoId) {
+      <button mat-stroked-button (click)="cancelarEdicion()">Cancelar</button>
+    }
+    <button mat-flat-button color="primary" [disabled]="guardando || !formularioCompleto()" (click)="guardar()">
+      <mat-icon>{{ editandoId ? 'save' : 'person_add' }}</mat-icon>
+      {{ guardando ? 'Guardando...' : editandoId ? 'Guardar cambios' : 'Crear usuario' }}
+    </button>
+  </div>
+</mat-card>
+
+<mat-card class="table-panel">
+  <h2>Usuarios del sistema</h2>
+
+  <div class="filtros-grid">
+    <div class="form-group">
+      <label for="filtroEmpresa">Empresa</label>
+      <select id="filtroEmpresa" name="filtroEmpresa" [(ngModel)]="filtroEmpresa">
+        <option [ngValue]="null">Todas</option>
+        @for (e of empresas; track e.id) {
+          <option [ngValue]="e.id">{{ e.nombre }}</option>
+        }
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="filtroEstado">Estado</label>
+      <select id="filtroEstado" name="filtroEstado" [(ngModel)]="filtroActivo">
+        <option [ngValue]="null">Todos</option>
+        <option [ngValue]="true">Activos</option>
+        <option [ngValue]="false">Inactivos</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="filtroTexto">Buscar</label>
+      <input id="filtroTexto" type="text" placeholder="Nombre, email, RUT o empresa..." [(ngModel)]="filtroTexto" name="filtroTexto" />
+    </div>
+  </div>
+
+  @if (cargando) {
+    <p class="empty-state">Cargando usuarios...</p>
+  }
+
+  @if (!cargando && !usuariosFiltrados.length) {
+    <p class="empty-state">No hay usuarios que coincidan con el filtro.</p>
+  }
+
+  @if (!cargando && usuariosFiltrados.length) {
+    <table mat-table [dataSource]="usuariosFiltrados" class="usuarios-table">
+      <ng-container matColumnDef="empresa">
+        <th mat-header-cell *matHeaderCellDef>Empresa</th>
+        <td mat-cell *matCellDef="let u">
+          <span class="text-strong">{{ u.tenantNombre }}</span>
+        </td>
+      </ng-container>
+      <ng-container matColumnDef="nombre">
+        <th mat-header-cell *matHeaderCellDef>Nombre</th>
+        <td mat-cell *matCellDef="let u">{{ u.nombre }}</td>
+      </ng-container>
+      <ng-container matColumnDef="rut">
+        <th mat-header-cell *matHeaderCellDef>RUT</th>
+        <td mat-cell *matCellDef="let u">{{ u.rut }}</td>
+      </ng-container>
+      <ng-container matColumnDef="email">
+        <th mat-header-cell *matHeaderCellDef>Email</th>
+        <td mat-cell *matCellDef="let u">{{ u.email }}</td>
+      </ng-container>
+      <ng-container matColumnDef="rol">
+        <th mat-header-cell *matHeaderCellDef>Rol</th>
+        <td mat-cell *matCellDef="let u">{{ labelRol(u.rol) }}</td>
+      </ng-container>
+      <ng-container matColumnDef="activo">
+        <th mat-header-cell *matHeaderCellDef>Estado</th>
+        <td mat-cell *matCellDef="let u">
+          <span [class]="'tag ' + (u.activo ? 'tag--success' : 'tag--error')">
+            {{ u.activo ? 'Activo' : 'Inactivo' }}
+          </span>
+        </td>
+      </ng-container>
+      <ng-container matColumnDef="fechaAlta">
+        <th mat-header-cell *matHeaderCellDef>Alta</th>
+        <td mat-cell *matCellDef="let u">{{ (u.fechaCreacion | slice:0:10) }}</td>
+      </ng-container>
+      <ng-container matColumnDef="acciones">
+        <th mat-header-cell *matHeaderCellDef class="right"></th>
+        <td mat-cell *matCellDef="let u" class="right">
+          <button mat-icon-button (click)="editar(u)" title="Editar" aria-label="Editar usuario">
+            <mat-icon>edit</mat-icon>
+          </button>
+          <button mat-icon-button (click)="toggleReset(u)" title="Cambiar contraseña" aria-label="Cambiar contraseña">
+            <mat-icon>lock_reset</mat-icon>
+          </button>
+          <button mat-icon-button (click)="toggleEstado(u)" [title]="u.activo ? 'Deshabilitar' : 'Habilitar'"
+            [attr.aria-label]="u.activo ? 'Deshabilitar usuario' : 'Habilitar usuario'">
+            <mat-icon>{{ u.activo ? 'person_off' : 'person' }}</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="columnas"></tr>
+      <tr mat-row *matRowDef="let row; columns: columnas"></tr>
+
+      @if (resetId) {
+        <tr class="reset-row">
+          <td [attr.colspan]="columnas.length">
+            <div class="inline-form">
+              <div class="form-group">
+                <label for="nuevaPasswordReseteo">Nueva contraseña<span class="required-mark">*</span></label>
+                <input
+                  id="nuevaPasswordReseteo"
+                  type="password"
+                  autocomplete="new-password"
+                  [(ngModel)]="nuevaPasswordReseteo"
+                  name="nuevaPasswordReseteo"
+                  placeholder="Ingresa la nueva contraseña"
+                />
+              </div>
+              @if (errorReset) {
+                <p class="field-error">{{ errorReset }}</p>
+              }
+              <button mat-flat-button color="primary" [disabled]="!nuevaPasswordReseteo.trim()" (click)="confirmarReset(usuarioEnReset)">
+                Cambiar contraseña
+              </button>
+            </div>
+          </td>
+        </tr>
+      }
+    </table>
+  }
+</mat-card>
