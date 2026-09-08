@@ -70,9 +70,43 @@ class LibroVentasServiceTest {
 
         var subtotalFactura = libro.subtotales().get(0);
         assertEquals(1, subtotalFactura.cantidad());
-        assertEquals(new BigDecimal("1000"), subtotalFactura.montoNeto());
+        assertEquals(new BigDecimal("1000"), subtotalFactura.montoNetoAfecto());
+        assertEquals(BigDecimal.ZERO.setScale(2), subtotalFactura.montoNetoExento());
         assertEquals(new BigDecimal("190"), subtotalFactura.montoIva());
         assertEquals(new BigDecimal("1190"), subtotalFactura.montoTotal());
+    }
+
+    @Test
+    void separaElNetoEnAfectoOExentoSegunElFlagExentoDeCadaVenta() {
+        List<Venta> ventas = List.of(
+                venta(1L, 1L, TipoDocumentoVenta.FACTURA, false, new BigDecimal("1000"), new BigDecimal("190"), new BigDecimal("1190")),
+                venta(2L, 1L, TipoDocumentoVenta.FACTURA, true, new BigDecimal("500"), BigDecimal.ZERO, new BigDecimal("500"))
+        );
+        when(ventaRepository.findByTenantIdAndActivoTrueAndFechaBetweenOrderByFechaAsc(eq(tenantId), any(), any()))
+                .thenReturn(ventas);
+        when(clienteRepository.findByTenantIdAndIdIn(eq(tenantId), any())).thenReturn(List.of(clienteUno));
+
+        var libro = service.generar(tenantId, desde, hasta);
+
+        var filaAfecta = libro.filas().stream().filter(f -> f.ventaId().equals(1L)).findFirst().orElseThrow();
+        assertEquals(new BigDecimal("1000"), filaAfecta.montoNetoAfecto());
+        assertEquals(BigDecimal.ZERO.setScale(2), filaAfecta.montoNetoExento());
+
+        var filaExenta = libro.filas().stream().filter(f -> f.ventaId().equals(2L)).findFirst().orElseThrow();
+        assertEquals(BigDecimal.ZERO.setScale(2), filaExenta.montoNetoAfecto());
+        assertEquals(new BigDecimal("500"), filaExenta.montoNetoExento());
+
+        // El subtotal "Factura" agrupa ambas filas (misma etiqueta la Factura Exenta
+        // tendría su propio subtotal si hubiera más de una venta de ese tipo real).
+        var subtotalFactura = libro.subtotales().stream()
+                .filter(s -> s.tipoDocumento().equals("Factura")).findFirst().orElseThrow();
+        assertEquals(new BigDecimal("1000"), subtotalFactura.montoNetoAfecto());
+        assertEquals(BigDecimal.ZERO.setScale(2), subtotalFactura.montoNetoExento());
+
+        var subtotalFacturaExenta = libro.subtotales().stream()
+                .filter(s -> s.tipoDocumento().equals("Factura Exenta")).findFirst().orElseThrow();
+        assertEquals(BigDecimal.ZERO.setScale(2), subtotalFacturaExenta.montoNetoAfecto());
+        assertEquals(new BigDecimal("500"), subtotalFacturaExenta.montoNetoExento());
     }
 
     @Test
@@ -106,7 +140,8 @@ class LibroVentasServiceTest {
 
         assertEquals("Total", libro.totalGeneral().tipoDocumento());
         assertEquals(2, libro.totalGeneral().cantidad());
-        assertEquals(new BigDecimal("1500"), libro.totalGeneral().montoNeto());
+        assertEquals(new BigDecimal("1500"), libro.totalGeneral().montoNetoAfecto());
+        assertEquals(BigDecimal.ZERO.setScale(2), libro.totalGeneral().montoNetoExento());
         assertEquals(new BigDecimal("285"), libro.totalGeneral().montoIva());
         assertEquals(new BigDecimal("1785"), libro.totalGeneral().montoTotal());
     }
@@ -121,7 +156,8 @@ class LibroVentasServiceTest {
         assertTrue(libro.filas().isEmpty());
         assertTrue(libro.subtotales().isEmpty());
         assertEquals(0, libro.totalGeneral().cantidad());
-        assertEquals(BigDecimal.ZERO, libro.totalGeneral().montoNeto());
+        assertEquals(BigDecimal.ZERO, libro.totalGeneral().montoNetoAfecto());
+        assertEquals(BigDecimal.ZERO, libro.totalGeneral().montoNetoExento());
         verify(clienteRepository, never()).findByTenantIdAndIdIn(any(), any());
     }
 

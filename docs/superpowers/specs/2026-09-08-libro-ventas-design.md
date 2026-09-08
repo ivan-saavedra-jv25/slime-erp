@@ -30,6 +30,15 @@ de controladores delgados que ya usa `VentaController`.
 - Totales: **subtotales por tipo de documento + total general**, no solo
   un total consolidado.
 
+**Actualización posterior al lanzamiento (2026-09-08):** la columna única
+"Neto" descrita en este documento se dividió en **Neto Afecto** y **Neto
+Exento** en el código shipeado (resumen, detalle y Excel) — una venta
+aporta su monto neto a una sola de las dos columnas según su flag
+`exento`, nunca a ambas. Los bloques de código más abajo quedaron con la
+columna "Neto" original tal como se diseñó primero; la fuente de verdad
+del formato actual es el código en
+`backend/src/main/java/cl/slimerp/reporteria/`.
+
 ## Global Constraints
 
 - El `id` de toda tabla es autoincremental y lo genera la base de datos —

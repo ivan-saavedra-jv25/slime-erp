@@ -23,9 +23,10 @@ public class LibroVentasExcelService {
 
     private static final DateTimeFormatter FORMATO_FECHA_CORTA = DateTimeFormatter.ofPattern("dd-MM-yyyy");
     private static final DateTimeFormatter FORMATO_FECHA_HORA = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
-    private static final String[] ENCABEZADO_SUBTOTALES = {"Tipo", "Cantidad", "Neto", "IVA", "Total"};
+    private static final String[] ENCABEZADO_SUBTOTALES =
+            {"Tipo", "Cantidad", "Neto Afecto", "Neto Exento", "IVA", "Total"};
     private static final String[] ENCABEZADO_DETALLE =
-            {"N°", "Fecha", "Tipo documento", "RUT", "Cliente", "Neto", "IVA", "Total"};
+            {"N°", "Fecha", "Tipo documento", "RUT", "Cliente", "Neto Afecto", "Neto Exento", "IVA", "Total"};
 
     public byte[] generar(LibroVentasService.LibroVentasResponse libro) {
         try (XSSFWorkbook workbook = new XSSFWorkbook()) {
@@ -80,9 +81,10 @@ public class LibroVentasExcelService {
         Row row = hoja.createRow(fila);
         celda(row, 0, s.tipoDocumento(), estilo);
         celda(row, 1, s.cantidad(), estilo);
-        celda(row, 2, s.montoNeto(), estilo);
-        celda(row, 3, s.montoIva(), estilo);
-        celda(row, 4, s.montoTotal(), estilo);
+        celda(row, 2, s.montoNetoAfecto(), estilo);
+        celda(row, 3, s.montoNetoExento(), estilo);
+        celda(row, 4, s.montoIva(), estilo);
+        celda(row, 5, s.montoTotal(), estilo);
     }
 
     private void escribirDetalle(Sheet hoja, int filaInicial, LibroVentasService.LibroVentasResponse libro) {
@@ -94,9 +96,10 @@ public class LibroVentasExcelService {
             row.createCell(2).setCellValue(f.tipoDocumento());
             row.createCell(3).setCellValue(f.clienteRut() != null ? f.clienteRut() : "");
             row.createCell(4).setCellValue(f.clienteNombre());
-            row.createCell(5).setCellValue(f.montoNeto().doubleValue());
-            row.createCell(6).setCellValue(f.montoIva().doubleValue());
-            row.createCell(7).setCellValue(f.montoTotal().doubleValue());
+            row.createCell(5).setCellValue(f.montoNetoAfecto().doubleValue());
+            row.createCell(6).setCellValue(f.montoNetoExento().doubleValue());
+            row.createCell(7).setCellValue(f.montoIva().doubleValue());
+            row.createCell(8).setCellValue(f.montoTotal().doubleValue());
         }
     }
 

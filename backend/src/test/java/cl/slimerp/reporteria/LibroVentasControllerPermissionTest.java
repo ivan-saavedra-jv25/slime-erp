@@ -59,7 +59,7 @@ class LibroVentasControllerPermissionTest {
         LocalDate hasta = LocalDate.of(2026, 9, 30);
         when(libroVentasService.generar(1L, desde, hasta)).thenReturn(
                 new LibroVentasService.LibroVentasResponse(desde, hasta, List.of(), List.of(),
-                        new LibroVentasService.LibroVentasSubtotal("Total", 0, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO)));
+                        new LibroVentasService.LibroVentasSubtotal("Total", 0, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO)));
 
         mockMvc.perform(get("/api/reportes/libro-ventas").param("desde", "2026-09-01").param("hasta", "2026-09-30"))
                 .andExpect(status().isOk());

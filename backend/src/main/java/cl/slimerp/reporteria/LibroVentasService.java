@@ -25,6 +25,7 @@ public class LibroVentasService {
 
     private static final List<String> ORDEN_TIPOS =
             List.of("Factura", "Factura Exenta", "Boleta", "Boleta Exenta", "Voucher");
+    private static final BigDecimal CERO = BigDecimal.ZERO.setScale(2);
 
     private final VentaRepository ventaRepository;
     private final ClienteRepository clienteRepository;
@@ -40,7 +41,8 @@ public class LibroVentasService {
             String tipoDocumento,
             String clienteRut,
             String clienteNombre,
-            BigDecimal montoNeto,
+            BigDecimal montoNetoAfecto,
+            BigDecimal montoNetoExento,
             BigDecimal montoIva,
             BigDecimal montoTotal) {
     }
@@ -48,7 +50,8 @@ public class LibroVentasService {
     public record LibroVentasSubtotal(
             String tipoDocumento,
             int cantidad,
-            BigDecimal montoNeto,
+            BigDecimal montoNetoAfecto,
+            BigDecimal montoNetoExento,
             BigDecimal montoIva,
             BigDecimal montoTotal) {
     }
@@ -84,6 +87,8 @@ public class LibroVentasService {
         return new LibroVentasResponse(desde, hasta, filas, agruparSubtotales(filas), totalizar(filas));
     }
 
+    // El neto de una venta va siempre a una sola columna: Afecto si la venta
+    // lleva IVA, Exento si no — nunca a ambas (una venta es una u otra, nunca mixta).
     private LibroVentasFila mapearFila(Venta venta, Cliente cliente) {
         return new LibroVentasFila(
                 venta.getId(),
@@ -91,7 +96,8 @@ public class LibroVentasService {
                 etiquetaTipoDocumento(venta.getTipoDocumento(), venta.isExento()),
                 cliente != null ? cliente.getRut() : null,
                 cliente != null ? cliente.getNombre() : "—",
-                venta.getMontoNeto(),
+                venta.isExento() ? CERO : venta.getMontoNeto(),
+                venta.isExento() ? venta.getMontoNeto() : CERO,
                 venta.getMontoIva(),
                 venta.getMontoTotal());
     }
@@ -125,7 +131,8 @@ public class LibroVentasService {
         return new LibroVentasSubtotal(
                 etiqueta,
                 filas.size(),
-                sumar(filas, LibroVentasFila::montoNeto),
+                sumar(filas, LibroVentasFila::montoNetoAfecto),
+                sumar(filas, LibroVentasFila::montoNetoExento),
                 sumar(filas, LibroVentasFila::montoIva),
                 sumar(filas, LibroVentasFila::montoTotal));
     }

@@ -41,7 +41,7 @@ class LibroVentasControllerTest {
 
     private LibroVentasService.LibroVentasResponse libroVacio() {
         return new LibroVentasService.LibroVentasResponse(desde, hasta, List.of(), List.of(),
-                new LibroVentasService.LibroVentasSubtotal("Total", 0, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO));
+                new LibroVentasService.LibroVentasSubtotal("Total", 0, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO));
     }
 
     @Test

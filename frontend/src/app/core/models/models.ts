@@ -213,7 +213,8 @@ export interface LibroVentasFila {
   tipoDocumento: string;
   clienteRut: string | null;
   clienteNombre: string;
-  montoNeto: number;
+  montoNetoAfecto: number;
+  montoNetoExento: number;
   montoIva: number;
   montoTotal: number;
 }
@@ -221,7 +222,8 @@ export interface LibroVentasFila {
 export interface LibroVentasSubtotal {
   tipoDocumento: string;
   cantidad: number;
-  montoNeto: number;
+  montoNetoAfecto: number;
+  montoNetoExento: number;
   montoIva: number;
   montoTotal: number;
 }

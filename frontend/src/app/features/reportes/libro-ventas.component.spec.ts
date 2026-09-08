@@ -10,7 +10,14 @@ describe('LibroVentasComponent', () => {
       hasta: '2026-09-30',
       filas: [],
       subtotales: [],
-      totalGeneral: { tipoDocumento: 'Total', cantidad: 0, montoNeto: 0, montoIva: 0, montoTotal: 0 },
+      totalGeneral: {
+        tipoDocumento: 'Total',
+        cantidad: 0,
+        montoNetoAfecto: 0,
+        montoNetoExento: 0,
+        montoIva: 0,
+        montoTotal: 0,
+      },
     };
     const reporteServiceStub = {
       libroVentas: jasmine.createSpy('libroVentas').and.returnValue(of(libroVacio)),
@@ -51,7 +58,14 @@ describe('LibroVentasComponent', () => {
       hasta: '2026-09-30',
       filas: [],
       subtotales: [],
-      totalGeneral: { tipoDocumento: 'Total', cantidad: 0, montoNeto: 0, montoIva: 0, montoTotal: 0 },
+      totalGeneral: {
+        tipoDocumento: 'Total',
+        cantidad: 0,
+        montoNetoAfecto: 0,
+        montoNetoExento: 0,
+        montoIva: 0,
+        montoTotal: 0,
+      },
     };
     spyOn(URL, 'createObjectURL').and.returnValue('blob:fake');
     spyOn(URL, 'revokeObjectURL');
@@ -70,7 +84,14 @@ describe('LibroVentasComponent', () => {
       hasta: '2026-09-30',
       filas: [],
       subtotales: [],
-      totalGeneral: { tipoDocumento: 'Total', cantidad: 0, montoNeto: 0, montoIva: 0, montoTotal: 0 },
+      totalGeneral: {
+        tipoDocumento: 'Total',
+        cantidad: 0,
+        montoNetoAfecto: 0,
+        montoNetoExento: 0,
+        montoIva: 0,
+        montoTotal: 0,
+      },
     };
     (reporteServiceStub.libroVentasExcel as jasmine.Spy).and.returnValue(throwError(() => new Error('fail')));
 
