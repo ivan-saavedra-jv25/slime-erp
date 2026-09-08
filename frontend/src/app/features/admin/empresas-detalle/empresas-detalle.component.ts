@@ -7,14 +7,26 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatTableModule } from '@angular/material/table';
 import { EmpresaAdminService } from '../../../core/services/empresa-admin.service';
+import { UsuarioPlataformaService } from '../../../core/services/usuario-plataforma.service';
 import {
   EmpresaDetalle,
   EstadoEmpresa,
   ESTADOS_EMPRESA,
   ETIQUETAS_ESTADO_EMPRESA,
+  Rol,
+  UsuarioPlataforma,
 } from '../../../core/models/models';
 import { ConfirmActionDialog } from '../../../core/components/confirm-action-dialog/confirm-action-dialog.component';
+
+const ETIQUETAS_ROL: Record<Rol, string> = {
+  SUPER_ADMIN: 'Super administrador',
+  ADMIN: 'Administrador',
+  VENDEDOR: 'Vendedor',
+  COMPRADOR: 'Comprador',
+  VISUALIZADOR: 'Visualizador',
+};
 
 @Component({
   selector: 'app-empresas-detalle',
@@ -27,6 +39,7 @@ import { ConfirmActionDialog } from '../../../core/components/confirm-action-dia
     MatButtonModule,
     MatIconModule,
     MatDialogModule,
+    MatTableModule,
   ],
   templateUrl: './empresas-detalle.component.html',
   styleUrl: './empresas-detalle.component.scss',
@@ -38,10 +51,15 @@ export class EmpresasDetalleComponent implements OnInit {
   estados = ESTADOS_EMPRESA;
   nuevoEstado: EstadoEmpresa | '' = '';
 
+  usuarios: UsuarioPlataforma[] = [];
+  cargandoUsuarios = false;
+  errorUsuarios = '';
+
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly dialog = inject(MatDialog);
   private readonly empresaService = inject(EmpresaAdminService);
+  private readonly usuarioPlataformaService = inject(UsuarioPlataformaService);
 
   ngOnInit(): void {
     const id = Number(this.route.snapshot.paramMap.get('id'));
@@ -55,12 +73,32 @@ export class EmpresasDetalleComponent implements OnInit {
       next: (empresa) => {
         this.empresa = empresa;
         this.cargando = false;
+        this.cargarUsuarios(id);
       },
       error: (err) => {
         this.cargando = false;
         this.error = err?.error?.error ?? 'No se pudo cargar la empresa.';
       },
     });
+  }
+
+  cargarUsuarios(id: number): void {
+    this.cargandoUsuarios = true;
+    this.errorUsuarios = '';
+    this.usuarioPlataformaService.listarUsuariosEmpresa(id).subscribe({
+      next: (usuarios) => {
+        this.usuarios = usuarios;
+        this.cargandoUsuarios = false;
+      },
+      error: () => {
+        this.cargandoUsuarios = false;
+        this.errorUsuarios = 'No se pudieron cargar los usuarios de esta empresa.';
+      },
+    });
+  }
+
+  labelRol(rol: Rol): string {
+    return ETIQUETAS_ROL[rol] ?? rol;
   }
 
   etiquetaEstado(estado: EstadoEmpresa): string {
@@ -86,15 +124,14 @@ export class EmpresasDetalleComponent implements OnInit {
 
   confirmarCambioEstado(): void {
     if (!this.empresa || !this.nuevoEstado) return;
-    const dialogRef = this.dialog.open(ConfirmActionDialog, {
+    this.dialog.open(ConfirmActionDialog, {
       width: '460px',
       data: {
         titulo: `${ETIQUETAS_ESTADO_EMPRESA[this.nuevoEstado]} empresa`,
         entidad: this.empresa.nombre,
         accion: `Cambiar el estado a "${ETIQUETAS_ESTADO_EMPRESA[this.nuevoEstado]}"`,
       },
-    });
-    dialogRef.afterClosed().subscribe((motivo?: string) => {
+    }).afterClosed().subscribe((motivo?: string) => {
       if (!motivo || !this.empresa) return;
       this.empresaService
         .cambiarEstado(this.empresa.id, { estado: this.nuevoEstado as EstadoEmpresa, motivo })
@@ -108,6 +145,50 @@ export class EmpresasDetalleComponent implements OnInit {
           },
         });
     });
+  }
+
+  confirmarAccionUsuario(usuario: UsuarioPlataforma, titulo: string, accion: string): void {
+    this.errorUsuarios = '';
+    this.dialog.open(ConfirmActionDialog, {
+      width: '460px',
+      data: { titulo, entidad: `${usuario.nombre} (${usuario.email})`, accion },
+    }).afterClosed().subscribe((motivo?: string) => {
+      if (!motivo || !this.empresa) return;
+      const id = this.empresa!.id;
+      const manejador = {
+        next: () => this.cargarUsuarios(id),
+        error: (err: unknown) => {
+          this.errorUsuarios = (err as { error?: { error?: string } })?.error?.error
+            ?? 'Ocurrió un error. Intenta nuevamente.';
+        },
+      };
+      if (accion.startsWith('Cambiar el estado')) {
+        this.usuarioPlataformaService.cambiarEstadoUsuario(usuario.id, usuario.activo, motivo)
+          .subscribe(manejador);
+      } else if (accion.includes('bloquear')) {
+        this.usuarioPlataformaService.bloquear(usuario.id, motivo)
+          .subscribe(manejador);
+      } else {
+        this.usuarioPlataformaService.revocarSesiones(usuario.id, motivo)
+          .subscribe(manejador);
+      }
+    });
+  }
+
+  habilitarUsuario(usuario: UsuarioPlataforma): void {
+    this.confirmarAccionUsuario(usuario, 'Habilitar usuario', 'Cambiar el estado a "Activo"');
+  }
+
+  deshabilitarUsuario(usuario: UsuarioPlataforma): void {
+    this.confirmarAccionUsuario(usuario, 'Deshabilitar usuario', 'Cambiar el estado a "Inactivo"');
+  }
+
+  bloquearUsuario(usuario: UsuarioPlataforma): void {
+    this.confirmarAccionUsuario(usuario, 'Bloquear usuario', 'Bloquear a este usuario');
+  }
+
+  revocarSesiones(usuario: UsuarioPlataforma): void {
+    this.confirmarAccionUsuario(usuario, 'Revocar sesiones', 'Revocar todas las sesiones de este usuario');
   }
 
   volver(): void {

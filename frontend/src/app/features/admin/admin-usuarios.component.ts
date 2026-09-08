@@ -1,13 +1,15 @@
-﻿import { Component, OnInit } from '@angular/core';
+﻿import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { EmpresaAdminService } from '../../core/services/empresa-admin.service';
 import { UsuarioPlataformaService, UsuarioAdminRequest } from '../../core/services/usuario-plataforma.service';
 import { Empresa, Rol, UsuarioPlataforma } from '../../core/models/models';
+import { ConfirmActionDialog } from '../../core/components/confirm-action-dialog/confirm-action-dialog.component';
 
 const ROLES_ASIGNABLES: Rol[] = ['ADMIN', 'VENDEDOR', 'COMPRADOR', 'VISUALIZADOR'];
 
@@ -22,7 +24,7 @@ const ETIQUETAS_ROL: Record<Rol, string> = {
 @Component({
   selector: 'app-admin-usuarios',
   standalone: true,
-  imports: [CommonModule, FormsModule, MatTableModule, MatButtonModule, MatIconModule, MatCardModule],
+  imports: [CommonModule, FormsModule, MatTableModule, MatButtonModule, MatIconModule, MatCardModule, MatDialogModule],
   templateUrl: './admin-usuarios.component.html',
   styleUrl: './admin-usuarios.component.scss',
 })
@@ -54,8 +56,47 @@ export class AdminUsuariosComponent implements OnInit {
     private usuarioPlataformaService: UsuarioPlataformaService
   ) {}
 
+  private readonly dialog = inject(MatDialog);
+
   labelRol(rol: Rol): string {
     return ETIQUETAS_ROL[rol] ?? rol;
+  }
+
+  confirmarAccion(usuario: UsuarioPlataforma, titulo: string, accion: string,
+                  ejecutar: (motivo: string) => void): void {
+    this.error = '';
+    this.dialog.open(ConfirmActionDialog, {
+      width: '460px',
+      data: { titulo, entidad: `${usuario.nombre} (${usuario.email})`, accion },
+    }).afterClosed().subscribe((motivo?: string) => {
+      if (!motivo) return;
+      ejecutar(motivo);
+    });
+  }
+
+  bloquear(usuario: UsuarioPlataforma): void {
+    this.confirmarAccion(usuario, 'Bloquear usuario', 'Bloquear a este usuario', (motivo) => {
+      this.usuarioPlataformaService.bloquear(usuario.id, motivo).subscribe({
+        next: () => this.cargar(),
+        error: (err) => {
+          this.error = err?.error?.error ?? 'OcurriÃ³ un error. Intenta nuevamente.';
+        },
+      });
+    });
+  }
+
+  revocarSesiones(usuario: UsuarioPlataforma): void {
+    this.confirmarAccion(usuario, 'Revocar sesiones', 'Revocar todas las sesiones de este usuario', (motivo) => {
+      this.usuarioPlataformaService.revocarSesiones(usuario.id, motivo).subscribe({
+        next: () => {
+          this.error = '';
+          this.cargar();
+        },
+        error: (err) => {
+          this.error = err?.error?.error ?? 'OcurriÃ³ un error. Intenta nuevamente.';
+        },
+      });
+    });
   }
 
   ngOnInit(): void {

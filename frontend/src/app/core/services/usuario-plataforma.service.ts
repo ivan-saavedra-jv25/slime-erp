@@ -35,12 +35,30 @@ export class UsuarioPlataformaService {
     return this.http.put<UsuarioPlataforma>(`${this.base}/${id}`, request);
   }
 
-  activar(id: number): Observable<UsuarioPlataforma> {
-    return this.http.patch<UsuarioPlataforma>(`${this.base}/${id}/activar`, {});
+  activar(id: number, motivo?: string): Observable<UsuarioPlataforma> {
+    return this.http.patch<UsuarioPlataforma>(`${this.base}/${id}/activar`, motivo ? { motivo } : {});
   }
 
-  desactivar(id: number): Observable<UsuarioPlataforma> {
-    return this.http.patch<UsuarioPlataforma>(`${this.base}/${id}/desactivar`, {});
+  desactivar(id: number, motivo?: string): Observable<UsuarioPlataforma> {
+    return this.http.patch<UsuarioPlataforma>(`${this.base}/${id}/desactivar`, motivo ? { motivo } : {});
+  }
+
+  cambiarEstadoUsuario(id: number, activo: boolean, motivo: string): Observable<UsuarioPlataforma> {
+    return activo
+      ? this.http.patch<UsuarioPlataforma>(`${this.base}/${id}/desactivar`, { motivo })
+      : this.http.patch<UsuarioPlataforma>(`${this.base}/${id}/activar`, { motivo });
+  }
+
+  bloquear(id: number, motivo: string): Observable<UsuarioPlataforma> {
+    return this.http.post<UsuarioPlataforma>(`${this.base}/${id}/bloquear`, { motivo });
+  }
+
+  revocarSesiones(id: number, motivo: string): Observable<void> {
+    return this.http.post<void>(`${this.base}/${id}/revocar-sesiones`, { motivo });
+  }
+
+  listarUsuariosEmpresa(idEmpresa: number): Observable<UsuarioPlataforma[]> {
+    return this.http.get<UsuarioPlataforma[]>(`${environment.adminApiUrl}/admin/empresas/${idEmpresa}/usuarios`);
   }
 
   resetearPassword(id: number, password: string): Observable<void> {

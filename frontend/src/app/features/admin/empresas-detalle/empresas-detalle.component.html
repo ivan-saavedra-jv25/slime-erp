@@ -82,7 +82,69 @@
         <div class="tab-body empty-state">La información comercial (giro, dirección) se incorporará próximamente.</div>
       </mat-tab>
       <mat-tab label="Usuarios">
-        <div class="tab-body empty-state">El detalle de usuarios estará disponible en una próxima etapa.</div>
+        <div class="tab-body">
+          @if (errorUsuarios) {
+            <div class="alert error">{{ errorUsuarios }}</div>
+          }
+          @if (cargandoUsuarios) {
+            <p class="empty-state">Cargando usuarios...</p>
+          }
+          @if (!cargandoUsuarios && !usuarios.length) {
+            <div class="empty-state">
+              No existen usuarios registrados para esta empresa.
+            </div>
+          }
+          @if (!cargandoUsuarios && usuarios.length) {
+            <div class="table-scroll">
+              <table mat-table [dataSource]="usuarios">
+                <ng-container matColumnDef="nombre">
+                  <th mat-header-cell *matHeaderCellDef>Nombre</th>
+                  <td mat-cell *matCellDef="let u">{{ u.nombre }}</td>
+                </ng-container>
+                <ng-container matColumnDef="rut">
+                  <th mat-header-cell *matHeaderCellDef>RUT</th>
+                  <td mat-cell *matCellDef="let u">{{ u.rut }}</td>
+                </ng-container>
+                <ng-container matColumnDef="email">
+                  <th mat-header-cell *matHeaderCellDef>Email</th>
+                  <td mat-cell *matCellDef="let u">{{ u.email }}</td>
+                </ng-container>
+                <ng-container matColumnDef="rol">
+                  <th mat-header-cell *matHeaderCellDef>Rol</th>
+                  <td mat-cell *matCellDef="let u">{{ labelRol(u.rol) }}</td>
+                </ng-container>
+                <ng-container matColumnDef="estado">
+                  <th mat-header-cell *matHeaderCellDef>Estado</th>
+                  <td mat-cell *matCellDef="let u">
+                    <span [class]="'tag ' + (u.activo ? 'tag--success' : 'tag--error')">
+                      {{ u.activo ? 'Activo' : 'Inactivo' }}
+                    </span>
+                  </td>
+                </ng-container>
+                <ng-container matColumnDef="acciones">
+                  <th mat-header-cell *matHeaderCellDef class="right"></th>
+                  <td mat-cell *matCellDef="let u" class="right">
+                    <button mat-icon-button (click)="habilitarUsuario(u)" title="Habilitar" aria-label="Habilitar usuario" [disabled]="u.activo">
+                      <mat-icon>person</mat-icon>
+                    </button>
+                    <button mat-icon-button (click)="deshabilitarUsuario(u)" title="Deshabilitar" aria-label="Deshabilitar usuario" [disabled]="!u.activo">
+                      <mat-icon>person_off</mat-icon>
+                    </button>
+                    <button mat-icon-button (click)="bloquearUsuario(u)" title="Bloquear" aria-label="Bloquear usuario">
+                      <mat-icon>block</mat-icon>
+                    </button>
+                    <button mat-icon-button (click)="revocarSesiones(u)" title="Revocar sesiones" aria-label="Revocar sesiones">
+                      <mat-icon>logout</mat-icon>
+                    </button>
+                  </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="['nombre', 'rut', 'email', 'rol', 'estado', 'acciones']"></tr>
+                <tr mat-row *matRowDef="let row; columns: ['nombre', 'rut', 'email', 'rol', 'estado', 'acciones']"></tr>
+              </table>
+            </div>
+          }
+        </div>
       </mat-tab>
       <mat-tab label="Suscripción">
         <div class="tab-body empty-state">No existen suscripciones registradas para esta empresa.</div>

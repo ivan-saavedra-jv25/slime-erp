@@ -1,6 +1,8 @@
 package cl.slimerp.admin.empresas;
 
 import cl.slimerp.admin.common.Paginated;
+import cl.slimerp.admin.usuarios.UsuarioAdminResponse;
+import cl.slimerp.admin.usuarios.UsuarioAdminService;
 import jakarta.validation.Valid;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -8,6 +10,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -16,9 +19,12 @@ import java.util.Map;
 public class EmpresaAdminController {
 
     private final EmpresaAdminService empresaAdminService;
+    private final UsuarioAdminService usuarioAdminService;
 
-    public EmpresaAdminController(EmpresaAdminService empresaAdminService) {
+    public EmpresaAdminController(EmpresaAdminService empresaAdminService,
+                                  UsuarioAdminService usuarioAdminService) {
         this.empresaAdminService = empresaAdminService;
+        this.usuarioAdminService = usuarioAdminService;
     }
 
     @GetMapping
@@ -47,6 +53,11 @@ public class EmpresaAdminController {
     @GetMapping("/{id}")
     public EmpresaDetalleResponse detalle(@PathVariable Long id) {
         return empresaAdminService.detalle(id);
+    }
+
+    @GetMapping("/{id}/usuarios")
+    public List<UsuarioAdminResponse> usuariosDeEmpresa(@PathVariable Long id) {
+        return usuarioAdminService.listar(id, null);
     }
 
     @PostMapping

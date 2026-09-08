@@ -522,10 +522,10 @@ cd frontend && npx ng build --configuration development
 **Interfaces:**
 - Produce: `GET /api/admin/empresas/{id}/usuarios` (rename/alías del actual `GET /api/admin/usuarios?tenantId=`), `PATCH /api/admin/usuarios/{id}/activar|desactivar`, `POST /api/admin/usuarios/{id}/bloquear`, `POST /api/admin/usuarios/{id}/revocar-sesiones`. No se permite eliminar (auditoría).
 
-- [ ] **Step 1: Tests** (service): listado por empresa; activar/desactivar/bloquear con motivo auditan (Task 11); revocar sesiones registra `USER_DISABLED`/`SESSION_REVOKED` en auditoría; validaciones de email/RUT duplicados ya existentes se mantienen.
-- [ ] **Step 2: Implementar** endpoints y mantener el contrato actual de `plataforma-usuarios` (paridad de campos en el Response).
-- [ ] **Step 3: Frontend** — tab Usuarios en el detalle de empresa con acciones Activar/Desactivar/Bloquear/Revocar sesiones (con confirmación); pantalla global de usuarios admin (role selector por admins en Task 19).
-- [ ] **Step 4: `ng build`** + suite backend. Commit — "Usuarios de empresa con bloqueo y revocacion de sesiones auditados"
+- [x] **Step 1: Tests** (service): listado por empresa; activar/desactivar/bloquear con motivo auditan (Task 11); revocar sesiones registra `USER_DISABLED`/`SESSION_REVOKED` en auditoría; validaciones de email/RUT duplicados ya existentes se mantienen.
+- [x] **Step 2: Implementar** endpoints y mantener el contrato actual de `plataforma-usuarios` (paridad de campos en el Response).
+- [x] **Step 3: Frontend** — tab Usuarios en el detalle de empresa con acciones Activar/Desactivar/Bloquear/Revocar sesiones (con confirmación); pantalla global de usuarios admin (role selector por admins en Task 19).
+- [x] **Step 4: `ng build`** + suite backend. Commit — "Usuarios de empresa con bloqueo y revocacion de sesiones auditados"
 
 ---
 

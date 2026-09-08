@@ -1,6 +1,8 @@
 package cl.slimerp.admin.empresas;
 
 import cl.slimerp.admin.common.Paginated;
+import cl.slimerp.admin.usuarios.UsuarioAdminResponse;
+import cl.slimerp.admin.usuarios.UsuarioAdminService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
@@ -25,13 +27,14 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standal
 class EmpresaAdminControllerTest {
 
     private final EmpresaAdminService service = mock(EmpresaAdminService.class);
+    private final UsuarioAdminService usuarioAdminService = mock(UsuarioAdminService.class);
     private MockMvc mvc;
 
     @BeforeEach
     void setUp() {
         LocalValidatorFactoryBean validator = new LocalValidatorFactoryBean();
         validator.afterPropertiesSet();
-        mvc = standaloneSetup(new EmpresaAdminController(service)).setValidator(validator).build();
+        mvc = standaloneSetup(new EmpresaAdminController(service, usuarioAdminService)).setValidator(validator).build();
     }
 
     @Test
@@ -61,6 +64,19 @@ class EmpresaAdminControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.usuariosTotales").value(5))
                 .andExpect(jsonPath("$.alertasAbiertas").value(2));
+    }
+
+    @Test
+    void usuariosDeEmpresaRetornaLista() throws Exception {
+        UsuarioAdminResponse u = new UsuarioAdminResponse(
+                1L, 1L, "Empresa Demo", "Juan Pérez", "11.222.333-4", "juan@empresa.cl",
+                cl.slimerp.admin.tenant.Rol.ADMIN, true, LocalDateTime.now());
+        when(usuarioAdminService.listar(1L, null)).thenReturn(List.of(u));
+
+        mvc.perform(get("/api/admin/empresas/1/usuarios"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].nombre").value("Juan Pérez"))
+                .andExpect(jsonPath("$[0].tenantId").value(1));
     }
 
     @Test

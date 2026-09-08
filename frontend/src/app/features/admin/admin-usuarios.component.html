@@ -147,6 +147,12 @@
             [attr.aria-label]="u.activo ? 'Deshabilitar usuario' : 'Habilitar usuario'">
             <mat-icon>{{ u.activo ? 'person_off' : 'person' }}</mat-icon>
           </button>
+          <button mat-icon-button (click)="bloquear(u)" title="Bloquear" aria-label="Bloquear usuario">
+            <mat-icon>block</mat-icon>
+          </button>
+          <button mat-icon-button (click)="revocarSesiones(u)" title="Revocar sesiones" aria-label="Revocar sesiones">
+            <mat-icon>logout</mat-icon>
+          </button>
         </td>
       </ng-container>
 
