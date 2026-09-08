@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="es" prefix="og: https://ogp.me/ns#">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>NEXO by SAAVIA | Plataforma de Gestión Empresarial</title>
+  <meta name="description" content="NEXO es la plataforma de gestión empresarial de SAAVIA para centralizar ventas, clientes, inventario, tesorería y documentos de tu empresa.">
+  <meta name="theme-color" content="#0a1f44">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="SAAVIA">
+  <meta property="og:locale" content="es_ES">
+  <meta property="og:title" content="NEXO by SAAVIA | Plataforma de Gestión Empresarial">
+  <meta property="og:description" content="NEXO es la plataforma de gestión empresarial de SAAVIA para centralizar ventas, clientes, inventario, tesorería y documentos de tu empresa.">
+  <meta property="og:url" content="https://saavia.cl/">
+  <!-- IMAGEN PENDIENTE: assets/img/og-image.jpg
+       1200x630 px. Fondo navy #0A1F44 con el lockup NEXO / by SAAVIA centrado
+       y el gradiente azul-verde como acento. Sin texto pequeño. -->
+  <meta property="og:image" content="assets/img/og-image.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="NEXO by SAAVIA | Plataforma de Gestión Empresarial">
+  <meta name="twitter:description" content="Centraliza la gestión de tu negocio en una plataforma moderna.">
+  <meta name="twitter:image" content="assets/img/og-image.jpg">
+
+  <!-- IMAGEN PENDIENTE: favicon.svg
+       Isotipo SAAVIA ("S" abstracta), cuadrado, legible a 16 px.
+       Mientras tanto se usa un favicon provisional con el gradiente de marca. -->
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/sections.css">
+
+  <!-- Bloqueante a proposito: aplica el tema antes del primer render. -->
+  <script src="js/theme.js"></script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "https://saavia.cl/#organizacion",
+        "name": "SAAVIA",
+        "slogan": "Tecnología que hace avanzar tu empresa.",
+        "description": "Empresa de tecnología enfocada en desarrollar soluciones digitales que ayuden a las empresas a simplificar sus procesos, conectar su información y crecer.",
+        "url": "https://saavia.cl/"
+      },
+      {
+        "@type": "SoftwareApplication",
+        "name": "NEXO",
+        "alternateName": "NEXO by SAAVIA",
+        "applicationCategory": "BusinessApplication",
+        "operatingSystem": "Web",
+        "description": "Plataforma de gestión empresarial para centralizar ventas, clientes, productos, inventario, bodegas, tesorería y documentos tributarios electrónicos.",
+        "publisher": { "@id": "https://saavia.cl/#organizacion" }
+      }
+    ]
+  }
+  </script>
+</head>
+
+<body>
+  <a class="skip-link" href="#contenido">Saltar al contenido</a>
+
+  <!-- ======================================================================
+       Sprite de iconos. Minimalistas, trazo uniforme, sin librerias externas.
+       ====================================================================== -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <defs>
+      <g id="i-base" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"></g>
+
+      <symbol id="i-ventas" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 17l5.5-5.5 3.5 3.5L21 6"/><path d="M15 6h6v6"/>
+      </symbol>
+      <symbol id="i-clientes" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="9" cy="8" r="3.2"/><path d="M3 19.5a6 6 0 0 1 12 0"/><path d="M16.5 6.2a3.2 3.2 0 0 1 0 6"/><path d="M18 14.6a6 6 0 0 1 3 4.9"/>
+      </symbol>
+      <symbol id="i-productos" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20.5 13.3 13.3 20.5a2 2 0 0 1-2.8 0l-7-7a2 2 0 0 1-.6-1.5l.3-5.4a2 2 0 0 1 1.9-1.9l5.4-.3a2 2 0 0 1 1.5.6l7 7a2 2 0 0 1 0 2.8Z"/><circle cx="8" cy="8" r="1.3"/>
+      </symbol>
+      <symbol id="i-inventario" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 3 3 7.5l9 4.5 9-4.5L12 3Z"/><path d="M3 12.5 12 17l9-4.5"/><path d="M3 17 12 21.5 21 17"/>
+      </symbol>
+      <symbol id="i-bodegas" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="3.5" width="7.5" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7.5" height="7" rx="1.5"/><rect x="3" y="13.5" width="7.5" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7.5" height="7" rx="1.5"/>
+      </symbol>
+      <symbol id="i-tesoreria" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 8.5A2.5 2.5 0 0 1 5.5 6h13A2.5 2.5 0 0 1 21 8.5v8a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 16.5v-8Z"/><path d="M3 10h18"/><circle cx="16.5" cy="14.5" r="1.2"/>
+      </symbol>
+      <symbol id="i-dte" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M14 2.8H7.5A2.5 2.5 0 0 0 5 5.3v13.4a2.5 2.5 0 0 0 2.5 2.5h9a2.5 2.5 0 0 0 2.5-2.5V7.8L14 2.8Z"/><path d="M13.8 3v4.6H19"/><path d="M8.8 13h6"/><path d="M8.8 16.5h4"/>
+      </symbol>
+      <symbol id="i-reportes" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3.5 20.5h17"/><path d="M7 20.5V12"/><path d="M12 20.5V6.5"/><path d="M17 20.5v-5.5"/>
+      </symbol>
+      <symbol id="i-modular" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><path d="M17.5 14v7M14 17.5h7"/>
+      </symbol>
+      <symbol id="i-api" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M8.5 17 3.5 12l5-5"/><path d="M15.5 7l5 5-5 5"/><path d="M13.5 4.5 10.5 19.5"/>
+      </symbol>
+      <symbol id="i-integraciones" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M10 14a3.8 3.8 0 0 0 5.6.4l2.6-2.6a3.8 3.8 0 0 0-5.4-5.4l-1.5 1.5"/><path d="M14 10a3.8 3.8 0 0 0-5.6-.4l-2.6 2.6a3.8 3.8 0 0 0 5.4 5.4l1.5-1.5"/>
+      </symbol>
+      <symbol id="i-automatizacion" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M13.5 2.5 4.5 13.5h6l-1 8 9-11h-6l1-8Z"/>
+      </symbol>
+      <symbol id="i-seguridad" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 2.8 4.5 6v6c0 4.6 3.1 8 7.5 9.2 4.4-1.2 7.5-4.6 7.5-9.2V6L12 2.8Z"/><path d="m9.2 12 2 2 3.6-3.8"/>
+      </symbol>
+      <symbol id="i-escalabilidad" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3.5 20.5h17"/><rect x="4" y="14" width="4.5" height="6.5" rx="1"/><rect x="10" y="9.5" width="4.5" height="11" rx="1"/><rect x="16" y="4.5" width="4.5" height="16" rx="1"/>
+      </symbol>
+      <symbol id="i-nube" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M7 18.5a4.5 4.5 0 0 1-.5-8.97 5.5 5.5 0 0 1 10.6 1.1A4 4 0 0 1 17 18.5H7Z"/>
+      </symbol>
+      <symbol id="i-cobrar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="9"/><path d="M12 7v5.2l3.4 2"/>
+      </symbol>
+      <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="m4.5 12.5 5 5 10-11"/>
+      </symbol>
+      <symbol id="i-whatsapp" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12.04 2C6.6 2 2.18 6.42 2.18 11.86c0 1.74.46 3.44 1.32 4.94L2.1 22l5.34-1.38a9.87 9.87 0 0 0 4.6 1.14h.01c5.43 0 9.85-4.42 9.85-9.86A9.79 9.79 0 0 0 12.04 2Zm0 17.9a8.2 8.2 0 0 1-4.17-1.14l-.3-.18-3.1.8.83-3.02-.2-.31a8.13 8.13 0 0 1-1.25-4.35 8.2 8.2 0 0 1 8.2-8.19 8.14 8.14 0 0 1 5.79 2.4 8.1 8.1 0 0 1 2.4 5.8c0 4.52-3.68 8.19-8.2 8.19Zm4.5-6.13c-.25-.13-1.46-.72-1.68-.8-.23-.08-.39-.12-.55.13-.16.24-.63.79-.77.95-.14.16-.28.19-.53.06-.24-.12-1.04-.38-1.98-1.22a7.4 7.4 0 0 1-1.37-1.7c-.14-.25-.01-.38.11-.5.11-.11.25-.29.37-.43.13-.15.17-.25.25-.41.09-.17.04-.31-.02-.44-.06-.12-.55-1.33-.76-1.82-.2-.48-.4-.41-.55-.42h-.47a.9.9 0 0 0-.65.3c-.22.25-.86.84-.86 2.05s.88 2.38 1 2.54c.13.17 1.74 2.65 4.2 3.72.59.25 1.05.4 1.4.52.6.19 1.13.16 1.56.1.48-.07 1.46-.6 1.67-1.18.2-.57.2-1.06.15-1.16-.06-.1-.22-.16-.47-.29Z"/>
+      </symbol>
+      <symbol id="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>
+      </symbol>
+      <symbol id="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20 14.2A8.2 8.2 0 0 1 9.8 4 8.4 8.4 0 1 0 20 14.2Z"/>
+      </symbol>
+      <symbol id="i-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round">
+        <path d="M4 7h16M4 12h16M4 17h16"/>
+      </symbol>
+      <symbol id="i-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round">
+        <path d="M6 6l12 12M18 6 6 18"/>
+      </symbol>
+    </defs>
+  </svg>
+
+  <!-- ======================================================================
+       NAVBAR
+       ====================================================================== -->
+  <header class="nav" data-nav>
+    <div class="container nav__inner">
+      <!-- IMAGEN PENDIENTE: assets/img/logo-saavia-horizontal.svg
+           Logo horizontal SAAVIA (isotipo "S" abstracta + wordmark), fondo
+           transparente, altura de render 32 px.
+           Version para fondo oscuro: assets/img/logo-saavia-horizontal-dark.svg
+           Cuando esten los archivos, reemplazar el bloque <span> de abajo por:
+           <img class="brand__logo" src="assets/img/logo-saavia-horizontal.svg" alt="SAAVIA"> -->
+      <a class="brand" href="#inicio" aria-label="SAAVIA — Inicio">
+        <span class="brand__mark" aria-hidden="true">S</span>
+        <span class="wordmark wordmark--saavia">SAAVIA</span>
+      </a>
+
+      <nav class="nav__links" aria-label="Navegación principal">
+        <a class="nav__link" href="#nexo">NEXO</a>
+        <a class="nav__link" href="#funcionalidades">Funcionalidades</a>
+        <a class="nav__link" href="#tecnologia">Tecnología</a>
+        <a class="nav__link" href="#nosotros">Nosotros</a>
+      </nav>
+
+      <div class="nav__actions">
+        <button class="theme-toggle" type="button" data-theme-toggle aria-label="Cambiar a modo oscuro">
+          <svg class="icon-sun" aria-hidden="true"><use href="#i-sun"></use></svg>
+          <svg class="icon-moon" aria-hidden="true"><use href="#i-moon"></use></svg>
+        </button>
+
+        <a class="btn btn--secondary" href="/login">Ingresar</a>
+        <a class="btn btn--primary" data-wa="demo" href="https://wa.me/56900000000">Solicitar demo</a>
+
+        <button class="nav__burger" type="button" data-burger aria-expanded="false" aria-controls="menu-movil" aria-label="Abrir menú">
+          <svg class="icon-menu" aria-hidden="true"><use href="#i-menu"></use></svg>
+          <svg class="icon-close" aria-hidden="true"><use href="#i-close"></use></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="nav__panel" id="menu-movil" data-panel>
+      <a href="#nexo">NEXO</a>
+      <a href="#funcionalidades">Funcionalidades</a>
+      <a href="#tecnologia">Tecnología</a>
+      <a href="#nosotros">Nosotros</a>
+      <a class="btn btn--secondary btn--lg btn--block" href="/login">Ingresar</a>
+      <a class="btn btn--primary btn--lg btn--block" data-wa="demo" href="https://wa.me/56900000000">Solicitar demostración</a>
+    </div>
+  </header>
+
+  <main id="contenido">
+
+    <!-- ====================================================================
+         HERO
+         ==================================================================== -->
+    <section class="hero" id="inicio">
+      <div class="container hero__grid">
+        <div class="hero__copy">
+          <span class="badge badge--brand">
+            <span class="badge__dot" aria-hidden="true"></span>
+            NEXO by SAAVIA
+          </span>
+
+          <h1>La conexión entre <span class="text-gradient">todas las áreas</span> de tu empresa.</h1>
+
+          <p class="hero__lead">
+            Centraliza la gestión de tu negocio en una plataforma moderna para
+            administrar ventas, clientes, productos, inventario, tesorería y
+            documentos tributarios.
+          </p>
+
+          <div class="hero__actions">
+            <a class="btn btn--primary btn--lg" href="#funcionalidades">Conocer NEXO</a>
+            <a class="btn btn--ghost-light btn--lg" data-wa="demo" href="https://wa.me/56900000000">
+              <svg class="btn__icon" aria-hidden="true"><use href="#i-whatsapp"></use></svg>
+              Solicitar una demostración
+            </a>
+          </div>
+
+          <div class="hero__meta">
+            <span><svg aria-hidden="true"><use href="#i-check"></use></svg> Ventas, inventario y tesorería conectados</span>
+            <span><svg aria-hidden="true"><use href="#i-check"></use></svg> Documentos tributarios electrónicos</span>
+            <span><svg aria-hidden="true"><use href="#i-check"></use></svg> APIs e integraciones</span>
+          </div>
+        </div>
+
+        <!-- Mockup del dashboard: decorativo, construido en HTML/CSS/SVG. -->
+        <div class="mockup" aria-hidden="true">
+          <div class="mockup__bar">
+            <span class="mockup__dots"><i></i><i></i><i></i></span>
+            <span class="mockup__title">NEXO · Panel</span>
+          </div>
+
+          <div class="mockup__body">
+            <div class="mcard">
+              <span class="mcard__label"><svg><use href="#i-ventas"></use></svg> Ventas</span>
+              <span class="mcard__value">1.284</span>
+              <span class="mcard__delta">documentos del mes</span>
+            </div>
+
+            <div class="mcard">
+              <span class="mcard__label"><svg><use href="#i-clientes"></use></svg> Clientes</span>
+              <span class="mcard__value">462</span>
+              <span class="mcard__delta">activos</span>
+            </div>
+
+            <div class="mcard">
+              <span class="mcard__label"><svg><use href="#i-inventario"></use></svg> Inventario</span>
+              <span class="mcard__value">3.910</span>
+              <span class="mcard__delta mcard__delta--muted">unidades en stock</span>
+            </div>
+
+            <div class="mcard mcard--chart">
+              <span class="mcard__label"><svg><use href="#i-reportes"></use></svg> Ventas por mes</span>
+              <div class="mchart">
+                <i style="height:42%;animation-delay:60ms"></i>
+                <i style="height:56%;animation-delay:120ms"></i>
+                <i style="height:38%;animation-delay:180ms"></i>
+                <i style="height:70%;animation-delay:240ms"></i>
+                <i style="height:52%;animation-delay:300ms"></i>
+                <i style="height:81%;animation-delay:360ms"></i>
+                <i style="height:96%;animation-delay:420ms"></i>
+              </div>
+              <div class="mchart__axis">
+                <span>Ene</span><span>Feb</span><span>Mar</span><span>Abr</span><span>May</span><span>Jun</span><span>Jul</span>
+              </div>
+            </div>
+
+            <div class="mcard">
+              <span class="mcard__label"><svg><use href="#i-tesoreria"></use></svg> Tesorería</span>
+              <span class="mcard__value">86%</span>
+              <span class="mcard__delta">cobranza al día</span>
+              <svg class="msparkline" viewBox="0 0 120 34" preserveAspectRatio="none">
+                <polyline points="0,26 20,22 40,25 60,15 80,18 100,9 120,5"
+                          fill="none" stroke="#34d399" stroke-width="2"
+                          stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+
+            <div class="mcard">
+              <span class="mcard__label"><svg><use href="#i-dte"></use></svg> DTE</span>
+              <span class="mcard__value">312</span>
+              <span class="mcard__delta">emitidos este mes</span>
+              <ul class="mbreak">
+                <li>Facturas <b>214</b></li>
+                <li>Boletas <b>76</b></li>
+                <li>Notas de crédito <b>22</b></li>
+              </ul>
+            </div>
+
+            <div class="mcard mcard--feed">
+              <span class="mcard__label"><svg><use href="#i-automatizacion"></use></svg> Actividad reciente</span>
+              <ul class="mfeed">
+                <li><span class="mfeed__tag">Venta</span> Documento emitido <span class="mfeed__time">hace 2 min</span></li>
+                <li><span class="mfeed__tag mfeed__tag--grow">Pago</span> Cuenta por cobrar saldada <span class="mfeed__time">hace 18 min</span></li>
+                <li><span class="mfeed__tag">Stock</span> Movimiento de bodega <span class="mfeed__time">hace 1 h</span></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         EL PROBLEMA
+         ==================================================================== -->
+    <section class="section" id="nexo">
+      <div class="container">
+        <div class="section-head section-head--center reveal">
+          <span class="eyebrow">El problema</span>
+          <h2>Tu empresa crece. Tu forma de gestionarla también debe hacerlo.</h2>
+          <p>
+            A medida que un negocio crece, también aumentan los procesos, clientes,
+            productos, ventas, pagos y documentos. Cuando cada área utiliza
+            herramientas diferentes, la información termina dispersa.
+            NEXO nace para centralizar esa operación.
+          </p>
+        </div>
+
+        <div class="compare">
+          <div class="compare__panel compare__panel--before reveal">
+            <span class="compare__label">Antes</span>
+
+            <div class="mess">
+              <!-- Cables que se cruzan y terminan en nada: puro adorno. -->
+              <svg class="mess__wires" viewBox="0 0 400 360" preserveAspectRatio="none" aria-hidden="true">
+                <g fill="none" stroke="currentColor" stroke-width="1.4" stroke-dasharray="5 6" stroke-linecap="round">
+                  <path d="M52 62 C150 96, 96 174, 214 196"/>
+                  <path d="M300 104 C232 148, 322 210, 250 268"/>
+                  <path d="M74 150 C186 130, 148 254, 292 236"/>
+                  <path d="M120 300 C60 250, 214 232, 168 148"/>
+                  <path d="M330 60 C286 122, 372 168, 306 322"/>
+                </g>
+                <g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" opacity="0.75">
+                  <path d="M46 214 l10 10 M56 214 l-10 10"/>
+                  <path d="M338 250 l10 10 M348 250 l-10 10"/>
+                  <path d="M196 78 l10 10 M206 78 l-10 10"/>
+                </g>
+              </svg>
+
+          <div class="mess__card"
+               style="--t:0%;   --l:5%;  --w:57%; --r:-7.5deg; --c:#3b86ea">
+            <span class="mess__dot" aria-hidden="true"></span>
+            <span class="mess__area">Ventas</span>
+            <span class="mess__arrow" aria-hidden="true">&rarr;</span>
+            <span class="mess__tool">Sistema</span>
+          </div>
+          <div class="mess__card"
+               style="--t:11%;  --l:42%; --w:54%; --r:8.5deg; --c:#22a06b">
+            <span class="mess__dot" aria-hidden="true"></span>
+            <span class="mess__area">Inventario</span>
+            <span class="mess__arrow" aria-hidden="true">&rarr;</span>
+            <span class="mess__tool">Excel</span>
+          </div>
+          <div class="mess__card"
+               style="--t:32%;  --l:0%;  --w:65%; --r:-3.5deg; --c:#e0913b">
+            <span class="mess__dot" aria-hidden="true"></span>
+            <span class="mess__area">Clientes</span>
+            <span class="mess__arrow" aria-hidden="true">&rarr;</span>
+            <span class="mess__tool">Otro sistema</span>
+          </div>
+          <div class="mess__card"
+               style="--t:43%;  --l:33%; --w:50%; --r:9.5deg; --c:#8b5cf6">
+            <span class="mess__dot" aria-hidden="true"></span>
+            <span class="mess__area">Pagos</span>
+            <span class="mess__arrow" aria-hidden="true">&rarr;</span>
+            <span class="mess__tool">Planilla</span>
+          </div>
+          <div class="mess__card"
+               style="--t:69%;  --l:9%;  --w:56%; --r:-6.5deg; --c:#e05b6f">
+            <span class="mess__dot" aria-hidden="true"></span>
+            <span class="mess__area">DTE</span>
+            <span class="mess__arrow" aria-hidden="true">&rarr;</span>
+            <span class="mess__tool">Otro proceso</span>
+          </div>
+            </div>
+
+            <p class="compare__foot">
+              Cinco lugares distintos, cinco veces el mismo dato. Ninguno se
+              entera de lo que hizo el otro.
+            </p>
+          </div>
+
+          <div class="compare__panel compare__panel--after reveal">
+            <span class="compare__label">Después</span>
+
+            <svg class="hubchart" viewBox="0 0 440 348" role="img"
+                 aria-labelledby="hubTitulo hubDesc">
+              <title id="hubTitulo">La operación centralizada en NEXO</title>
+              <desc id="hubDesc">NEXO conecta Ventas, Inventario y Clientes; las tres
+                convergen en Tesorería y DTE, y de ahí sale una sola visión del negocio.</desc>
+
+              <defs>
+                <linearGradient id="hubGrad" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stop-color="#1b6fe0"/>
+                  <stop offset="1" stop-color="#10b981"/>
+                </linearGradient>
+                <marker id="hubFlecha" viewBox="0 0 10 10" refX="8.5" refY="5"
+                        markerWidth="5.5" markerHeight="5.5" orient="auto">
+                  <path d="M0 1 L9 5 L0 9 Z" fill="currentColor"/>
+                </marker>
+              </defs>
+
+              <!-- Conexiones -->
+              <g class="hubchart__links" fill="none" stroke="currentColor"
+                 stroke-width="1.6" stroke-linecap="round">
+                <path d="M220 56 V86"/>
+                <path d="M70 86 H370"/>
+                <path d="M70 86 V108" marker-end="url(#hubFlecha)"/>
+                <path d="M220 86 V108" marker-end="url(#hubFlecha)"/>
+                <path d="M370 86 V108" marker-end="url(#hubFlecha)"/>
+                <path d="M70 160 V190"/>
+                <path d="M220 160 V190"/>
+                <path d="M370 160 V190"/>
+                <path d="M70 190 H370"/>
+                <path d="M220 190 V208" marker-end="url(#hubFlecha)"/>
+                <path d="M220 262 V284" marker-end="url(#hubFlecha)"/>
+              </g>
+
+              <!-- NEXO: el centro -->
+              <rect x="155" y="12" width="130" height="44" rx="11" fill="url(#hubGrad)"/>
+              <text class="hubchart__nexo" x="220" y="39">NEXO</text>
+
+              <!-- Areas conectadas -->
+              <rect class="hubchart__node" x="15" y="116" width="110" height="44" rx="10"/>
+              <text class="hubchart__label" x="70" y="143">Ventas</text>
+
+              <rect class="hubchart__node" x="165" y="116" width="110" height="44" rx="10"/>
+              <text class="hubchart__label" x="220" y="143">Inventario</text>
+
+              <rect class="hubchart__node" x="315" y="116" width="110" height="44" rx="10"/>
+              <text class="hubchart__label" x="370" y="143">Clientes</text>
+
+              <!-- Donde converge todo -->
+              <rect class="hubchart__node hubchart__node--grow" x="125" y="212" width="190" height="50" rx="12"/>
+              <text class="hubchart__label hubchart__label--grow" x="220" y="242">Tesorería + DTE</text>
+
+              <!-- Resultado -->
+              <rect class="hubchart__node hubchart__node--end" x="85" y="288" width="270" height="46" rx="12"/>
+              <text class="hubchart__label hubchart__label--end" x="220" y="316">Una sola visión del negocio</text>
+            </svg>
+
+            <p class="compare__foot">
+              Una plataforma. La venta llega hasta la cobranza sin que nadie
+              vuelva a escribirla.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         MODULOS
+         ==================================================================== -->
+    <section class="section section--alt" id="funcionalidades">
+      <div class="container">
+        <div class="section-head section-head--center reveal">
+          <span class="eyebrow">Una plataforma para toda tu operación</span>
+          <h2>Todo conectado. Todo en un solo lugar.</h2>
+          <p>NEXO permite centralizar las principales operaciones de una empresa.</p>
+        </div>
+
+        <div class="grid grid--4">
+          <article class="card reveal">
+            <span class="card__icon" aria-hidden="true"><svg><use href="#i-ventas"></use></svg></span>
+            <h3>Ventas</h3>
+            <p>Gestiona las operaciones comerciales y mantén el control de tus ventas.</p>
+          </article>
+
+          <article class="card reveal">
+            <span class="card__icon" aria-hidden="true"><svg><use href="#i-clientes"></use></svg></span>
+            <h3>Clientes</h3>
+            <p>Centraliza la información de tus clientes y su historial comercial.</p>
+          </article>
+
+          <article class="card reveal">
+            <span class="card__icon" aria-hidden="true"><svg><use href="#i-productos"></use></svg></span>
+            <h3>Productos</h3>
+            <p>Administra tu catálogo y la información asociada a tus productos.</p>
+          </article>
+
+          <article class="card reveal">
+            <span class="card__icon" aria-hidden="true"><svg><use href="#i-inventario"></use></svg></span>
+            <h3>Inventario</h3>
+            <p>Controla existencias y movimientos de productos.</p>
+          </article>
+
+          <article class="card reveal">
+            <span class="card__icon card__icon--grow" aria-hidden="true"><svg><use href="#i-bodegas"></use></svg></span>
+            <h3>Bodegas</h3>
+            <p>Organiza y administra el inventario según tus diferentes ubicaciones.</p>
+          </article>
+
+          <article class="card reveal">
+            <span class="card__icon card__icon--grow" aria-hidden="true"><svg><use href="#i-tesoreria"></use></svg></span>
+            <h3>Tesorería</h3>
+            <p>Controla cuentas por cobrar, pagos y movimientos asociados a tus operaciones.</p>
+          </article>
+
+          <article class="card reveal">
+            <span class="card__icon card__icon--grow" aria-hidden="true"><svg><use href="#i-dte"></use></svg></span>
+            <h3>DTE</h3>
+            <p>Gestiona documentos tributarios electrónicos como parte del flujo de tu negocio.</p>
+          </article>
+
+          <article class="card reveal">
+            <span class="card__icon card__icon--grow" aria-hidden="true"><svg><use href="#i-reportes"></use></svg></span>
+            <h3>Reportes</h3>
+            <p>Obtén información de tu operación para facilitar la toma de decisiones.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         LA OPERACION CONECTADA
+         ==================================================================== -->
+    <section class="section section--inverse">
+      <div class="container flowlayout">
+        <div class="flowlayout__copy reveal">
+          <span class="eyebrow">La operación conectada</span>
+          <h2>Una operación. Un flujo conectado.</h2>
+          <p class="flowlayout__note">
+            En NEXO, la información de tu empresa no vive en módulos aislados.
+            Las operaciones se relacionan para que puedas obtener una visión
+            completa del negocio.
+          </p>
+          <p class="flowlayout__hint">
+            Una sola venta recorre este camino sin que tengas que volver a
+            escribir los mismos datos en cada etapa.
+          </p>
+        </div>
+
+        <div class="flowchart reveal">
+          <ol class="flowchart__track">
+            <li class="fnode">
+              <span class="fnode__icon" aria-hidden="true"><svg><use href="#i-ventas"></use></svg></span>
+              <span class="fnode__body">
+                <span class="fnode__step">Paso 1</span>
+                <span class="fnode__name">Venta</span>
+                <span class="fnode__desc">Se registra la operación comercial con su cliente y sus productos.</span>
+              </span>
+            </li>
+            <li class="fnode">
+              <span class="fnode__icon" aria-hidden="true"><svg><use href="#i-dte"></use></svg></span>
+              <span class="fnode__body">
+                <span class="fnode__step">Paso 2</span>
+                <span class="fnode__name">Documento</span>
+                <span class="fnode__desc">Se genera el documento tributario asociado a esa venta.</span>
+              </span>
+            </li>
+            <li class="fnode">
+              <span class="fnode__icon" aria-hidden="true"><svg><use href="#i-inventario"></use></svg></span>
+              <span class="fnode__body">
+                <span class="fnode__step">Paso 3</span>
+                <span class="fnode__name">Inventario</span>
+                <span class="fnode__desc">El movimiento de productos se refleja en el stock de la bodega.</span>
+              </span>
+            </li>
+            <li class="fnode">
+              <span class="fnode__icon" aria-hidden="true"><svg><use href="#i-cobrar"></use></svg></span>
+              <span class="fnode__body">
+                <span class="fnode__step">Paso 4</span>
+                <span class="fnode__name">Cuenta por cobrar</span>
+                <span class="fnode__desc">Queda registrado el saldo pendiente del cliente.</span>
+              </span>
+            </li>
+            <li class="fnode">
+              <span class="fnode__icon" aria-hidden="true"><svg><use href="#i-tesoreria"></use></svg></span>
+              <span class="fnode__body">
+                <span class="fnode__step">Paso 5</span>
+                <span class="fnode__name">Pago</span>
+                <span class="fnode__desc">El pago se asocia a la operación y salda la cuenta.</span>
+              </span>
+            </li>
+            <li class="fnode fnode--last">
+              <span class="fnode__icon" aria-hidden="true"><svg><use href="#i-reportes"></use></svg></span>
+              <span class="fnode__body">
+                <span class="fnode__step">Paso 6</span>
+                <span class="fnode__name">Información</span>
+                <span class="fnode__desc">Todo se consolida en una visión única del negocio.</span>
+              </span>
+            </li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         BENEFICIOS
+         ==================================================================== -->
+    <section class="section">
+      <div class="container">
+        <div class="section-head section-head--center reveal">
+          <span class="eyebrow">Beneficios</span>
+          <h2>Más control. Menos complejidad.</h2>
+        </div>
+
+        <div class="benefits">
+          <article class="benefit reveal">
+            <h3>Centralización</h3>
+            <p>Toda la información de tu empresa en una sola plataforma.</p>
+          </article>
+          <article class="benefit reveal">
+            <h3>Visibilidad</h3>
+            <p>Conoce lo que ocurre en tu negocio desde un mismo lugar.</p>
+          </article>
+          <article class="benefit reveal">
+            <h3>Automatización</h3>
+            <p>Reduce tareas manuales y procesos repetitivos.</p>
+          </article>
+          <article class="benefit reveal">
+            <h3>Escalabilidad</h3>
+            <p>Una plataforma preparada para acompañar el crecimiento de tu empresa.</p>
+          </article>
+          <article class="benefit reveal">
+            <h3>Integración</h3>
+            <p>Conecta NEXO con otros sistemas y servicios mediante APIs e integraciones.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         TECNOLOGIA
+         ==================================================================== -->
+    <section class="section section--alt" id="tecnologia">
+      <div class="container tech">
+        <div class="reveal">
+          <span class="eyebrow">Tecnología</span>
+          <h2>Tecnología pensada para empresas.</h2>
+          <p class="lead" style="margin-top:var(--s-5)">
+            NEXO está construido sobre una arquitectura moderna, modular y
+            preparada para evolucionar.
+          </p>
+        </div>
+
+        <div class="tech__chips reveal">
+          <span class="chip"><svg aria-hidden="true"><use href="#i-modular"></use></svg> Arquitectura modular</span>
+          <span class="chip"><svg aria-hidden="true"><use href="#i-api"></use></svg> API</span>
+          <span class="chip"><svg aria-hidden="true"><use href="#i-integraciones"></use></svg> Integraciones</span>
+          <span class="chip"><svg aria-hidden="true"><use href="#i-automatizacion"></use></svg> Automatización</span>
+          <span class="chip"><svg aria-hidden="true"><use href="#i-seguridad"></use></svg> Seguridad</span>
+          <span class="chip"><svg aria-hidden="true"><use href="#i-escalabilidad"></use></svg> Escalabilidad</span>
+          <span class="chip"><svg aria-hidden="true"><use href="#i-nube"></use></svg> Servicios en la nube</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         PARA QUIEN ES NEXO
+         ==================================================================== -->
+    <section class="section">
+      <div class="container">
+        <div class="section-head section-head--center reveal">
+          <span class="eyebrow">Para quién es NEXO</span>
+          <h2>Diseñado para empresas que quieren crecer.</h2>
+        </div>
+
+        <div class="grid grid--3">
+          <article class="profile reveal">
+            <span class="profile__step">01</span>
+            <h3>Pequeñas empresas</h3>
+            <p>Centraliza la operación y evita depender de múltiples herramientas.</p>
+          </article>
+          <article class="profile reveal">
+            <span class="profile__step">02</span>
+            <h3>Empresas en crecimiento</h3>
+            <p>Obtén mayor control sobre ventas, inventario, clientes y tesorería.</p>
+          </article>
+          <article class="profile reveal">
+            <span class="profile__step">03</span>
+            <h3>Empresas consolidadas</h3>
+            <p>Centraliza procesos y facilita la integración con otros sistemas.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         EVOLUCION
+         ==================================================================== -->
+    <section class="section section--alt">
+      <div class="container">
+        <div class="section-head section-head--center reveal">
+          <span class="eyebrow">Evolución de NEXO</span>
+          <h2>Esto recién comienza.</h2>
+          <p>NEXO está diseñado para crecer junto a las necesidades de las empresas.</p>
+        </div>
+
+        <ol class="timeline reveal">
+          <li class="tl-item"><span class="tl-item__name">Ventas</span></li>
+          <li class="tl-item"><span class="tl-item__name">Inventario</span></li>
+          <li class="tl-item"><span class="tl-item__name">Tesorería</span></li>
+          <li class="tl-item"><span class="tl-item__name">DTE</span></li>
+          <li class="tl-item tl-item--soon">
+            <span class="tl-item__name">Integraciones</span>
+            <span class="badge badge--soft">En evolución</span>
+          </li>
+          <li class="tl-item tl-item--soon">
+            <span class="tl-item__name">Automatización</span>
+            <span class="badge badge--soft">En evolución</span>
+          </li>
+          <li class="tl-item tl-item--soon">
+            <span class="tl-item__name">Nuevas capacidades</span>
+            <span class="badge badge--grow">Próximamente</span>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         PREGUNTAS FRECUENTES
+
+         Origen de los datos: data/faq.json  <- editar ahi.
+
+         El bloque de <details> que sigue es un RESPALDO generado desde ese
+         JSON con `node tools/sync-faq.js`. Sirve para dos casos:
+           1. index.html abierto con doble clic (file://), donde el navegador
+              bloquea la lectura del JSON;
+           2. los buscadores, que ven el texto en el HTML sin ejecutar nada.
+         Servido desde un hosting, main.js lee el JSON y reemplaza el respaldo.
+
+         De todas las preguntas se muestran al azar CONTACT.faqVisibles.
+         ==================================================================== -->
+    <section class="section" id="preguntas">
+      <div class="container container--narrow">
+        <div class="section-head section-head--center reveal">
+          <span class="eyebrow">Preguntas frecuentes</span>
+          <h2>Lo que suelen preguntarnos antes de decidir.</h2>
+          <p>Dudas reales sobre qué cambia en tu operación al centralizarla en NEXO.</p>
+        </div>
+
+        <div class="faq reveal" data-faq>
+          <!-- faq:inicio -->
+            <details class="faq-item">
+              <summary class="faq-item__q">
+                <span class="faq-item__head">
+                  <span class="faq-item__cat">Decisión</span>
+                  <span class="faq-item__title">¿Por qué cambiar si mis herramientas actuales ya funcionan?</span>
+                </span>
+                <span class="faq-item__mark" aria-hidden="true"></span>
+              </summary>
+              <div class="faq-item__a"><p>Cada herramienta por separado suele funcionar bien. El costo aparece en los bordes: el mismo dato escrito tres veces, un stock que no calza con lo vendido, una cobranza que vive en una planilla aparte. NEXO no reemplaza herramientas que funcionan, reemplaza el trabajo de mantenerlas coordinadas a mano.</p></div>
+            </details>
+            <details class="faq-item">
+              <summary class="faq-item__q">
+                <span class="faq-item__head">
+                  <span class="faq-item__cat">Decisión</span>
+                  <span class="faq-item__title">¿Qué gano concretamente al centralizar la operación?</span>
+                </span>
+                <span class="faq-item__mark" aria-hidden="true"></span>
+              </summary>
+              <div class="faq-item__a"><p>Que una venta deje de ser cinco tareas. Al registrarla queda el documento emitido, el movimiento de inventario reflejado y la cuenta por cobrar abierta, sin volver a digitar nada. El resultado es menos tiempo de traspaso y menos diferencias entre áreas.</p></div>
+            </details>
+            <details class="faq-item">
+              <summary class="faq-item__q">
+                <span class="faq-item__head">
+                  <span class="faq-item__cat">Operación</span>
+                  <span class="faq-item__title">¿Qué cambia en el día a día de mi equipo?</span>
+                </span>
+                <span class="faq-item__mark" aria-hidden="true"></span>
+              </summary>
+              <div class="faq-item__a"><p>Dejan de perseguir información entre sistemas. Quien vende, quien despacha y quien cobra miran los mismos datos, así que las consultas internas del tipo “¿esto ya se pagó?” o “¿queda stock?” se responden solas.</p></div>
+            </details>
+            <details class="faq-item">
+              <summary class="faq-item__q">
+                <span class="faq-item__head">
+                  <span class="faq-item__cat">Decisión</span>
+                  <span class="faq-item__title">Mi empresa es pequeña, ¿NEXO no me queda grande?</span>
+                </span>
+                <span class="faq-item__mark" aria-hidden="true"></span>
+              </summary>
+              <div class="faq-item__a"><p>NEXO está pensado también para empresas pequeñas: el valor de centralizar aparece antes de lo que se cree, justo cuando la operación deja de caber en la cabeza de una persona. Se parte por los módulos que necesitas y el resto queda disponible cuando haga falta.</p></div>
+            </details>
+            <details class="faq-item">
+              <summary class="faq-item__q">
+                <span class="faq-item__head">
+                  <span class="faq-item__cat">Crecimiento</span>
+                  <span class="faq-item__title">¿Qué pasa cuando mi empresa crezca?</span>
+                </span>
+                <span class="faq-item__mark" aria-hidden="true"></span>
+              </summary>
+              <div class="faq-item__a"><p>La plataforma es modular y está construida sobre una arquitectura preparada para evolucionar. Sumar bodegas, más volumen de documentos o nuevas áreas no obliga a cambiar de sistema ni a migrar tu historial.</p></div>
+            </details>
+            <details class="faq-item">
+              <summary class="faq-item__q">
+                <span class="faq-item__head">
+                  <span class="faq-item__cat">Tecnología</span>
+                  <span class="faq-item__title">¿Puedo seguir usando los sistemas que ya tengo?</span>
+                </span>
+                <span class="faq-item__mark" aria-hidden="true"></span>
+              </summary>
+              <div class="faq-item__a"><p>Sí. NEXO cuenta con APIs e integraciones para conectarse con otros sistemas y servicios, de modo que puedes centralizar la operación sin desarmar lo que ya te funciona.</p></div>
+            </details>
+            <details class="faq-item">
+              <summary class="faq-item__q">
+                <span class="faq-item__head">
+                  <span class="faq-item__cat">Operación</span>
+                  <span class="faq-item__title">¿Qué resultado puedo esperar en el control de inventario?</span>
+                </span>
+                <span class="faq-item__mark" aria-hidden="true"></span>
+              </summary>
+              <div class="faq-item__a"><p>Que el stock refleje lo que realmente pasó. Los movimientos de productos quedan asociados a las operaciones que los originaron y se administran por bodega, así que las diferencias dejan de descubrirse recién en el conteo.</p></div>
+            </details>
+            <details class="faq-item">
+              <summary class="faq-item__q">
+                <span class="faq-item__head">
+                  <span class="faq-item__cat">Operación</span>
+                  <span class="faq-item__title">¿Cómo me ayuda con la cobranza?</span>
+                </span>
+                <span class="faq-item__mark" aria-hidden="true"></span>
+              </summary>
+              <div class="faq-item__a"><p>Las cuentas por cobrar nacen de la venta y los pagos se asocian a la operación que los originó. Ves qué está pendiente y qué está saldado sin reconstruirlo desde cartolas y planillas.</p></div>
+            </details>
+            <details class="faq-item">
+              <summary class="faq-item__q">
+                <span class="faq-item__head">
+                  <span class="faq-item__cat">Operación</span>
+                  <span class="faq-item__title">¿NEXO emite documentos tributarios electrónicos?</span>
+                </span>
+                <span class="faq-item__mark" aria-hidden="true"></span>
+              </summary>
+              <div class="faq-item__a"><p>Sí. La gestión de DTE es parte del flujo del negocio, no un proceso aparte: el documento se genera dentro de la misma operación de venta que ya registraste.</p></div>
+            </details>
+            <details class="faq-item">
+              <summary class="faq-item__q">
+                <span class="faq-item__head">
+                  <span class="faq-item__cat">Operación</span>
+                  <span class="faq-item__title">¿Qué información voy a ver que hoy no veo?</span>
+                </span>
+                <span class="faq-item__mark" aria-hidden="true"></span>
+              </summary>
+              <div class="faq-item__a"><p>La operación completa en un solo lugar: ventas, clientes y su historial, existencias, cuentas por cobrar y pagos. Los reportes se arman sobre esa base para apoyar decisiones, en vez de sobre lo que cada área alcanzó a consolidar.</p></div>
+            </details>
+            <details class="faq-item">
+              <summary class="faq-item__q">
+                <span class="faq-item__head">
+                  <span class="faq-item__cat">Empezar</span>
+                  <span class="faq-item__title">¿Tengo que dejar Excel de un día para otro?</span>
+                </span>
+                <span class="faq-item__mark" aria-hidden="true"></span>
+              </summary>
+              <div class="faq-item__a"><p>No. La plataforma es modular, así que puedes empezar por el área donde más duele el desorden y avanzar desde ahí. Nadie necesita mover toda la empresa el primer día.</p></div>
+            </details>
+            <details class="faq-item">
+              <summary class="faq-item__q">
+                <span class="faq-item__head">
+                  <span class="faq-item__cat">Operación</span>
+                  <span class="faq-item__title">¿Qué pasa con la información de mis clientes?</span>
+                </span>
+                <span class="faq-item__mark" aria-hidden="true"></span>
+              </summary>
+              <div class="faq-item__a"><p>Queda centralizada junto a su historial comercial. Cuando alguien pregunta por un cliente, la respuesta está completa en un solo lugar y no repartida entre quien lo atendió, quien le facturó y quien le cobró.</p></div>
+            </details>
+            <details class="faq-item">
+              <summary class="faq-item__q">
+                <span class="faq-item__head">
+                  <span class="faq-item__cat">Crecimiento</span>
+                  <span class="faq-item__title">¿NEXO está terminado o va a seguir cambiando?</span>
+                </span>
+                <span class="faq-item__mark" aria-hidden="true"></span>
+              </summary>
+              <div class="faq-item__a"><p>Sigue evolucionando. Ventas, inventario, tesorería y DTE están disponibles hoy; integraciones y automatización están en evolución. Lo que se construya después llega a la misma plataforma, sin migraciones.</p></div>
+            </details>
+            <details class="faq-item">
+              <summary class="faq-item__q">
+                <span class="faq-item__head">
+                  <span class="faq-item__cat">Empezar</span>
+                  <span class="faq-item__title">¿Cómo empiezo?</span>
+                </span>
+                <span class="faq-item__mark" aria-hidden="true"></span>
+              </summary>
+              <div class="faq-item__a"><p>Con una demostración. Vemos tu operación concreta, qué áreas conviene centralizar primero y cómo se vería tu flujo dentro de NEXO.</p></div>
+            </details>
+          <!-- faq:fin -->
+        </div>
+
+        <div class="faq__foot">
+          <button class="btn btn--secondary" type="button" data-faq-shuffle hidden>
+            Ver otras preguntas
+          </button>
+          <p class="faq__cta">
+            ¿Tienes otra pregunta?
+            <a data-wa="info" href="https://wa.me/56900000000">Escríbenos por WhatsApp</a>.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         SAAVIA
+         ==================================================================== -->
+    <section class="section section--alt" id="nosotros">
+      <div class="container saavia">
+        <div class="reveal">
+          <span class="eyebrow">La empresa</span>
+          <h2>Detrás de NEXO está SAAVIA.</h2>
+          <p class="lead" style="margin-top:var(--s-5)">
+            SAAVIA es una empresa de tecnología enfocada en desarrollar soluciones
+            digitales que ayuden a las empresas a simplificar sus procesos,
+            conectar su información y crecer.
+          </p>
+        </div>
+
+        <div class="brand-stack reveal">
+          <div class="brand-stack__row">
+            <span class="brand-stack__name">SAAVIA</span>
+            <span class="brand-stack__tag">Tecnología que hace avanzar tu empresa.</span>
+          </div>
+
+          <div class="brand-stack__divider" aria-hidden="true"></div>
+
+          <div class="brand-stack__row">
+            <span class="brand-stack__name brand-stack__name--product">NEXO</span>
+            <span class="brand-stack__tag">Plataforma de gestión empresarial.</span>
+          </div>
+
+          <!-- Aqui va el material de marca definitivo. -->
+          <div class="img-placeholder">
+            <span>
+              Logo horizontal SAAVIA: isotipo abstracto de la letra “S”
+              (líneas conectadas / nodos, sin engranajes ni monedas) junto al
+              wordmark SAAVIA en mayúsculas con espaciado amplio. SVG con fondo
+              transparente. Se necesitan también la variante para fondo oscuro,
+              el isotipo suelto y el lockup NEXO / by SAAVIA.
+              <code>assets/img/logo-saavia-horizontal.svg</code>
+            </span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         CTA FINAL
+         ==================================================================== -->
+    <section class="cta">
+      <div class="container">
+        <h2>Lleva la gestión de tu empresa al siguiente nivel.</h2>
+        <p>
+          Descubre cómo NEXO puede ayudarte a centralizar y simplificar la
+          operación de tu negocio.
+        </p>
+        <div class="cta__actions">
+          <a class="btn btn--on-gradient btn--lg" data-wa="demo" href="https://wa.me/56900000000">
+            <svg class="btn__icon" aria-hidden="true"><use href="#i-whatsapp"></use></svg>
+            Solicitar demostración
+          </a>
+          <a class="btn btn--ghost-light btn--lg" href="#funcionalidades">Conocer NEXO</a>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ======================================================================
+       FOOTER
+       ====================================================================== -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__top">
+        <div class="footer__brands">
+          <!-- IMAGEN PENDIENTE: assets/img/logo-saavia-horizontal-dark.svg
+               Version del logo horizontal para fondo oscuro (navy).
+               Reemplazar el <span> por:
+               <img src="assets/img/logo-saavia-horizontal-dark.svg" alt="SAAVIA" height="28"> -->
+          <div>
+            <span class="footer__brand-name">SAAVIA</span>
+            <p class="footer__brand-tag">Tecnología que hace avanzar tu empresa.</p>
+          </div>
+          <div>
+            <span class="footer__brand-name">NEXO</span>
+            <p class="footer__brand-tag">Plataforma de gestión empresarial.</p>
+          </div>
+        </div>
+
+        <nav class="footer__nav" aria-label="Enlaces del pie de página">
+          <div class="footer__col">
+            <h3>Plataforma</h3>
+            <ul>
+              <li><a href="#inicio">Inicio</a></li>
+              <li><a href="#nexo">NEXO</a></li>
+              <li><a href="#funcionalidades">Funcionalidades</a></li>
+              <li><a href="#tecnologia">Tecnología</a></li>
+              <li><a href="#preguntas">Preguntas frecuentes</a></li>
+            </ul>
+          </div>
+          <div class="footer__col">
+            <h3>Empresa</h3>
+            <ul>
+              <li><a href="#nosotros">Nosotros</a></li>
+              <li><a data-wa="info" href="https://wa.me/56900000000">Contacto</a></li>
+            </ul>
+          </div>
+          <div class="footer__col">
+            <h3>Legal</h3>
+            <ul>
+              <!-- PENDIENTE: paginas de Privacidad y Terminos. -->
+              <li><a href="#">Privacidad</a></li>
+              <li><a href="#">Términos</a></li>
+            </ul>
+          </div>
+        </nav>
+      </div>
+
+      <div class="footer__bottom">
+        <span>&copy; <span data-year>2026</span> SAAVIA. Todos los derechos reservados.</span>
+        <span>NEXO by SAAVIA</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/config.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

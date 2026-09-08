@@ -1,0 +1,211 @@
+/* ==========================================================================
+   SAAVIA NEXO — Design tokens
+   Paleta: Navy + Esmeralda.
+   Todos los colores se definen primero en :root (modo claro) y solo se
+   redefinen en los bloques de tema. Ningun color vive unicamente dentro de
+   un @media o de un [data-theme].
+   ========================================================================== */
+
+:root {
+  /* --- Marca ------------------------------------------------------------ */
+  --navy-900: #0a1f44;
+  --navy-800: #0f2b54;
+  --navy-700: #143a6b;
+
+  --blue-700: #1558b8;
+  --blue-600: #1b6fe0;
+  --blue-500: #3b86ea;
+  --blue-100: #d8e7fb;
+  --blue-50:  #eef5fe;
+
+  --green-600: #0d9668;
+  --green-500: #10b981;
+  --green-400: #34d399;
+  --green-100: #d1fae5;
+  --green-50:  #ecfdf5;
+
+  /* --- Neutrales -------------------------------------------------------- */
+  --white:     #ffffff;
+  --slate-50:  #f8fafc;
+  --slate-100: #f1f5f9;
+  --slate-200: #e2e8f0;
+  --slate-300: #cbd5e1;
+  --slate-400: #94a3b8;
+  --slate-500: #64748b;
+  --slate-600: #475569;
+  --slate-700: #334155;
+  --slate-900: #0f172a;
+
+  /* --- Roles semanticos (modo claro) ------------------------------------ */
+  --bg:              var(--white);
+  --bg-alt:          var(--slate-50);
+  --bg-inverse:      var(--navy-900);
+  --surface:         var(--white);
+  --surface-raised:  var(--white);
+  --surface-sunken:  var(--slate-50);
+  --surface-inverse: var(--navy-800);
+
+  --text:            var(--slate-900);
+  --text-muted:      var(--slate-500);
+  --text-subtle:     var(--slate-400);
+  --text-inverse:    var(--white);
+  --text-inverse-muted: #b6c6de;
+
+  --border:          var(--slate-200);
+  --border-strong:   var(--slate-300);
+  --border-inverse:  rgba(255, 255, 255, 0.14);
+
+  --accent:          var(--blue-600);
+  --accent-hover:    var(--blue-700);
+  --accent-soft:     var(--blue-50);
+  --accent-contrast: var(--white);
+
+  --grow:            var(--green-500);
+  --grow-hover:      var(--green-600);
+  --grow-soft:       var(--green-50);
+
+  --focus-ring:      var(--blue-600);
+
+  /* --- Gradiente de marca ----------------------------------------------- */
+  /* Uso restringido: hero, CTA final y acentos tipograficos puntuales. */
+  --gradient-brand: linear-gradient(135deg, #1b6fe0 0%, #10b981 100%);
+  --gradient-text:  linear-gradient(120deg, #3b86ea 0%, #34d399 100%);
+
+  /* --- Sombras (muy sutiles, sin neumorphism) --------------------------- */
+  --shadow-xs: 0 1px 2px rgba(10, 31, 68, 0.06);
+  --shadow-sm: 0 2px 6px rgba(10, 31, 68, 0.06);
+  --shadow-md: 0 8px 24px -12px rgba(10, 31, 68, 0.18);
+  --shadow-lg: 0 24px 60px -24px rgba(10, 31, 68, 0.28);
+  --shadow-nav: 0 1px 0 var(--border), 0 6px 24px -18px rgba(10, 31, 68, 0.4);
+
+  /* --- Tipografia ------------------------------------------------------- */
+  --font-sans: "Plus Jakarta Sans", "Inter", system-ui, -apple-system,
+    "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+
+  --fs-h1:   clamp(2.5rem, 5vw, 4rem);
+  --fs-h2:   clamp(2rem, 3.5vw, 3rem);
+  --fs-h3:   1.25rem;
+  --fs-lead: clamp(1.0625rem, 1.4vw, 1.25rem);
+  --fs-body: 1.0625rem;
+  --fs-sm:   0.9375rem;
+  --fs-xs:   0.8125rem;
+
+  --lh-tight: 1.12;
+  --lh-snug:  1.3;
+  --lh-body:  1.7;
+
+  --ls-tight:  -0.02em;
+  --ls-wide:   0.08em;
+  --ls-wordmark: 0.18em;
+
+  /* --- Radios ----------------------------------------------------------- */
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 16px;
+  --r-xl: 24px;
+  --r-pill: 999px;
+
+  /* --- Espaciado (escala de 4px) ---------------------------------------- */
+  --s-1: 0.25rem;
+  --s-2: 0.5rem;
+  --s-3: 0.75rem;
+  --s-4: 1rem;
+  --s-5: 1.25rem;
+  --s-6: 1.5rem;
+  --s-8: 2rem;
+  --s-10: 2.5rem;
+  --s-12: 3rem;
+  --s-16: 4rem;
+  --s-20: 5rem;
+  --s-24: 6rem;
+
+  --section-y: clamp(4rem, 9vw, 7.5rem);
+  --container: 1200px;
+  --container-narrow: 820px;
+  --gutter: clamp(1.25rem, 4vw, 2.5rem);
+
+  --nav-h: 72px;
+
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur: 220ms;
+}
+
+/* --- Modo oscuro: preferencia del sistema, sin eleccion explicita -------- */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg:              #071630;
+    --bg-alt:          #0a1f44;
+    --bg-inverse:      #050f22;
+    --surface:         #0f2b54;
+    --surface-raised:  #143a6b;
+    --surface-sunken:  #0a1f44;
+    --surface-inverse: #050f22;
+
+    --text:            #e2e8f0;
+    --text-muted:      #9db0cc;
+    --text-subtle:     #7288a8;
+    --text-inverse:    #ffffff;
+    --text-inverse-muted: #b6c6de;
+
+    --border:          rgba(255, 255, 255, 0.12);
+    --border-strong:   rgba(255, 255, 255, 0.22);
+    --border-inverse:  rgba(255, 255, 255, 0.14);
+
+    --accent:          #5b9cf0;
+    --accent-hover:    #7db2f5;
+    --accent-soft:     rgba(91, 156, 240, 0.14);
+    --accent-contrast: #041022;
+
+    --grow:            #34d399;
+    --grow-hover:      #5ee0b0;
+    --grow-soft:       rgba(52, 211, 153, 0.14);
+
+    --focus-ring:      #7db2f5;
+
+    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 8px 24px -12px rgba(0, 0, 0, 0.6);
+    --shadow-lg: 0 24px 60px -24px rgba(0, 0, 0, 0.7);
+    --shadow-nav: 0 1px 0 rgba(255, 255, 255, 0.08),
+      0 6px 24px -18px rgba(0, 0, 0, 0.8);
+  }
+}
+
+/* --- Modo oscuro: eleccion explicita del usuario ------------------------- */
+:root[data-theme="dark"] {
+  --bg:              #071630;
+  --bg-alt:          #0a1f44;
+  --bg-inverse:      #050f22;
+  --surface:         #0f2b54;
+  --surface-raised:  #143a6b;
+  --surface-sunken:  #0a1f44;
+  --surface-inverse: #050f22;
+
+  --text:            #e2e8f0;
+  --text-muted:      #9db0cc;
+  --text-subtle:     #7288a8;
+  --text-inverse:    #ffffff;
+  --text-inverse-muted: #b6c6de;
+
+  --border:          rgba(255, 255, 255, 0.12);
+  --border-strong:   rgba(255, 255, 255, 0.22);
+  --border-inverse:  rgba(255, 255, 255, 0.14);
+
+  --accent:          #5b9cf0;
+  --accent-hover:    #7db2f5;
+  --accent-soft:     rgba(91, 156, 240, 0.14);
+  --accent-contrast: #041022;
+
+  --grow:            #34d399;
+  --grow-hover:      #5ee0b0;
+  --grow-soft:       rgba(52, 211, 153, 0.14);
+
+  --focus-ring:      #7db2f5;
+
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 8px 24px -12px rgba(0, 0, 0, 0.6);
+  --shadow-lg: 0 24px 60px -24px rgba(0, 0, 0, 0.7);
+  --shadow-nav: 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 6px 24px -18px rgba(0, 0, 0, 0.8);
+}

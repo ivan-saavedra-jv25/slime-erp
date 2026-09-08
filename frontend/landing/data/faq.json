@@ -1,0 +1,72 @@
+[
+  {
+    "categoria": "Decisión",
+    "q": "¿Por qué cambiar si mis herramientas actuales ya funcionan?",
+    "a": "Cada herramienta por separado suele funcionar bien. El costo aparece en los bordes: el mismo dato escrito tres veces, un stock que no calza con lo vendido, una cobranza que vive en una planilla aparte. NEXO no reemplaza herramientas que funcionan, reemplaza el trabajo de mantenerlas coordinadas a mano."
+  },
+  {
+    "categoria": "Decisión",
+    "q": "¿Qué gano concretamente al centralizar la operación?",
+    "a": "Que una venta deje de ser cinco tareas. Al registrarla queda el documento emitido, el movimiento de inventario reflejado y la cuenta por cobrar abierta, sin volver a digitar nada. El resultado es menos tiempo de traspaso y menos diferencias entre áreas."
+  },
+  {
+    "categoria": "Operación",
+    "q": "¿Qué cambia en el día a día de mi equipo?",
+    "a": "Dejan de perseguir información entre sistemas. Quien vende, quien despacha y quien cobra miran los mismos datos, así que las consultas internas del tipo “¿esto ya se pagó?” o “¿queda stock?” se responden solas."
+  },
+  {
+    "categoria": "Decisión",
+    "q": "Mi empresa es pequeña, ¿NEXO no me queda grande?",
+    "a": "NEXO está pensado también para empresas pequeñas: el valor de centralizar aparece antes de lo que se cree, justo cuando la operación deja de caber en la cabeza de una persona. Se parte por los módulos que necesitas y el resto queda disponible cuando haga falta."
+  },
+  {
+    "categoria": "Crecimiento",
+    "q": "¿Qué pasa cuando mi empresa crezca?",
+    "a": "La plataforma es modular y está construida sobre una arquitectura preparada para evolucionar. Sumar bodegas, más volumen de documentos o nuevas áreas no obliga a cambiar de sistema ni a migrar tu historial."
+  },
+  {
+    "categoria": "Tecnología",
+    "q": "¿Puedo seguir usando los sistemas que ya tengo?",
+    "a": "Sí. NEXO cuenta con APIs e integraciones para conectarse con otros sistemas y servicios, de modo que puedes centralizar la operación sin desarmar lo que ya te funciona."
+  },
+  {
+    "categoria": "Operación",
+    "q": "¿Qué resultado puedo esperar en el control de inventario?",
+    "a": "Que el stock refleje lo que realmente pasó. Los movimientos de productos quedan asociados a las operaciones que los originaron y se administran por bodega, así que las diferencias dejan de descubrirse recién en el conteo."
+  },
+  {
+    "categoria": "Operación",
+    "q": "¿Cómo me ayuda con la cobranza?",
+    "a": "Las cuentas por cobrar nacen de la venta y los pagos se asocian a la operación que los originó. Ves qué está pendiente y qué está saldado sin reconstruirlo desde cartolas y planillas."
+  },
+  {
+    "categoria": "Operación",
+    "q": "¿NEXO emite documentos tributarios electrónicos?",
+    "a": "Sí. La gestión de DTE es parte del flujo del negocio, no un proceso aparte: el documento se genera dentro de la misma operación de venta que ya registraste."
+  },
+  {
+    "categoria": "Operación",
+    "q": "¿Qué información voy a ver que hoy no veo?",
+    "a": "La operación completa en un solo lugar: ventas, clientes y su historial, existencias, cuentas por cobrar y pagos. Los reportes se arman sobre esa base para apoyar decisiones, en vez de sobre lo que cada área alcanzó a consolidar."
+  },
+  {
+    "categoria": "Empezar",
+    "q": "¿Tengo que dejar Excel de un día para otro?",
+    "a": "No. La plataforma es modular, así que puedes empezar por el área donde más duele el desorden y avanzar desde ahí. Nadie necesita mover toda la empresa el primer día."
+  },
+  {
+    "categoria": "Operación",
+    "q": "¿Qué pasa con la información de mis clientes?",
+    "a": "Queda centralizada junto a su historial comercial. Cuando alguien pregunta por un cliente, la respuesta está completa en un solo lugar y no repartida entre quien lo atendió, quien le facturó y quien le cobró."
+  },
+  {
+    "categoria": "Crecimiento",
+    "q": "¿NEXO está terminado o va a seguir cambiando?",
+    "a": "Sigue evolucionando. Ventas, inventario, tesorería y DTE están disponibles hoy; integraciones y automatización están en evolución. Lo que se construya después llega a la misma plataforma, sin migraciones."
+  },
+  {
+    "categoria": "Empezar",
+    "q": "¿Cómo empiezo?",
+    "a": "Con una demostración. Vemos tu operación concreta, qué áreas conviene centralizar primero y cómo se vería tu flujo dentro de NEXO."
+  }
+]
