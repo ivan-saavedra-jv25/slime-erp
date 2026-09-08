@@ -1,0 +1,63 @@
+<div class="table-scroll">
+  <table class="mov-table">
+    <thead>
+      <tr>
+        <th scope="col">Fecha</th>
+        <th scope="col">Tipo</th>
+        <th scope="col">Concepto</th>
+        <th scope="col" class="num">Monto</th>
+        <th scope="col">Responsable</th>
+        <th scope="col">Observación</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (m of movimientos(); track m.id) {
+        <tr>
+          <td>{{ m.fecha | date: 'dd/MM/yyyy HH:mm' }}</td>
+          <td>
+            <span class="tag" [class.tag--success]="m.tipo === Tipo.ENTRADA" [class.tag--error]="m.tipo === Tipo.SALIDA">
+              {{ m.tipo === Tipo.ENTRADA ? 'Entrada' : 'Salida' }}
+            </span>
+          </td>
+          <td>{{ m.concepto }}</td>
+          <td class="num" [class.pos]="m.tipo === Tipo.ENTRADA" [class.neg]="m.tipo === Tipo.SALIDA">
+            {{ m.tipo === Tipo.ENTRADA ? '+' : '-' }}{{ m.monto | clp }}
+          </td>
+          <td>{{ nombreUsuario(m.responsableId) }}</td>
+          <td class="muted">{{ m.observacion || '—' }}</td>
+        </tr>
+      } @empty {
+        <tr>
+          <td class="table-empty" colspan="6">{{ emptyMessage() }}</td>
+        </tr>
+      }
+    </tbody>
+
+    @if (mostrarTotales()) {
+      <tfoot class="totals">
+        <tr>
+          <th scope="row" colspan="3">Total entradas</th>
+          <td class="num pos">+{{ totalEntradas() | clp }}</td>
+          <td colspan="2"></td>
+        </tr>
+        <tr>
+          <th scope="row" colspan="3">Total salidas</th>
+          <td class="num neg">-{{ totalSalidas() | clp }}</td>
+          <td colspan="2"></td>
+        </tr>
+        @if (saldoInicial() !== null) {
+          <tr>
+            <th scope="row" colspan="3">Saldo inicial</th>
+            <td class="num">{{ saldoInicial() | clp }}</td>
+            <td colspan="2"></td>
+          </tr>
+          <tr class="totals-final">
+            <th scope="row" colspan="3">Saldo esperado</th>
+            <td class="num">{{ saldoEsperado() | clp }}</td>
+            <td colspan="2"></td>
+          </tr>
+        }
+      </tfoot>
+    }
+  </table>
+</div>

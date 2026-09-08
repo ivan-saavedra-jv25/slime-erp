@@ -1,0 +1,33 @@
+<div class="page-header">
+  <div>
+    <h1>Salidas</h1>
+    <p class="page-subtitle">Registra egresos de efectivo. Una salida nunca puede superar el saldo disponible.</p>
+  </div>
+</div>
+
+<section class="highlights">
+  <div class="highlight highlight--out">
+    <div class="highlight-label">Total salidas de la sesión</div>
+    <div class="highlight-value">-{{ totalSalidas() | clp }}</div>
+  </div>
+  <div class="highlight highlight--total">
+    <div class="highlight-label">Saldo disponible</div>
+    <div class="highlight-value">{{ saldoEsperado() | clp }}</div>
+  </div>
+</section>
+
+<mat-card class="form-panel">
+  <h2>Nueva salida</h2>
+  <app-movimiento-form [tipo]="tipo" [conceptos]="conceptos" />
+</mat-card>
+
+<mat-card class="form-panel">
+  <div class="panel-title">
+    <h2>Salidas registradas</h2>
+    <span class="panel-hint">{{ salidas().length }} en esta sesión</span>
+  </div>
+  <app-movimientos-tabla
+    [movimientos]="salidas()"
+    emptyMessage="Aún no registras salidas en esta sesión."
+  />
+</mat-card>

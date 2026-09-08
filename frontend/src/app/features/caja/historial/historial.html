@@ -1,0 +1,159 @@
+<div class="page-header">
+  <div>
+    <h1>Historial</h1>
+    <p class="page-subtitle">Todas las sesiones de caja registradas, con su apertura, movimientos y cierre.</p>
+  </div>
+</div>
+
+<mat-card class="form-panel">
+  <div class="panel-title">
+    <h2>Sesiones</h2>
+    <span class="panel-hint">{{ sesiones().length }} sesión(es)</span>
+  </div>
+
+  <div class="table-scroll">
+    <table class="sesiones-table">
+      <thead>
+        <tr>
+          <th scope="col">Fecha</th>
+          <th scope="col">Caja</th>
+          <th scope="col">Responsable</th>
+          <th scope="col" class="num">Apertura</th>
+          <th scope="col" class="num">Cierre</th>
+          <th scope="col" class="num">Esperado</th>
+          <th scope="col" class="num">Contado</th>
+          <th scope="col" class="num">Diferencia</th>
+          <th scope="col">Estado</th>
+          <th scope="col"></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (s of sesiones(); track s.id) {
+          <tr [class.fila-activa]="s.id === seleccionadaId()">
+            <td>{{ s.fechaApertura | date: 'dd/MM/yyyy' }}</td>
+            <th scope="row">{{ cajaNombre(s.cajaId) }}</th>
+            <td>{{ nombreUsuario(s.responsableId) }}</td>
+            <td class="num">{{ s.fechaApertura | date: 'HH:mm' }}</td>
+            <td class="num">
+              {{ s.fechaCierre ? (s.fechaCierre | date: 'HH:mm') : '—' }}
+            </td>
+            <td class="num">{{ s.saldoEsperado | clp }}</td>
+            <td class="num">{{ s.saldoContado === null ? '—' : (s.saldoContado | clp) }}</td>
+            <td
+              class="num"
+              [class.pos]="(s.diferencia ?? 0) > 0"
+              [class.neg]="(s.diferencia ?? 0) < 0"
+            >
+              {{ s.diferencia === null ? '—' : (s.diferencia | clp) }}
+            </td>
+            <td>
+              <span class="tag" [class.tag--success]="s.estado === Estado.ABIERTA" [class.tag--error]="s.estado === Estado.CERRADA">
+                {{ s.estado }}
+              </span>
+            </td>
+            <td class="num">
+              <button type="button" mat-button (click)="toggleDetalle(s.id)">
+                {{ s.id === seleccionadaId() ? 'Ocultar' : 'Detalle' }}
+              </button>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td class="table-empty" colspan="10">Todavía no hay sesiones registradas.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</mat-card>
+
+@if (seleccionada(); as s) {
+  <mat-card class="form-panel detalle">
+    <div class="panel-title">
+      <h2>Detalle de la sesión</h2>
+      <span class="tag" [class.tag--success]="s.estado === Estado.ABIERTA" [class.tag--error]="s.estado === Estado.CERRADA">
+        {{ s.estado }}
+      </span>
+    </div>
+
+    <div class="detalle-bloque">
+      <h3 class="form-section-title">Apertura</h3>
+      <p class="detalle-meta">
+        {{ s.fechaApertura | date: 'dd/MM/yyyy HH:mm' }} · {{ nombreUsuario(s.responsableId) }}
+      </p>
+      <app-cash-denomination-counter
+        [value]="s.conteoInicial.items"
+        [readonly]="true"
+        totalLabel="TOTAL APERTURA"
+      />
+    </div>
+
+    <div class="detalle-bloque">
+      <h3 class="form-section-title">Movimientos</h3>
+      <app-movimientos-tabla
+        [movimientos]="movimientosDetalle()"
+        [mostrarTotales]="true"
+        [saldoInicial]="s.saldoInicial"
+        emptyMessage="La sesión no registró movimientos."
+      />
+    </div>
+
+    @if (s.conteoFinal; as final) {
+      <div class="detalle-bloque">
+        <h3 class="form-section-title">Cierre</h3>
+        <p class="detalle-meta">{{ s.fechaCierre | date: 'dd/MM/yyyy HH:mm' }}</p>
+        <app-cash-denomination-counter
+          [value]="final.items"
+          [readonly]="true"
+          totalLabel="TOTAL CIERRE"
+        />
+      </div>
+
+      <div class="detalle-bloque">
+        <h3 class="form-section-title">Resultado</h3>
+        <app-diferencia-panel
+          [saldoEsperado]="s.saldoEsperado"
+          [saldoContado]="s.saldoContado ?? 0"
+        />
+        @if (s.observacionCierre) {
+          <p class="notice notice--info detalle-observacion">
+            <strong>Observación de cierre</strong>
+            <span>{{ s.observacionCierre }}</span>
+          </p>
+        }
+      </div>
+    } @else {
+      <p class="notice notice--info">La sesión sigue abierta: aún no hay conteo de cierre.</p>
+    }
+
+    <div class="detalle-bloque">
+      <h3 class="form-section-title">Auditoría</h3>
+      <div class="table-scroll">
+        <table class="sesiones-table">
+          <thead>
+            <tr>
+              <th scope="col">Fecha</th>
+              <th scope="col">Acción</th>
+              <th scope="col">Usuario</th>
+              <th scope="col">Descripción</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (a of auditoriaDetalle(); track a.id) {
+              <tr>
+                <td>{{ a.fecha | date: 'dd/MM/yyyy HH:mm' }}</td>
+                <td><span class="tag tag--info">{{ a.accion }}</span></td>
+                <td>{{ nombreUsuario(a.usuarioId) }}</td>
+                <td>{{ a.descripcion }}</td>
+              </tr>
+            } @empty {
+              <tr>
+                <td class="table-empty" colspan="4">Sin registros de auditoría.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </mat-card>
+}

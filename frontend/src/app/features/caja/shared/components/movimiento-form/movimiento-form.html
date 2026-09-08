@@ -1,0 +1,96 @@
+<form class="mov-form" (submit)="$event.preventDefault(); registrar()">
+  <div class="form-grid">
+    <div class="form-group">
+      <label for="movConcepto">Concepto</label>
+      <select
+        id="movConcepto"
+        [value]="concepto()"
+        (change)="concepto.set($any($event.target).value)"
+        required
+      >
+        <option value="" disabled>Selecciona un concepto</option>
+        @for (c of conceptos(); track c) {
+          <option [value]="c">{{ c }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="movMonto">Monto</label>
+      <input
+        id="movMonto"
+        type="number"
+        inputmode="numeric"
+        min="1"
+        step="1"
+        placeholder="0"
+        [value]="monto()"
+        (input)="monto.set($any($event.target).value)"
+        required
+      />
+      <span class="hint">Pesos chilenos, sin decimales.</span>
+    </div>
+
+    <div class="form-group">
+      <label for="movFecha">Fecha</label>
+      <input
+        id="movFecha"
+        type="datetime-local"
+        [value]="fecha()"
+        (input)="fecha.set($any($event.target).value)"
+      />
+    </div>
+
+    <div class="form-group">
+      <label>Responsable</label>
+      <div class="static-value">{{ responsable }}</div>
+    </div>
+  </div>
+
+  <div class="form-group span-2">
+    <label for="movObservacion">Observación</label>
+    <textarea
+      id="movObservacion"
+      rows="2"
+      placeholder="Detalle opcional del movimiento"
+      [value]="observacion()"
+      (input)="observacion.set($any($event.target).value)"
+    ></textarea>
+  </div>
+
+  <div class="mov-preview">
+    <div>
+      <span class="mov-preview-label">Saldo disponible</span>
+      <strong>{{ saldoDisponible() | clp }}</strong>
+    </div>
+    <div class="mov-preview-arrow" aria-hidden="true">=</div>
+    <div>
+      <span class="mov-preview-label">Saldo resultante</span>
+      <strong [class.neg]="saldoResultante() < 0" [class.pos]="!esSalida() && montoNumero() > 0">
+        {{ saldoResultante() | clp }}
+      </strong>
+    </div>
+  </div>
+
+  @if (excedeSaldo()) {
+    <p class="field-error">
+      La salida supera el saldo disponible ({{ saldoDisponible() | clp }}). La caja no puede quedar
+      con saldo negativo.
+    </p>
+  }
+
+  @if (error(); as msg) {
+    <p class="field-error">{{ msg }}</p>
+  }
+
+  @if (exito(); as msg) {
+    <p class="page-mensaje">{{ msg }}</p>
+  }
+
+  <div class="form-actions">
+    <button type="button" mat-button (click)="limpiar()">Limpiar</button>
+    <button type="submit" mat-flat-button color="primary" [disabled]="!puedeRegistrar()">
+      Registrar {{ esSalida() ? 'salida' : 'entrada' }}
+    </button>
+  </div>
+</form>

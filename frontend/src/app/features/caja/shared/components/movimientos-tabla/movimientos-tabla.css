@@ -1,0 +1,66 @@
+.table-scroll {
+  overflow-x: auto;
+}
+
+.mov-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.mov-table th,
+.mov-table td {
+  padding: var(--space-2) var(--space-3);
+  text-align: left;
+  border-bottom: var(--border-width-default) solid var(--border-default);
+  font: var(--font-body-sm);
+  white-space: nowrap;
+}
+
+.mov-table thead th {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.muted {
+  color: var(--text-muted);
+  white-space: normal;
+}
+
+.pos {
+  color: var(--success-base);
+}
+
+.neg {
+  color: var(--error-base);
+}
+
+.table-empty {
+  padding: var(--space-5);
+  text-align: center;
+  color: var(--text-muted);
+  white-space: normal;
+}
+
+.totals th,
+.totals td {
+  padding-top: var(--space-2);
+  padding-bottom: var(--space-2);
+  font-weight: 600;
+}
+
+.totals tr:first-child th,
+.totals tr:first-child td {
+  border-top: var(--border-width-medium) solid var(--border-strong);
+  padding-top: var(--space-3);
+}
+
+.totals-final th,
+.totals-final td {
+  font-size: 1.05rem;
+  color: var(--primary-base);
+}

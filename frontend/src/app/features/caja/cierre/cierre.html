@@ -1,0 +1,138 @@
+<div class="page-header">
+  <div>
+    <h1>Cierre de caja</h1>
+    <p class="page-subtitle">Revisa los movimientos, cuenta el efectivo final y confirma el cierre.</p>
+  </div>
+</div>
+
+<!-- Paso 1: revisión de movimientos -->
+<mat-card class="form-panel">
+  <div class="panel-title">
+    <h2><span class="step-badge">1</span> Revisión de movimientos</h2>
+    <span class="panel-hint">{{ movimientos().length }} movimiento(s) en la sesión</span>
+  </div>
+
+  <section class="highlights">
+    <div class="highlight">
+      <div class="highlight-label">Saldo inicial</div>
+      <div class="highlight-value">{{ sesion()?.saldoInicial | clp }}</div>
+    </div>
+    <div class="highlight highlight--in">
+      <div class="highlight-label">Entradas</div>
+      <div class="highlight-value">+{{ totalEntradas() | clp }}</div>
+    </div>
+    <div class="highlight highlight--out">
+      <div class="highlight-label">Salidas</div>
+      <div class="highlight-value">-{{ totalSalidas() | clp }}</div>
+    </div>
+    <div class="highlight highlight--total">
+      <div class="highlight-label">Saldo esperado</div>
+      <div class="highlight-value">{{ saldoEsperado() | clp }}</div>
+    </div>
+  </section>
+
+  <details class="movs">
+    <summary>Ver detalle de movimientos</summary>
+    <app-movimientos-tabla [movimientos]="movimientos()" />
+  </details>
+</mat-card>
+
+<!-- Paso 2: conteo final -->
+<mat-card class="form-panel">
+  <div class="panel-title">
+    <h2><span class="step-badge">2</span> Conteo de efectivo</h2>
+    @if (vieneDeArqueo) {
+      <span class="tag tag--info">Precargado desde el arqueo</span>
+    }
+  </div>
+
+  <app-cash-denomination-counter [(value)]="conteo" totalLabel="EFECTIVO CONTADO" />
+</mat-card>
+
+<!-- Paso 3: comparación -->
+<mat-card class="form-panel">
+  <h2><span class="step-badge">3</span> Comparación</h2>
+
+  <app-diferencia-panel [saldoEsperado]="saldoEsperado()" [saldoContado]="contado()" />
+
+  @if (hayDiferencia()) {
+    <div class="notice notice--warning">
+      <strong>⚠ Diferencia de caja</strong>
+      <div>Saldo esperado: {{ saldoEsperado() | clp }}</div>
+      <div>Efectivo contado: {{ contado() | clp }}</div>
+      <div>
+        {{ estadoDiferencia() === Estado.SOBRANTE ? 'Sobrante' : 'Faltante' }}:
+        <strong>{{ magnitud() | clp }}</strong>
+      </div>
+      <div class="notice-nota">
+        Puedes cerrar igualmente, pero la diferencia queda registrada en la auditoría.
+      </div>
+    </div>
+  }
+
+  <div class="form-group observacion-cierre">
+    <label for="observacionCierre">
+      Observación de cierre
+      @if (hayDiferencia()) {
+        <span class="neg">— explica la diferencia</span>
+      }
+    </label>
+    <textarea
+      id="observacionCierre"
+      rows="3"
+      placeholder="Motivo de la diferencia, incidencias del turno, etc."
+      [value]="observacionCierre()"
+      (input)="observacionCierre.set($any($event.target).value)"
+    ></textarea>
+  </div>
+</mat-card>
+
+<!-- Paso 4: confirmación -->
+<mat-card class="form-panel">
+  <h2><span class="step-badge">4</span> Confirmación</h2>
+
+  <dl class="detail-grid">
+    <div>
+      <dt>Caja</dt>
+      <dd>{{ caja()?.nombre }}</dd>
+    </div>
+    <div>
+      <dt>Responsable</dt>
+      <dd>{{ responsable() }}</dd>
+    </div>
+    <div>
+      <dt>Apertura</dt>
+      <dd>{{ sesion()?.fechaApertura | date: 'dd/MM/yyyy HH:mm' }}</dd>
+    </div>
+    <div>
+      <dt>Diferencia</dt>
+      <dd [class.neg]="diferencia() < 0" [class.pos]="diferencia() > 0">
+        {{ diferencia() | clp }}
+      </dd>
+    </div>
+  </dl>
+
+  @if (error(); as msg) {
+    <p class="notice notice--danger">{{ msg }}</p>
+  }
+
+  @if (confirmando()) {
+    <div class="notice notice--warning">
+      <strong>Confirma el cierre</strong>
+      <div>
+        Una vez cerrada, la sesión no podrá modificarse. Se guardarán el conteo final, el saldo
+        contado y la diferencia.
+      </div>
+      <div class="form-actions">
+        <button type="button" mat-button (click)="cancelarConfirmacion()">Cancelar</button>
+        <button type="button" mat-flat-button color="warn" (click)="cerrar()">Sí, cerrar caja</button>
+      </div>
+    </div>
+  } @else {
+    <div class="form-actions">
+      <button type="button" mat-flat-button color="primary" [disabled]="!puedeCerrar()" (click)="pedirConfirmacion()">
+        Cerrar caja
+      </button>
+    </div>
+  }
+</mat-card>

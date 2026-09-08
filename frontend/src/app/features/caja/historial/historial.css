@@ -1,0 +1,103 @@
+:host {
+  display: block;
+}
+
+.page-subtitle {
+  margin: var(--space-1) 0 0;
+  color: var(--text-muted);
+}
+
+.panel-title {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.panel-hint {
+  font: var(--font-body-sm);
+  color: var(--text-muted);
+}
+
+.table-scroll {
+  overflow-x: auto;
+}
+
+.sesiones-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.sesiones-table th,
+.sesiones-table td {
+  padding: var(--space-2) var(--space-3);
+  text-align: left;
+  border-bottom: var(--border-width-default) solid var(--border-default);
+  font: var(--font-body-sm);
+  white-space: nowrap;
+}
+
+.sesiones-table thead th {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.pos {
+  color: var(--success-base);
+}
+
+.neg {
+  color: var(--error-base);
+}
+
+.fila-activa {
+  background: var(--primary-background);
+}
+
+.table-empty {
+  padding: var(--space-5);
+  text-align: center;
+  color: var(--text-muted);
+  white-space: normal;
+}
+
+.detalle-bloque + .detalle-bloque {
+  margin-top: var(--space-5);
+}
+
+.detalle-bloque h3 {
+  padding-bottom: var(--space-2);
+  border-bottom: var(--border-width-default) solid var(--border-default);
+}
+
+.detalle-meta {
+  margin: 0 0 var(--space-3);
+  font: var(--font-legals);
+  color: var(--text-muted);
+}
+
+.notice {
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-2);
+  border: var(--border-width-default) solid;
+  font: var(--font-body-sm);
+  margin-top: var(--space-4);
+}
+
+.notice--info {
+  background: var(--info-background);
+  color: var(--info-base);
+  border-color: var(--info-base);
+}
+
+.detalle-observacion {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}

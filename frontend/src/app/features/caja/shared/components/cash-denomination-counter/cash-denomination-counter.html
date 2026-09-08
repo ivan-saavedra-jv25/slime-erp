@@ -1,0 +1,50 @@
+<div class="counter">
+  <table class="counter-table">
+    <thead>
+      <tr>
+        <th scope="col">Denominación</th>
+        <th scope="col" class="num">Cantidad</th>
+        <th scope="col" class="num">Subtotal</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (row of rows(); track row.denomination; let i = $index) {
+        <tr [class.counter-row--filled]="row.quantity > 0">
+          <th scope="row" class="counter-denom">{{ row.denomination | clp }}</th>
+          <td class="num">
+            @if (readonly()) {
+              <span class="counter-readonly">{{ row.quantity }}</span>
+            } @else {
+              <input
+                class="counter-input"
+                type="number"
+                inputmode="numeric"
+                min="0"
+                step="1"
+                data-row
+                [attr.aria-label]="'Cantidad de ' + row.denomination"
+                [value]="displayQuantity(row.quantity)"
+                placeholder="0"
+                (input)="onQuantityChange(row.denomination, $any($event.target).value)"
+                (keydown.enter)="onEnter($event, i)"
+                (focus)="$any($event.target).select()"
+              />
+            }
+          </td>
+          <td class="num counter-subtotal">{{ row.subtotal | clp }}</td>
+        </tr>
+      }
+    </tbody>
+    <tfoot>
+      <tr class="counter-total">
+        <th scope="row">{{ totalLabel() }}</th>
+        <td class="num counter-piezas">{{ totalPiezas() }}</td>
+        <td class="num counter-total-value">{{ total() | clp }}</td>
+      </tr>
+    </tfoot>
+  </table>
+
+  @if (!readonly()) {
+    <button type="button" mat-button (click)="limpiar()">Limpiar conteo</button>
+  }
+</div>

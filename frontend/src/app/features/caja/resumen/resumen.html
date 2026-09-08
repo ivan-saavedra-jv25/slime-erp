@@ -1,0 +1,211 @@
+<div class="page-header">
+  <div>
+    <h1>Resumen de caja</h1>
+    <p class="page-subtitle">Estado actual de la caja y administración de cajas del sistema.</p>
+  </div>
+  @if (!abierta()) {
+    <a mat-flat-button color="primary" routerLink="../apertura">Abrir caja</a>
+  } @else {
+    <a mat-stroked-button routerLink="../cierre">Ir al cierre</a>
+  }
+</div>
+
+@if (abierta() && sesion(); as s) {
+  <section class="highlights">
+    <div class="highlight">
+      <div class="highlight-label">Saldo inicial</div>
+      <div class="highlight-value">{{ s.saldoInicial | clp }}</div>
+    </div>
+    <div class="highlight highlight--in">
+      <div class="highlight-label">Entradas</div>
+      <div class="highlight-value">+{{ totalEntradas() | clp }}</div>
+    </div>
+    <div class="highlight highlight--out">
+      <div class="highlight-label">Salidas</div>
+      <div class="highlight-value">-{{ totalSalidas() | clp }}</div>
+    </div>
+    <div class="highlight highlight--total">
+      <div class="highlight-label">Saldo esperado</div>
+      <div class="highlight-value">{{ saldoEsperado() | clp }}</div>
+    </div>
+  </section>
+
+  <mat-card class="form-panel">
+    <div class="panel-title">
+      <h2>Sesión en curso</h2>
+      <span class="tag tag--success">Abierta</span>
+    </div>
+    <dl class="detail-grid">
+      <div>
+        <dt>Caja</dt>
+        <dd>{{ caja()?.nombre }}</dd>
+      </div>
+      <div>
+        <dt>Responsable</dt>
+        <dd>{{ nombreUsuario(s.responsableId) }}</dd>
+      </div>
+      <div>
+        <dt>Hora de apertura</dt>
+        <dd>{{ s.fechaApertura | date: 'dd/MM/yyyy HH:mm' }}</dd>
+      </div>
+      <div>
+        <dt>Movimientos</dt>
+        <dd>{{ movimientos().length }}</dd>
+      </div>
+      <div>
+        <dt>Última entrada</dt>
+        <dd>
+          @if (ultimaEntrada(); as e) {
+            <span class="pos">{{ e.monto | clp }}</span> · {{ e.concepto }}
+          } @else {
+            <span class="muted">Sin entradas</span>
+          }
+        </dd>
+      </div>
+      <div>
+        <dt>Última salida</dt>
+        <dd>
+          @if (ultimaSalida(); as sa) {
+            <span class="neg">{{ sa.monto | clp }}</span> · {{ sa.concepto }}
+          } @else {
+            <span class="muted">Sin salidas</span>
+          }
+        </dd>
+      </div>
+    </dl>
+
+    <div class="form-actions">
+      <a mat-stroked-button routerLink="../entradas">Registrar entrada</a>
+      <a mat-stroked-button routerLink="../salidas">Registrar salida</a>
+      <a mat-stroked-button routerLink="../arqueo">Arqueo</a>
+    </div>
+  </mat-card>
+} @else {
+  <p class="empty-state">
+    No hay ninguna caja abierta. Realiza la apertura para comenzar a registrar movimientos.
+  </p>
+}
+
+<mat-card class="form-panel">
+  <div class="panel-title">
+    <h2>Cajas</h2>
+    @if (!formAbierto()) {
+      <button type="button" mat-stroked-button (click)="nuevaCaja()">Nueva caja</button>
+    }
+  </div>
+
+  @if (formAbierto()) {
+    <form class="caja-form" (ngSubmit)="guardar()">
+      <h3 class="form-section-title">{{ tituloForm() }}</h3>
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="cajaNombre">Nombre</label>
+          <input
+            id="cajaNombre"
+            name="nombre"
+            [ngModel]="nombre()"
+            (ngModelChange)="nombre.set($event)"
+            placeholder="Caja Sucursal Principal"
+            required
+          />
+        </div>
+        <div class="form-group">
+          <label for="cajaTipo">Tipo</label>
+          <select id="cajaTipo" name="tipo" [ngModel]="tipo()" (ngModelChange)="tipo.set($event)">
+            @for (t of tipos; track t) {
+              <option [value]="t">{{ t }}</option>
+            }
+          </select>
+        </div>
+      </div>
+      @if (error(); as msg) {
+        <p class="field-error">{{ msg }}</p>
+      }
+      <div class="form-actions">
+        <button type="button" mat-button (click)="cancelar()">Cancelar</button>
+        <button type="submit" mat-flat-button color="primary">Guardar</button>
+      </div>
+    </form>
+  }
+
+  <div class="table-scroll">
+    <table class="caja-table">
+      <thead>
+        <tr>
+          <th scope="col">Caja</th>
+          <th scope="col">Tipo</th>
+          <th scope="col">Sucursal</th>
+          <th scope="col">Responsable</th>
+          <th scope="col">Estado</th>
+          <th scope="col" class="num">Saldo actual</th>
+          <th scope="col"></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (c of cajas(); track c.id) {
+          <tr [class.fila-activa]="c.id === caja()?.id">
+            <th scope="row">{{ c.nombre }}</th>
+            <td>{{ c.tipo }}</td>
+            <td>{{ nombreSucursal(c.sucursalId) }}</td>
+            <td>{{ nombreUsuario(c.responsableId) }}</td>
+            <td>
+              <span class="tag" [class.tag--success]="c.estado === Estado.ABIERTA" [class.tag--error]="c.estado === Estado.CERRADA">
+                {{ c.estado }}
+              </span>
+            </td>
+            <td class="num">{{ c.saldoActual | clp }}</td>
+            <td class="num">
+              <button type="button" mat-button (click)="seleccionar(c.id)">Seleccionar</button>
+              <button type="button" mat-button (click)="editarCaja(c.id)">Editar</button>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td class="table-empty" colspan="7">No hay cajas registradas.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</mat-card>
+
+<mat-card class="form-panel">
+  <h2>Datos de ejemplo</h2>
+  <p class="form-section-hint">
+    Útil para probar el módulo: carga una sesión de ayer ya cerrada (con una pequeña diferencia de
+    caja) y una sesión de hoy abierta con movimientos ya registrados.
+  </p>
+
+  @if (mensajeDatos(); as msg) {
+    <p class="page-mensaje">{{ msg }}</p>
+  }
+
+  @if (confirmandoEjemplo()) {
+    <div class="notice notice--warning">
+      Esto reemplaza las sesiones, movimientos y auditoría actuales por el ejemplo. ¿Continuar?
+      <div class="form-actions">
+        <button type="button" mat-button (click)="confirmandoEjemplo.set(false)">Cancelar</button>
+        <button type="button" mat-flat-button color="primary" (click)="cargarEjemplo()">
+          Sí, cargar ejemplo
+        </button>
+      </div>
+    </div>
+  } @else if (confirmandoBorrado()) {
+    <div class="notice notice--warning">
+      Esto borra todas las sesiones, movimientos y auditoría del módulo. No se puede deshacer.
+      <div class="form-actions">
+        <button type="button" mat-button (click)="confirmandoBorrado.set(false)">Cancelar</button>
+        <button type="button" mat-flat-button color="warn" (click)="borrarDatos()">Sí, borrar todo</button>
+      </div>
+    </div>
+  } @else {
+    <div class="form-actions form-actions--start">
+      <button type="button" mat-stroked-button (click)="confirmandoEjemplo.set(true)">
+        Cargar ejemplo
+      </button>
+      <button type="button" mat-stroked-button color="warn" (click)="confirmandoBorrado.set(true)">
+        Borrar todo
+      </button>
+    </div>
+  }
+</mat-card>

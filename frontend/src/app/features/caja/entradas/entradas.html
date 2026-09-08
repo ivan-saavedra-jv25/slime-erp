@@ -1,0 +1,33 @@
+<div class="page-header">
+  <div>
+    <h1>Entradas</h1>
+    <p class="page-subtitle">Registra ingresos de efectivo a la caja. Cada entrada aumenta el saldo esperado.</p>
+  </div>
+</div>
+
+<section class="highlights">
+  <div class="highlight highlight--in">
+    <div class="highlight-label">Total entradas de la sesión</div>
+    <div class="highlight-value">+{{ totalEntradas() | clp }}</div>
+  </div>
+  <div class="highlight highlight--total">
+    <div class="highlight-label">Saldo esperado</div>
+    <div class="highlight-value">{{ saldoEsperado() | clp }}</div>
+  </div>
+</section>
+
+<mat-card class="form-panel">
+  <h2>Nueva entrada</h2>
+  <app-movimiento-form [tipo]="tipo" [conceptos]="conceptos" />
+</mat-card>
+
+<mat-card class="form-panel">
+  <div class="panel-title">
+    <h2>Entradas registradas</h2>
+    <span class="panel-hint">{{ entradas().length }} en esta sesión</span>
+  </div>
+  <app-movimientos-tabla
+    [movimientos]="entradas()"
+    emptyMessage="Aún no registras entradas en esta sesión."
+  />
+</mat-card>

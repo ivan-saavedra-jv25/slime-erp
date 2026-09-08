@@ -1,0 +1,86 @@
+<div class="page-header">
+  <div>
+    <h1>Movimientos de caja</h1>
+    <p class="page-subtitle">Todas las entradas y salidas de la sesión actual.</p>
+  </div>
+</div>
+
+<mat-card class="form-panel">
+  <div class="panel-title">
+    <h2>Filtros</h2>
+    @if (hayFiltros()) {
+      <button type="button" mat-button (click)="limpiarFiltros()">Limpiar filtros</button>
+    }
+  </div>
+
+  <div class="form-grid">
+    <div class="form-group">
+      <label for="filtroTipo">Tipo</label>
+      <select
+        id="filtroTipo"
+        [value]="filtroTipo()"
+        (change)="filtroTipo.set($any($event.target).value)"
+      >
+        <option value="">Todos</option>
+        @for (t of tipos; track t) {
+          <option [value]="t">{{ t }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="filtroConcepto">Concepto</label>
+      <select
+        id="filtroConcepto"
+        [value]="filtroConcepto()"
+        (change)="filtroConcepto.set($any($event.target).value)"
+      >
+        <option value="">Todos</option>
+        @for (c of conceptos; track c) {
+          <option [value]="c">{{ c }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="filtroDesde">Desde</label>
+      <input
+        id="filtroDesde"
+        type="date"
+        [value]="filtroDesde()"
+        (input)="filtroDesde.set($any($event.target).value)"
+      />
+    </div>
+
+    <div class="form-group">
+      <label for="filtroHasta">Hasta</label>
+      <input
+        id="filtroHasta"
+        type="date"
+        [value]="filtroHasta()"
+        (input)="filtroHasta.set($any($event.target).value)"
+      />
+    </div>
+  </div>
+</mat-card>
+
+<mat-card class="form-panel">
+  <div class="panel-title">
+    <h2>Movimientos</h2>
+    <span class="panel-hint">{{ filtrados().length }} registro(s)</span>
+  </div>
+
+  <app-movimientos-tabla
+    [movimientos]="filtrados()"
+    [mostrarTotales]="true"
+    [saldoInicial]="sesion()?.saldoInicial ?? null"
+    emptyMessage="No hay movimientos que coincidan con los filtros."
+  />
+
+  @if (hayFiltros()) {
+    <p class="form-section-hint filtro-nota">
+      Los totales corresponden a los movimientos filtrados. Saldo esperado real de la sesión:
+      <strong>{{ saldoEsperado() | clp }}</strong>
+    </p>
+  }
+</mat-card>

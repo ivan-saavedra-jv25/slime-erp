@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
+import { sesionAbiertaGuard, sinSesionGuard } from './features/caja/core/guards/caja.guards';
 
 export const routes: Routes = [
   {
@@ -73,6 +74,52 @@ export const routes: Routes = [
             path: 'ajustes',
             loadComponent: () =>
               import('./features/flujo-caja/settings/settings').then((m) => m.SettingsPage),
+          },
+        ],
+      },
+      {
+        path: 'caja',
+        loadComponent: () => import('./features/caja/shell/shell').then((m) => m.Shell),
+        children: [
+          { path: '', pathMatch: 'full', redirectTo: 'resumen' },
+          {
+            path: 'resumen',
+            loadComponent: () => import('./features/caja/resumen/resumen').then((m) => m.ResumenComponent),
+          },
+          {
+            path: 'apertura',
+            canActivate: [sinSesionGuard],
+            loadComponent: () => import('./features/caja/apertura/apertura').then((m) => m.AperturaComponent),
+          },
+          {
+            path: 'movimientos',
+            canActivate: [sesionAbiertaGuard],
+            loadComponent: () =>
+              import('./features/caja/movimientos/movimientos').then((m) => m.MovimientosComponent),
+          },
+          {
+            path: 'entradas',
+            canActivate: [sesionAbiertaGuard],
+            loadComponent: () => import('./features/caja/entradas/entradas').then((m) => m.EntradasComponent),
+          },
+          {
+            path: 'salidas',
+            canActivate: [sesionAbiertaGuard],
+            loadComponent: () => import('./features/caja/salidas/salidas').then((m) => m.SalidasComponent),
+          },
+          {
+            path: 'arqueo',
+            canActivate: [sesionAbiertaGuard],
+            loadComponent: () => import('./features/caja/arqueo/arqueo').then((m) => m.ArqueoComponent),
+          },
+          {
+            path: 'cierre',
+            canActivate: [sesionAbiertaGuard],
+            loadComponent: () => import('./features/caja/cierre/cierre').then((m) => m.CierreComponent),
+          },
+          {
+            path: 'historial',
+            loadComponent: () => import('./features/caja/historial/historial').then((m) => m.HistorialComponent),
           },
         ],
       },

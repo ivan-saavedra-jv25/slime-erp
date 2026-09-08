@@ -1,0 +1,49 @@
+.mov-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.static-value {
+  padding: var(--space-2) 0;
+  font: var(--font-body);
+  font-weight: 600;
+  color: var(--text-title);
+}
+
+.mov-preview {
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+  padding: var(--space-4);
+  background: var(--surface-subtle);
+  border: var(--border-width-default) solid var(--border-default);
+  border-radius: var(--radius-2);
+}
+
+.mov-preview strong {
+  display: block;
+  margin-top: var(--space-1);
+  font-size: 1.25rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.mov-preview-label {
+  font: var(--font-body-sm);
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.mov-preview-arrow {
+  color: var(--text-muted);
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.pos {
+  color: var(--success-base);
+}
+
+.neg {
+  color: var(--error-base);
+}

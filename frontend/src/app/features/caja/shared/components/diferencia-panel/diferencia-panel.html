@@ -1,0 +1,37 @@
+<div
+  class="dif"
+  [class.dif--cuadrada]="estado() === Estado.CUADRADA"
+  [class.dif--sobrante]="estado() === Estado.SOBRANTE"
+  [class.dif--faltante]="estado() === Estado.FALTANTE"
+>
+  <div class="dif-lineas">
+    <div class="dif-linea">
+      <span>Saldo esperado</span>
+      <strong>{{ saldoEsperado() | clp }}</strong>
+    </div>
+    <div class="dif-linea">
+      <span>Efectivo contado</span>
+      <strong>{{ saldoContado() | clp }}</strong>
+    </div>
+    <div class="dif-linea dif-linea--resultado">
+      <span>Diferencia</span>
+      <strong>{{ diferencia() | clp }}</strong>
+    </div>
+  </div>
+
+  <div class="dif-estado">
+    <span class="dif-icono" aria-hidden="true">
+      {{ estado() === Estado.CUADRADA ? '✓' : '⚠' }}
+    </span>
+    <div>
+      <div class="dif-titulo">{{ titulo() }}</div>
+      @if (estado() === Estado.CUADRADA) {
+        <div class="dif-detalle">El efectivo contado coincide exactamente con el saldo esperado.</div>
+      } @else {
+        <div class="dif-detalle">
+          {{ titulo() }}: <strong>{{ magnitud() | clp }}</strong>
+        </div>
+      }
+    </div>
+  </div>
+</div>

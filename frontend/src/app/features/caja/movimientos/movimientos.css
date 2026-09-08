@@ -1,0 +1,31 @@
+:host {
+  display: block;
+}
+
+.page-subtitle {
+  margin: var(--space-1) 0 0;
+  color: var(--text-muted);
+}
+
+.panel-title {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.panel-title h2 {
+  font: var(--font-h3);
+  color: var(--text-title);
+  margin: 0;
+}
+
+.panel-hint {
+  font: var(--font-body-sm);
+  color: var(--text-muted);
+}
+
+.filtro-nota {
+  margin-top: var(--space-3);
+}

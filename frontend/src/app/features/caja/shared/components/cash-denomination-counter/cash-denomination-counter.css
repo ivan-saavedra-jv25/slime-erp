@@ -1,0 +1,97 @@
+.counter {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.counter-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.counter-table th,
+.counter-table td {
+  padding: var(--space-2) var(--space-3);
+  border-bottom: var(--border-width-default) solid var(--border-default);
+  font: var(--font-body-sm);
+}
+
+.counter-table thead th {
+  color: var(--text-muted);
+  font-weight: 600;
+  text-align: left;
+}
+
+.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.counter-denom {
+  font-weight: 600;
+  text-align: left;
+}
+
+.counter-input {
+  width: 100%;
+  max-width: 7rem;
+  height: 36px;
+  padding: 0 var(--space-2);
+  font: var(--font-body);
+  font-weight: 600;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  border: var(--border-width-default) solid var(--border-strong);
+  border-radius: var(--radius-2);
+  background: var(--surface-card);
+  color: var(--text-title);
+}
+
+.counter-input:focus {
+  outline: none;
+  border-width: var(--border-width-medium);
+  border-color: var(--border-interactive);
+}
+
+.counter-input::-webkit-outer-spin-button,
+.counter-input::-webkit-inner-spin-button {
+  appearance: none;
+  margin: 0;
+}
+
+.counter-input {
+  appearance: textfield;
+}
+
+.counter-readonly {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.counter-subtotal {
+  color: var(--text-muted);
+}
+
+.counter-row--filled .counter-subtotal {
+  color: var(--text-title);
+  font-weight: 600;
+}
+
+.counter-total th,
+.counter-total td {
+  border-top: var(--border-width-medium) solid var(--border-strong);
+  border-bottom: none;
+  padding-top: var(--space-3);
+  font-weight: 700;
+}
+
+.counter-piezas {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.counter-total-value {
+  font-size: 1.15rem;
+  color: var(--primary-base);
+}

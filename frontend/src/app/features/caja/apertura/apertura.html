@@ -1,0 +1,70 @@
+<div class="page-header">
+  <div>
+    <h1>Apertura de caja</h1>
+    <p class="page-subtitle">Cuenta el efectivo con el que inicias el turno. El total se calcula solo.</p>
+  </div>
+</div>
+
+<mat-card class="form-panel">
+  <h2>Información</h2>
+
+  <div class="form-grid">
+    <div class="form-group">
+      <label for="aperturaCaja">Caja</label>
+      <select
+        id="aperturaCaja"
+        [value]="caja()?.id ?? ''"
+        (change)="seleccionarCaja($any($event.target).value)"
+      >
+        @for (c of cajas(); track c.id) {
+          <option [value]="c.id">{{ c.nombre }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Responsable</label>
+      <div class="static-value">{{ responsable() }}</div>
+    </div>
+
+    <div class="form-group">
+      <label>Sucursal</label>
+      <div class="static-value">{{ sucursal() }}</div>
+    </div>
+
+    <div class="form-group">
+      <label>Fecha</label>
+      <div class="static-value">{{ ahora | date: 'dd/MM/yyyy' }}</div>
+    </div>
+
+    <div class="form-group">
+      <label>Hora</label>
+      <div class="static-value">{{ ahora | date: 'HH:mm' }}</div>
+    </div>
+  </div>
+</mat-card>
+
+<mat-card class="form-panel">
+  <h2>Conteo de efectivo</h2>
+  <p class="form-section-hint">Ingresa solo la cantidad de billetes y monedas.</p>
+
+  <app-cash-denomination-counter
+    [(value)]="conteo"
+    (totalChange)="total.set($event)"
+    totalLabel="TOTAL EFECTIVO"
+  />
+</mat-card>
+
+@if (error(); as msg) {
+  <p class="field-error">{{ msg }}</p>
+}
+
+<mat-card class="form-panel confirm">
+  <div class="confirm-total">
+    <span class="confirm-label">Saldo inicial</span>
+    <strong>{{ total() | clp }}</strong>
+  </div>
+  <button type="button" mat-flat-button color="primary" [disabled]="!puedeAbrir()" (click)="abrir()">
+    Abrir caja
+  </button>
+</mat-card>

@@ -1,0 +1,34 @@
+:host {
+  display: block;
+}
+
+.page-subtitle {
+  margin: var(--space-1) 0 0;
+  color: var(--text-muted);
+}
+
+.notice {
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-2);
+  border: var(--border-width-default) solid;
+  font: var(--font-body-sm);
+  margin-top: var(--space-4);
+}
+
+.notice--danger {
+  background: var(--error-background);
+  color: var(--error-base);
+  border-color: var(--error-base);
+}
+
+.notice--success {
+  background: var(--success-background);
+  color: var(--success-base);
+  border-color: var(--success-base);
+}
+
+.notice--info {
+  background: var(--info-background);
+  color: var(--info-base);
+  border-color: var(--info-base);
+}

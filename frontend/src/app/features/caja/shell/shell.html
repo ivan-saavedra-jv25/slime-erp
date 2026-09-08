@@ -1,0 +1,52 @@
+<div class="page-header">
+  <h1>
+    Caja
+    <span class="tag" [class.tag--success]="abierta()" [class.tag--error]="!abierta()">
+      {{ abierta() ? 'Abierta' : 'Cerrada' }}
+    </span>
+  </h1>
+</div>
+
+<nav class="shell-nav" aria-label="Secciones de Caja">
+  <a
+    mat-button
+    routerLink="resumen"
+    routerLinkActive="active-link"
+    [routerLinkActiveOptions]="{ exact: false }"
+  >
+    <mat-icon>dashboard</mat-icon>
+    <span class="nav-text">Resumen</span>
+  </a>
+  <a mat-button routerLink="apertura" routerLinkActive="active-link">
+    <mat-icon>lock_open</mat-icon>
+    <span class="nav-text">Apertura</span>
+  </a>
+  <a mat-button routerLink="movimientos" routerLinkActive="active-link">
+    <mat-icon>swap_horiz</mat-icon>
+    <span class="nav-text">Movimientos</span>
+  </a>
+  <a mat-button routerLink="entradas" routerLinkActive="active-link">
+    <mat-icon>trending_up</mat-icon>
+    <span class="nav-text">Entradas</span>
+  </a>
+  <a mat-button routerLink="salidas" routerLinkActive="active-link">
+    <mat-icon>trending_down</mat-icon>
+    <span class="nav-text">Salidas</span>
+  </a>
+  <a mat-button routerLink="arqueo" routerLinkActive="active-link">
+    <mat-icon>fact_check</mat-icon>
+    <span class="nav-text">Arqueo</span>
+  </a>
+  <a mat-button routerLink="cierre" routerLinkActive="active-link">
+    <mat-icon>lock</mat-icon>
+    <span class="nav-text">Cierre</span>
+  </a>
+  <a mat-button routerLink="historial" routerLinkActive="active-link">
+    <mat-icon>history</mat-icon>
+    <span class="nav-text">Historial</span>
+  </a>
+</nav>
+
+<main class="shell-content">
+  <router-outlet />
+</main>

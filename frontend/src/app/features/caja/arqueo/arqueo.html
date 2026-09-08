@@ -1,0 +1,40 @@
+<div class="page-header">
+  <div>
+    <h1>Arqueo</h1>
+    <p class="page-subtitle">Cuenta físicamente el dinero en caja y compáralo con el saldo esperado.</p>
+  </div>
+</div>
+
+<mat-card class="form-panel">
+  <h2>Conteo de efectivo</h2>
+  <p class="form-section-hint">Mismo conteo que en la apertura: solo ingresa cantidades.</p>
+
+  <app-cash-denomination-counter [(value)]="conteo" totalLabel="EFECTIVO CONTADO" />
+</mat-card>
+
+<mat-card class="form-panel">
+  <h2>Comparación</h2>
+
+  <app-diferencia-panel [saldoEsperado]="saldoEsperado()" [saldoContado]="contado()" />
+
+  @if (error(); as msg) {
+    <p class="notice notice--danger">{{ msg }}</p>
+  }
+
+  @if (guardado()) {
+    <p class="notice notice--success">
+      Arqueo registrado en la auditoría. Puedes continuar al cierre: el conteo se reutiliza allí.
+    </p>
+  }
+
+  <div class="form-actions">
+    <button type="button" mat-stroked-button (click)="registrar()">Registrar arqueo</button>
+    <a mat-flat-button color="primary" routerLink="../cierre">Continuar al cierre</a>
+  </div>
+</mat-card>
+
+@if (conteoGuardado(); as previo) {
+  <p class="notice notice--info">
+    Último arqueo registrado: {{ previo.total | clp }} el {{ previo.fecha | date: 'dd/MM/yyyy HH:mm' }}.
+  </p>
+}
