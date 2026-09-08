@@ -34,6 +34,7 @@ class VentaServiceTest {
     private StockProductoBodegaRepository stockRepository;
     private StockService stockService;
     private CuentaPorCobrarService cuentaPorCobrarService;
+    private FolioVentaService folioVentaService;
     private VentaService service;
 
     private final Map<String, StockProductoBodega> stockPorClave = new HashMap<>();
@@ -61,8 +62,10 @@ class VentaServiceTest {
 
         stockService = new StockService(stockRepository, bodegaRepository, movimientoRepository);
         cuentaPorCobrarService = mock(CuentaPorCobrarService.class);
+        folioVentaService = mock(FolioVentaService.class);
+        when(folioVentaService.siguienteFolio(anyLong(), any())).thenReturn(1);
         service = new VentaService(ventaRepository, clienteRepository, productoRepository, bodegaRepository,
-                formaPagoRepository, stockService, cuentaPorCobrarService);
+                formaPagoRepository, stockService, cuentaPorCobrarService, folioVentaService);
 
         TenantContext.setTenantId(tenantId);
 
@@ -203,5 +206,30 @@ class VentaServiceTest {
         Venta venta = service.crear(req);
 
         assertEquals(bodega.getId(), venta.getBodegaId());
+    }
+
+    @Test
+    void asignaFolioYCodigoSiiSegunElTipoDeDocumentoAlCrear() {
+        when(folioVentaService.siguienteFolio(tenantId, "Factura")).thenReturn(7);
+
+        Venta venta = service.crear(request(TipoDocumentoVenta.FACTURA, false, null, new BigDecimal("1000"), BigDecimal.ONE));
+
+        assertEquals(7, venta.getFolio());
+        assertEquals(33, venta.getCodigoSii());
+        verify(folioVentaService).siguienteFolio(tenantId, "Factura");
+    }
+
+    @Test
+    void usaLaClaveDeFolioDistintaParaFacturaExentaYNoAsignaCodigoSiiAlVoucher() {
+        when(folioVentaService.siguienteFolio(tenantId, "Factura Exenta")).thenReturn(3);
+        when(folioVentaService.siguienteFolio(tenantId, "Voucher")).thenReturn(9);
+
+        Venta facturaExenta = service.crear(request(TipoDocumentoVenta.FACTURA, true, null, new BigDecimal("1000"), BigDecimal.ONE));
+        assertEquals(3, facturaExenta.getFolio());
+        assertEquals(34, facturaExenta.getCodigoSii());
+
+        Venta voucher = service.crear(request(TipoDocumentoVenta.VOUCHER, true, null, new BigDecimal("500"), BigDecimal.ONE));
+        assertEquals(9, voucher.getFolio());
+        assertNull(voucher.getCodigoSii());
     }
 }

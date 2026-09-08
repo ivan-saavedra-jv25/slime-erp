@@ -29,11 +29,12 @@ public class VentaService {
     private final FormaPagoRepository formaPagoRepository;
     private final StockService stockService;
     private final CuentaPorCobrarService cuentaPorCobrarService;
+    private final FolioVentaService folioVentaService;
 
     public VentaService(VentaRepository ventaRepository, ClienteRepository clienteRepository,
                          ProductoRepository productoRepository, BodegaRepository bodegaRepository,
                          FormaPagoRepository formaPagoRepository, StockService stockService,
-                         CuentaPorCobrarService cuentaPorCobrarService) {
+                         CuentaPorCobrarService cuentaPorCobrarService, FolioVentaService folioVentaService) {
         this.ventaRepository = ventaRepository;
         this.clienteRepository = clienteRepository;
         this.productoRepository = productoRepository;
@@ -41,6 +42,7 @@ public class VentaService {
         this.formaPagoRepository = formaPagoRepository;
         this.stockService = stockService;
         this.cuentaPorCobrarService = cuentaPorCobrarService;
+        this.folioVentaService = folioVentaService;
     }
 
     @Transactional
@@ -61,6 +63,8 @@ public class VentaService {
         validarStock(tenantId, bodega.getId(), request.items());
 
         boolean exento = request.exento();
+        String claveFolio = CodigoSiiVenta.etiqueta(request.tipoDocumento(), exento);
+        int folio = folioVentaService.siguienteFolio(tenantId, claveFolio);
 
         Venta venta = Venta.builder()
                 .tenantId(tenantId)
@@ -69,6 +73,8 @@ public class VentaService {
                 .bodegaId(bodega.getId())
                 .tipoDocumento(request.tipoDocumento())
                 .exento(exento)
+                .folio(folio)
+                .codigoSii(CodigoSiiVenta.codigo(request.tipoDocumento(), exento))
                 .observacion(request.observacion())
                 .build();
         venta = ventaRepository.save(venta);

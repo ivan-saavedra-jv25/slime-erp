@@ -44,6 +44,18 @@ public class Venta {
     @Builder.Default
     private boolean exento = false;
 
+    // Correlativo por tenant + tipo de documento (ver CodigoSiiVenta), asignado
+    // por FolioVentaService al emitir. Nunca se reasigna ni se recalcula después.
+    @Column(nullable = false)
+    private Integer folio;
+
+    // Código de documento tributario del SII (33/34/39/41) derivado de
+    // tipoDocumento+exento al emitir; null para Voucher, que no es un
+    // documento tributario real. Ver CodigoSiiVenta — no implica integración
+    // con el SII (sin XML, CAF ni envío), solo referencia el código.
+    @Column(name = "codigo_sii")
+    private Integer codigoSii;
+
     @Column(nullable = false)
     @Builder.Default
     private LocalDateTime fecha = LocalDateTime.now();

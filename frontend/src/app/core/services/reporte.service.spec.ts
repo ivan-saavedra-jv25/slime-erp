@@ -37,4 +37,28 @@ describe('ReporteService', () => {
     expect(req.request.params.get('desde')).toBe('2026-09-01');
     req.flush(new Blob());
   });
+
+  it('libroVentas no envía el parámetro tipoDocumento cuando no se especifica', () => {
+    service.libroVentas('2026-09-01', '2026-09-30').subscribe();
+
+    const req = httpMock.expectOne((r) => r.url === `${environment.apiUrl}/reportes/libro-ventas`);
+    expect(req.request.params.has('tipoDocumento')).toBeFalse();
+    req.flush({ desde: '2026-09-01', hasta: '2026-09-30', tipoDocumento: null, filas: [], subtotales: [], totalGeneral: null });
+  });
+
+  it('libroVentas envía el parámetro tipoDocumento cuando se especifica', () => {
+    service.libroVentas('2026-09-01', '2026-09-30', 'Factura').subscribe();
+
+    const req = httpMock.expectOne((r) => r.url === `${environment.apiUrl}/reportes/libro-ventas`);
+    expect(req.request.params.get('tipoDocumento')).toBe('Factura');
+    req.flush({ desde: '2026-09-01', hasta: '2026-09-30', tipoDocumento: 'Factura', filas: [], subtotales: [], totalGeneral: null });
+  });
+
+  it('libroVentasExcel envía el parámetro tipoDocumento cuando se especifica', () => {
+    service.libroVentasExcel('2026-09-01', '2026-09-30', 'Boleta').subscribe();
+
+    const req = httpMock.expectOne((r) => r.url === `${environment.apiUrl}/reportes/libro-ventas/excel`);
+    expect(req.request.params.get('tipoDocumento')).toBe('Boleta');
+    req.flush(new Blob());
+  });
 });

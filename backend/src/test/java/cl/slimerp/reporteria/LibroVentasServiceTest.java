@@ -2,6 +2,7 @@ package cl.slimerp.reporteria;
 
 import cl.slimerp.catalogo.Cliente;
 import cl.slimerp.catalogo.ClienteRepository;
+import cl.slimerp.ventas.CodigoSiiVenta;
 import cl.slimerp.ventas.TipoDocumentoVenta;
 import cl.slimerp.ventas.Venta;
 import cl.slimerp.ventas.VentaRepository;
@@ -44,6 +45,8 @@ class LibroVentasServiceTest {
         return Venta.builder()
                 .id(id).tenantId(tenantId).clienteId(clienteId).formaPagoId(1L).bodegaId(1L)
                 .tipoDocumento(tipo).exento(exento)
+                .folio(id.intValue())
+                .codigoSii(CodigoSiiVenta.codigo(tipo, exento))
                 .fecha(LocalDateTime.of(2026, 9, 10, 12, 0))
                 .montoNeto(neto).montoIva(iva).montoTotal(total)
                 .build();
@@ -62,7 +65,7 @@ class LibroVentasServiceTest {
                 .thenReturn(ventas);
         when(clienteRepository.findByTenantIdAndIdIn(eq(tenantId), any())).thenReturn(List.of(clienteUno, clienteDos));
 
-        var libro = service.generar(tenantId, desde, hasta);
+        var libro = service.generar(tenantId, desde, hasta, null, null, 0, 100);
 
         assertEquals(5, libro.subtotales().stream().mapToInt(LibroVentasService.LibroVentasSubtotal::cantidad).sum());
         assertEquals(List.of("Factura", "Factura Exenta", "Boleta", "Boleta Exenta", "Voucher"),
@@ -86,7 +89,7 @@ class LibroVentasServiceTest {
                 .thenReturn(ventas);
         when(clienteRepository.findByTenantIdAndIdIn(eq(tenantId), any())).thenReturn(List.of(clienteUno));
 
-        var libro = service.generar(tenantId, desde, hasta);
+        var libro = service.generar(tenantId, desde, hasta, null, null, 0, 100);
 
         var filaAfecta = libro.filas().stream().filter(f -> f.ventaId().equals(1L)).findFirst().orElseThrow();
         assertEquals(new BigDecimal("1000"), filaAfecta.montoNetoAfecto());
@@ -119,7 +122,7 @@ class LibroVentasServiceTest {
                 .thenReturn(ventas);
         when(clienteRepository.findByTenantIdAndIdIn(eq(tenantId), any())).thenReturn(List.of(clienteUno));
 
-        var libro = service.generar(tenantId, desde, hasta);
+        var libro = service.generar(tenantId, desde, hasta, null, null, 0, 100);
 
         assertEquals(2, libro.subtotales().size());
         assertEquals(List.of("Factura", "Voucher"),
@@ -136,7 +139,7 @@ class LibroVentasServiceTest {
                 .thenReturn(ventas);
         when(clienteRepository.findByTenantIdAndIdIn(eq(tenantId), any())).thenReturn(List.of(clienteUno, clienteDos));
 
-        var libro = service.generar(tenantId, desde, hasta);
+        var libro = service.generar(tenantId, desde, hasta, null, null, 0, 100);
 
         assertEquals("Total", libro.totalGeneral().tipoDocumento());
         assertEquals(2, libro.totalGeneral().cantidad());
@@ -151,7 +154,7 @@ class LibroVentasServiceTest {
         when(ventaRepository.findByTenantIdAndActivoTrueAndFechaBetweenOrderByFechaAsc(eq(tenantId), any(), any()))
                 .thenReturn(List.of());
 
-        var libro = service.generar(tenantId, desde, hasta);
+        var libro = service.generar(tenantId, desde, hasta, null, null, 0, 100);
 
         assertTrue(libro.filas().isEmpty());
         assertTrue(libro.subtotales().isEmpty());
@@ -172,7 +175,7 @@ class LibroVentasServiceTest {
         // clienteId 99 no existe (desactivado o eliminado): el repo simplemente no lo devuelve.
         when(clienteRepository.findByTenantIdAndIdIn(eq(tenantId), any())).thenReturn(List.of(clienteUno));
 
-        var libro = service.generar(tenantId, desde, hasta);
+        var libro = service.generar(tenantId, desde, hasta, null, null, 0, 100);
 
         var filaClienteUno = libro.filas().stream().filter(f -> f.ventaId().equals(1L)).findFirst().orElseThrow();
         assertEquals("11.111.111-1", filaClienteUno.clienteRut());
@@ -188,7 +191,7 @@ class LibroVentasServiceTest {
         when(ventaRepository.findByTenantIdAndActivoTrueAndFechaBetweenOrderByFechaAsc(any(), any(), any()))
                 .thenReturn(List.of());
 
-        service.generar(tenantId, desde, hasta);
+        service.generar(tenantId, desde, hasta, null, null, 0, 100);
 
         verify(ventaRepository).findByTenantIdAndActivoTrueAndFechaBetweenOrderByFechaAsc(
                 tenantId, desde.atStartOfDay(), hasta.atTime(LocalTime.MAX));
@@ -196,7 +199,205 @@ class LibroVentasServiceTest {
 
     @Test
     void lanzaExcepcionSiDesdeEsPosteriorAHasta() {
-        assertThrows(IllegalArgumentException.class, () -> service.generar(tenantId, hasta, desde));
+        assertThrows(IllegalArgumentException.class, () -> service.generar(tenantId, hasta, desde, null, null, 0, 100));
         verifyNoInteractions(ventaRepository);
+    }
+
+    @Test
+    void filtraPorTipoDocumentoCuandoSeEspecifica() {
+        List<Venta> ventas = List.of(
+                venta(1L, 1L, TipoDocumentoVenta.FACTURA, false, new BigDecimal("1000"), new BigDecimal("190"), new BigDecimal("1190")),
+                venta(2L, 1L, TipoDocumentoVenta.BOLETA, false, new BigDecimal("500"), new BigDecimal("95"), new BigDecimal("595")),
+                venta(3L, 1L, TipoDocumentoVenta.VOUCHER, false, new BigDecimal("200"), BigDecimal.ZERO, new BigDecimal("200"))
+        );
+        when(ventaRepository.findByTenantIdAndActivoTrueAndFechaBetweenOrderByFechaAsc(eq(tenantId), any(), any()))
+                .thenReturn(ventas);
+        when(clienteRepository.findByTenantIdAndIdIn(eq(tenantId), any())).thenReturn(List.of(clienteUno));
+
+        var libro = service.generar(tenantId, desde, hasta, "Factura", null, 0, 100);
+
+        assertEquals("Factura", libro.tipoDocumento());
+        assertEquals(1, libro.filas().size());
+        assertEquals(1L, libro.filas().get(0).ventaId());
+        assertEquals(1, libro.subtotales().size());
+        assertEquals("Factura", libro.subtotales().get(0).tipoDocumento());
+        assertEquals(1, libro.totalGeneral().cantidad());
+        assertEquals(new BigDecimal("1000"), libro.totalGeneral().montoNetoAfecto());
+    }
+
+    @Test
+    void sinFiltroDeTipoDocumentoElResultadoTraeTodosLosTiposYTipoDocumentoNull() {
+        when(ventaRepository.findByTenantIdAndActivoTrueAndFechaBetweenOrderByFechaAsc(eq(tenantId), any(), any()))
+                .thenReturn(List.of(venta(1L, 1L, TipoDocumentoVenta.FACTURA, false, new BigDecimal("1000"), new BigDecimal("190"), new BigDecimal("1190"))));
+        when(clienteRepository.findByTenantIdAndIdIn(eq(tenantId), any())).thenReturn(List.of(clienteUno));
+
+        var libro = service.generar(tenantId, desde, hasta, null, null, 0, 100);
+
+        assertNull(libro.tipoDocumento());
+        assertEquals(1, libro.filas().size());
+    }
+
+    @Test
+    void lanzaExcepcionSiElTipoDocumentoNoEsUnoDeLosCincoReconocidos() {
+        assertThrows(IllegalArgumentException.class,
+                () -> service.generar(tenantId, desde, hasta, "Nota de Crédito", null, 0, 100));
+        verifyNoInteractions(ventaRepository);
+    }
+
+    @Test
+    void buscaPorNombreORutDelCliente() {
+        List<Venta> ventas = List.of(
+                venta(1L, 1L, TipoDocumentoVenta.FACTURA, false, new BigDecimal("1000"), new BigDecimal("190"), new BigDecimal("1190")),
+                venta(2L, 2L, TipoDocumentoVenta.BOLETA, false, new BigDecimal("500"), new BigDecimal("95"), new BigDecimal("595"))
+        );
+        when(ventaRepository.findByTenantIdAndActivoTrueAndFechaBetweenOrderByFechaAsc(eq(tenantId), any(), any()))
+                .thenReturn(ventas);
+        when(clienteRepository.findByTenantIdAndIdIn(eq(tenantId), any())).thenReturn(List.of(clienteUno, clienteDos));
+
+        var libroPorNombre = service.generar(tenantId, desde, hasta, null, "uno", 0, 100);
+        assertEquals(1, libroPorNombre.filas().size());
+        assertEquals(1L, libroPorNombre.filas().get(0).ventaId());
+
+        var libroPorRut = service.generar(tenantId, desde, hasta, null, "22.222", 0, 100);
+        assertEquals(1, libroPorRut.filas().size());
+        assertEquals(2L, libroPorRut.filas().get(0).ventaId());
+    }
+
+    @Test
+    void buscaPorNumeroDeVenta() {
+        List<Venta> ventas = List.of(
+                venta(11L, 1L, TipoDocumentoVenta.FACTURA, false, new BigDecimal("1000"), new BigDecimal("190"), new BigDecimal("1190")),
+                venta(25L, 1L, TipoDocumentoVenta.BOLETA, false, new BigDecimal("500"), new BigDecimal("95"), new BigDecimal("595"))
+        );
+        when(ventaRepository.findByTenantIdAndActivoTrueAndFechaBetweenOrderByFechaAsc(eq(tenantId), any(), any()))
+                .thenReturn(ventas);
+        when(clienteRepository.findByTenantIdAndIdIn(eq(tenantId), any())).thenReturn(List.of(clienteUno));
+
+        var libro = service.generar(tenantId, desde, hasta, null, "25", 0, 100);
+
+        assertEquals(1, libro.filas().size());
+        assertEquals(25L, libro.filas().get(0).ventaId());
+    }
+
+    @Test
+    void unaBusquedaSinCoincidenciasDevuelveListaVaciaYSubtotalesVacios() {
+        List<Venta> ventas = List.of(
+                venta(1L, 1L, TipoDocumentoVenta.FACTURA, false, new BigDecimal("1000"), new BigDecimal("190"), new BigDecimal("1190"))
+        );
+        when(ventaRepository.findByTenantIdAndActivoTrueAndFechaBetweenOrderByFechaAsc(eq(tenantId), any(), any()))
+                .thenReturn(ventas);
+        when(clienteRepository.findByTenantIdAndIdIn(eq(tenantId), any())).thenReturn(List.of(clienteUno));
+
+        var libro = service.generar(tenantId, desde, hasta, null, "no existe nadie así", 0, 100);
+
+        assertTrue(libro.filas().isEmpty());
+        assertTrue(libro.subtotales().isEmpty());
+        assertEquals(0, libro.totalFilas());
+    }
+
+    @Test
+    void paginaLasFilasPeroLosSubtotalesReflejanTodoElResultadoFiltrado() {
+        List<Venta> ventas = List.of(
+                venta(1L, 1L, TipoDocumentoVenta.FACTURA, false, new BigDecimal("1000"), new BigDecimal("190"), new BigDecimal("1190")),
+                venta(2L, 1L, TipoDocumentoVenta.FACTURA, false, new BigDecimal("2000"), new BigDecimal("380"), new BigDecimal("2380")),
+                venta(3L, 1L, TipoDocumentoVenta.FACTURA, false, new BigDecimal("3000"), new BigDecimal("570"), new BigDecimal("3570"))
+        );
+        when(ventaRepository.findByTenantIdAndActivoTrueAndFechaBetweenOrderByFechaAsc(eq(tenantId), any(), any()))
+                .thenReturn(ventas);
+        when(clienteRepository.findByTenantIdAndIdIn(eq(tenantId), any())).thenReturn(List.of(clienteUno));
+
+        var libro = service.generar(tenantId, desde, hasta, null, null, 0, 2);
+
+        assertEquals(2, libro.filas().size());
+        assertEquals(1L, libro.filas().get(0).ventaId());
+        assertEquals(2L, libro.filas().get(1).ventaId());
+        assertEquals(3, libro.totalFilas());
+        assertEquals(0, libro.pagina());
+        assertEquals(2, libro.tamano());
+        // El subtotal/total suma las 3 ventas, no solo las 2 de la página visible.
+        assertEquals(3, libro.totalGeneral().cantidad());
+        assertEquals(new BigDecimal("6000"), libro.totalGeneral().montoNetoAfecto());
+    }
+
+    @Test
+    void laSegundaPaginaTraeElRestoDeLasFilas() {
+        List<Venta> ventas = List.of(
+                venta(1L, 1L, TipoDocumentoVenta.FACTURA, false, new BigDecimal("1000"), new BigDecimal("190"), new BigDecimal("1190")),
+                venta(2L, 1L, TipoDocumentoVenta.FACTURA, false, new BigDecimal("2000"), new BigDecimal("380"), new BigDecimal("2380")),
+                venta(3L, 1L, TipoDocumentoVenta.FACTURA, false, new BigDecimal("3000"), new BigDecimal("570"), new BigDecimal("3570"))
+        );
+        when(ventaRepository.findByTenantIdAndActivoTrueAndFechaBetweenOrderByFechaAsc(eq(tenantId), any(), any()))
+                .thenReturn(ventas);
+        when(clienteRepository.findByTenantIdAndIdIn(eq(tenantId), any())).thenReturn(List.of(clienteUno));
+
+        var libro = service.generar(tenantId, desde, hasta, null, null, 1, 2);
+
+        assertEquals(1, libro.filas().size());
+        assertEquals(3L, libro.filas().get(0).ventaId());
+    }
+
+    @Test
+    void unaPaginaQueSuperaElTotalDevuelveFilasVacias() {
+        when(ventaRepository.findByTenantIdAndActivoTrueAndFechaBetweenOrderByFechaAsc(eq(tenantId), any(), any()))
+                .thenReturn(List.of(venta(1L, 1L, TipoDocumentoVenta.FACTURA, false, new BigDecimal("1000"), new BigDecimal("190"), new BigDecimal("1190"))));
+        when(clienteRepository.findByTenantIdAndIdIn(eq(tenantId), any())).thenReturn(List.of(clienteUno));
+
+        var libro = service.generar(tenantId, desde, hasta, null, null, 5, 10);
+
+        assertTrue(libro.filas().isEmpty());
+        assertEquals(1, libro.totalFilas());
+    }
+
+    @Test
+    void lanzaExcepcionSiLaPaginaEsNegativa() {
+        assertThrows(IllegalArgumentException.class,
+                () -> service.generar(tenantId, desde, hasta, null, null, -1, 10));
+        verifyNoInteractions(ventaRepository);
+    }
+
+    @Test
+    void lanzaExcepcionSiElTamanoEsMenorAUno() {
+        assertThrows(IllegalArgumentException.class,
+                () -> service.generar(tenantId, desde, hasta, null, null, 0, 0));
+        verifyNoInteractions(ventaRepository);
+    }
+
+    @Test
+    void generarCompletoNoPaginaYDevuelveTodasLasFilasQueCalzanConLosFiltros() {
+        List<Venta> ventas = List.of(
+                venta(1L, 1L, TipoDocumentoVenta.FACTURA, false, new BigDecimal("1000"), new BigDecimal("190"), new BigDecimal("1190")),
+                venta(2L, 1L, TipoDocumentoVenta.FACTURA, false, new BigDecimal("2000"), new BigDecimal("380"), new BigDecimal("2380")),
+                venta(3L, 1L, TipoDocumentoVenta.FACTURA, false, new BigDecimal("3000"), new BigDecimal("570"), new BigDecimal("3570"))
+        );
+        when(ventaRepository.findByTenantIdAndActivoTrueAndFechaBetweenOrderByFechaAsc(eq(tenantId), any(), any()))
+                .thenReturn(ventas);
+        when(clienteRepository.findByTenantIdAndIdIn(eq(tenantId), any())).thenReturn(List.of(clienteUno));
+
+        var libro = service.generarCompleto(tenantId, desde, hasta, null, null);
+
+        assertEquals(3, libro.filas().size());
+        assertEquals(3, libro.totalFilas());
+        assertEquals(3, libro.totalGeneral().cantidad());
+    }
+
+    @Test
+    void incluyeElFolioYElCodigoSiiDeCadaVentaYNullParaVoucher() {
+        List<Venta> ventas = List.of(
+                venta(1L, 1L, TipoDocumentoVenta.FACTURA, false, new BigDecimal("1000"), new BigDecimal("190"), new BigDecimal("1190")),
+                venta(2L, 1L, TipoDocumentoVenta.VOUCHER, false, new BigDecimal("500"), BigDecimal.ZERO, new BigDecimal("500"))
+        );
+        when(ventaRepository.findByTenantIdAndActivoTrueAndFechaBetweenOrderByFechaAsc(eq(tenantId), any(), any()))
+                .thenReturn(ventas);
+        when(clienteRepository.findByTenantIdAndIdIn(eq(tenantId), any())).thenReturn(List.of(clienteUno));
+
+        var libro = service.generar(tenantId, desde, hasta, null, null, 0, 100);
+
+        var filaFactura = libro.filas().stream().filter(f -> f.ventaId().equals(1L)).findFirst().orElseThrow();
+        assertEquals(1, filaFactura.folio());
+        assertEquals(33, filaFactura.codigoSii());
+
+        var filaVoucher = libro.filas().stream().filter(f -> f.ventaId().equals(2L)).findFirst().orElseThrow();
+        assertEquals(2, filaVoucher.folio());
+        assertNull(filaVoucher.codigoSii());
     }
 }

@@ -2,7 +2,7 @@ package cl.slimerp.reporteria;
 
 import cl.slimerp.catalogo.Cliente;
 import cl.slimerp.catalogo.ClienteRepository;
-import cl.slimerp.ventas.TipoDocumentoVenta;
+import cl.slimerp.ventas.CodigoSiiVenta;
 import cl.slimerp.ventas.Venta;
 import cl.slimerp.ventas.VentaRepository;
 import org.springframework.stereotype.Service;
@@ -23,8 +23,6 @@ import java.util.stream.Collectors;
 @Service
 public class LibroVentasService {
 
-    private static final List<String> ORDEN_TIPOS =
-            List.of("Factura", "Factura Exenta", "Boleta", "Boleta Exenta", "Voucher");
     private static final BigDecimal CERO = BigDecimal.ZERO.setScale(2);
 
     private final VentaRepository ventaRepository;
@@ -37,6 +35,8 @@ public class LibroVentasService {
 
     public record LibroVentasFila(
             Long ventaId,
+            Integer folio,
+            Integer codigoSii,
             LocalDateTime fecha,
             String tipoDocumento,
             String clienteRut,
@@ -59,12 +59,50 @@ public class LibroVentasService {
     public record LibroVentasResponse(
             LocalDate desde,
             LocalDate hasta,
+            String tipoDocumento,
+            String busqueda,
             List<LibroVentasFila> filas,
             List<LibroVentasSubtotal> subtotales,
-            LibroVentasSubtotal totalGeneral) {
+            LibroVentasSubtotal totalGeneral,
+            long totalFilas,
+            int pagina,
+            int tamano) {
     }
 
-    public LibroVentasResponse generar(Long tenantId, LocalDate desde, LocalDate hasta) {
+    // Página del libro para la pantalla: subtotales/total sobre TODO lo que
+    // calza con los filtros (fecha+tipo+búsqueda), pero "filas" trae solo la
+    // página pedida — así el resumen nunca miente aunque el detalle esté paginado.
+    public LibroVentasResponse generar(Long tenantId, LocalDate desde, LocalDate hasta, String tipoDocumento,
+                                        String busqueda, int pagina, int tamano) {
+        if (pagina < 0) {
+            throw new IllegalArgumentException("La página debe ser 0 o mayor");
+        }
+        if (tamano < 1) {
+            throw new IllegalArgumentException("El tamaño de página debe ser mayor que 0");
+        }
+        String tipoNormalizado = normalizarTipoDocumento(tipoDocumento);
+        List<LibroVentasFila> todasLasFilas = filasFiltradas(tenantId, desde, hasta, tipoNormalizado, busqueda);
+        List<LibroVentasFila> filasPagina = paginar(todasLasFilas, pagina, tamano);
+
+        return new LibroVentasResponse(desde, hasta, tipoNormalizado, busqueda, filasPagina,
+                agruparSubtotales(todasLasFilas), totalizar(todasLasFilas), todasLasFilas.size(), pagina, tamano);
+    }
+
+    // Libro completo sin paginar, para la exportación a Excel: siempre trae
+    // todas las filas que calzan con los filtros, sin importar qué página
+    // esté viendo el usuario en pantalla en ese momento.
+    public LibroVentasResponse generarCompleto(Long tenantId, LocalDate desde, LocalDate hasta,
+                                                String tipoDocumento, String busqueda) {
+        String tipoNormalizado = normalizarTipoDocumento(tipoDocumento);
+        List<LibroVentasFila> todasLasFilas = filasFiltradas(tenantId, desde, hasta, tipoNormalizado, busqueda);
+
+        return new LibroVentasResponse(desde, hasta, tipoNormalizado, busqueda, todasLasFilas,
+                agruparSubtotales(todasLasFilas), totalizar(todasLasFilas), todasLasFilas.size(),
+                0, todasLasFilas.size());
+    }
+
+    private List<LibroVentasFila> filasFiltradas(Long tenantId, LocalDate desde, LocalDate hasta,
+                                                  String tipoNormalizado, String busqueda) {
         if (desde.isAfter(hasta)) {
             throw new IllegalArgumentException("La fecha 'desde' no puede ser posterior a 'hasta'");
         }
@@ -72,7 +110,11 @@ public class LibroVentasService {
         LocalDateTime fin = hasta.atTime(LocalTime.MAX);
 
         List<Venta> ventas = ventaRepository
-                .findByTenantIdAndActivoTrueAndFechaBetweenOrderByFechaAsc(tenantId, inicio, fin);
+                .findByTenantIdAndActivoTrueAndFechaBetweenOrderByFechaAsc(tenantId, inicio, fin)
+                .stream()
+                .filter(v -> tipoNormalizado == null
+                        || CodigoSiiVenta.etiqueta(v.getTipoDocumento(), v.isExento()).equals(tipoNormalizado))
+                .toList();
 
         List<Long> clienteIds = ventas.stream().map(Venta::getClienteId).distinct().toList();
         Map<Long, Cliente> clientesPorId = clienteIds.isEmpty()
@@ -80,11 +122,43 @@ public class LibroVentasService {
                 : clienteRepository.findByTenantIdAndIdIn(tenantId, clienteIds).stream()
                         .collect(Collectors.toMap(Cliente::getId, c -> c));
 
-        List<LibroVentasFila> filas = ventas.stream()
+        return ventas.stream()
                 .map(v -> mapearFila(v, clientesPorId.get(v.getClienteId())))
+                .filter(f -> coincideBusqueda(f, busqueda))
                 .toList();
+    }
 
-        return new LibroVentasResponse(desde, hasta, filas, agruparSubtotales(filas), totalizar(filas));
+    // Busca por nombre o RUT del cliente, o por N° de venta — todo como
+    // substring (no exige coincidencia exacta), igual que el resto de los
+    // buscadores del proyecto.
+    private boolean coincideBusqueda(LibroVentasFila fila, String busqueda) {
+        if (busqueda == null || busqueda.isBlank()) {
+            return true;
+        }
+        String texto = busqueda.trim().toLowerCase();
+        boolean coincideCliente = fila.clienteNombre().toLowerCase().contains(texto)
+                || (fila.clienteRut() != null && fila.clienteRut().toLowerCase().contains(texto));
+        boolean coincideNumero = String.valueOf(fila.ventaId()).contains(texto);
+        return coincideCliente || coincideNumero;
+    }
+
+    private List<LibroVentasFila> paginar(List<LibroVentasFila> filas, int pagina, int tamano) {
+        int desdeIdx = pagina * tamano;
+        if (desdeIdx >= filas.size()) {
+            return List.of();
+        }
+        int hastaIdx = Math.min(desdeIdx + tamano, filas.size());
+        return filas.subList(desdeIdx, hastaIdx);
+    }
+
+    private String normalizarTipoDocumento(String tipoDocumento) {
+        if (tipoDocumento == null || tipoDocumento.isBlank()) {
+            return null;
+        }
+        if (!CodigoSiiVenta.ORDEN_ETIQUETAS.contains(tipoDocumento)) {
+            throw new IllegalArgumentException("Tipo de documento no reconocido: " + tipoDocumento);
+        }
+        return tipoDocumento;
     }
 
     // El neto de una venta va siempre a una sola columna: Afecto si la venta
@@ -92,8 +166,10 @@ public class LibroVentasService {
     private LibroVentasFila mapearFila(Venta venta, Cliente cliente) {
         return new LibroVentasFila(
                 venta.getId(),
+                venta.getFolio(),
+                venta.getCodigoSii(),
                 venta.getFecha(),
-                etiquetaTipoDocumento(venta.getTipoDocumento(), venta.isExento()),
+                CodigoSiiVenta.etiqueta(venta.getTipoDocumento(), venta.isExento()),
                 cliente != null ? cliente.getRut() : null,
                 cliente != null ? cliente.getNombre() : "—",
                 venta.isExento() ? CERO : venta.getMontoNeto(),
@@ -102,22 +178,11 @@ public class LibroVentasService {
                 venta.getMontoTotal());
     }
 
-    // Orden fijo Factura -> Factura Exenta -> Boleta -> Boleta Exenta -> Voucher (no
-    // alfabético ni de aparición) para que el libro se lea siempre igual aunque un
-    // tipo no tenga ventas en el período.
-    static String etiquetaTipoDocumento(TipoDocumentoVenta tipo, boolean exento) {
-        return switch (tipo) {
-            case FACTURA -> exento ? "Factura Exenta" : "Factura";
-            case BOLETA -> exento ? "Boleta Exenta" : "Boleta";
-            case VOUCHER -> "Voucher";
-        };
-    }
-
     private List<LibroVentasSubtotal> agruparSubtotales(List<LibroVentasFila> filas) {
         Map<String, List<LibroVentasFila>> porTipo = filas.stream()
                 .collect(Collectors.groupingBy(LibroVentasFila::tipoDocumento));
 
-        return ORDEN_TIPOS.stream()
+        return CodigoSiiVenta.ORDEN_ETIQUETAS.stream()
                 .filter(porTipo::containsKey)
                 .map(tipo -> subtotalDe(tipo, porTipo.get(tipo)))
                 .toList();

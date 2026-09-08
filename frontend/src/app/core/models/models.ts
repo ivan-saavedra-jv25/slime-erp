@@ -198,6 +198,8 @@ export interface Venta {
   bodegaId: number;
   tipoDocumento: TipoDocumentoVenta;
   exento: boolean;
+  folio: number;
+  codigoSii: number | null;
   fecha: string;
   montoNeto: number;
   montoIva: number;
@@ -209,6 +211,8 @@ export interface Venta {
 
 export interface LibroVentasFila {
   ventaId: number;
+  folio: number;
+  codigoSii: number | null;
   fecha: string;
   tipoDocumento: string;
   clienteRut: string | null;
@@ -231,9 +235,14 @@ export interface LibroVentasSubtotal {
 export interface LibroVentasResponse {
   desde: string;
   hasta: string;
+  tipoDocumento: string | null;
+  busqueda: string | null;
   filas: LibroVentasFila[];
   subtotales: LibroVentasSubtotal[];
   totalGeneral: LibroVentasSubtotal;
+  totalFilas: number;
+  pagina: number;
+  tamano: number;
 }
 
 export interface CompraItem {

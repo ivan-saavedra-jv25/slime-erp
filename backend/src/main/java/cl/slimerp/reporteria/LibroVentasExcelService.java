@@ -26,7 +26,8 @@ public class LibroVentasExcelService {
     private static final String[] ENCABEZADO_SUBTOTALES =
             {"Tipo", "Cantidad", "Neto Afecto", "Neto Exento", "IVA", "Total"};
     private static final String[] ENCABEZADO_DETALLE =
-            {"N°", "Fecha", "Tipo documento", "RUT", "Cliente", "Neto Afecto", "Neto Exento", "IVA", "Total"};
+            {"N°", "Fecha", "Tipo documento", "Folio", "Código SII", "RUT", "Cliente",
+                    "Neto Afecto", "Neto Exento", "IVA", "Total"};
 
     public byte[] generar(LibroVentasService.LibroVentasResponse libro) {
         try (XSSFWorkbook workbook = new XSSFWorkbook()) {
@@ -94,12 +95,16 @@ public class LibroVentasExcelService {
             row.createCell(0).setCellValue(f.ventaId());
             row.createCell(1).setCellValue(f.fecha().format(FORMATO_FECHA_HORA));
             row.createCell(2).setCellValue(f.tipoDocumento());
-            row.createCell(3).setCellValue(f.clienteRut() != null ? f.clienteRut() : "");
-            row.createCell(4).setCellValue(f.clienteNombre());
-            row.createCell(5).setCellValue(f.montoNetoAfecto().doubleValue());
-            row.createCell(6).setCellValue(f.montoNetoExento().doubleValue());
-            row.createCell(7).setCellValue(f.montoIva().doubleValue());
-            row.createCell(8).setCellValue(f.montoTotal().doubleValue());
+            row.createCell(3).setCellValue(f.folio());
+            if (f.codigoSii() != null) {
+                row.createCell(4).setCellValue(f.codigoSii());
+            }
+            row.createCell(5).setCellValue(f.clienteRut() != null ? f.clienteRut() : "");
+            row.createCell(6).setCellValue(f.clienteNombre());
+            row.createCell(7).setCellValue(f.montoNetoAfecto().doubleValue());
+            row.createCell(8).setCellValue(f.montoNetoExento().doubleValue());
+            row.createCell(9).setCellValue(f.montoIva().doubleValue());
+            row.createCell(10).setCellValue(f.montoTotal().doubleValue());
         }
     }
 

@@ -22,21 +22,22 @@ class LibroVentasExcelServiceTest {
 
     private LibroVentasService.LibroVentasResponse libroDeEjemplo() {
         List<LibroVentasService.LibroVentasFila> filas = List.of(
-                new LibroVentasService.LibroVentasFila(1L, LocalDateTime.of(2026, 9, 1, 10, 30), "Factura",
+                new LibroVentasService.LibroVentasFila(1L, 10, 33, LocalDateTime.of(2026, 9, 1, 10, 30), "Factura",
                         "11.111.111-1", "Cliente Uno",
                         new BigDecimal("1000.00"), CERO, new BigDecimal("190.00"), new BigDecimal("1190.00")),
-                new LibroVentasService.LibroVentasFila(2L, LocalDateTime.of(2026, 9, 2, 12, 0), "Boleta",
+                new LibroVentasService.LibroVentasFila(2L, 5, null, LocalDateTime.of(2026, 9, 2, 12, 0), "Voucher",
                         null, "Cliente Sin Rut",
                         new BigDecimal("500.00"), CERO, new BigDecimal("95.00"), new BigDecimal("595.00"))
         );
         List<LibroVentasService.LibroVentasSubtotal> subtotales = List.of(
                 new LibroVentasService.LibroVentasSubtotal("Factura", 1, new BigDecimal("1000.00"), CERO, new BigDecimal("190.00"), new BigDecimal("1190.00")),
-                new LibroVentasService.LibroVentasSubtotal("Boleta", 1, new BigDecimal("500.00"), CERO, new BigDecimal("95.00"), new BigDecimal("595.00"))
+                new LibroVentasService.LibroVentasSubtotal("Voucher", 1, new BigDecimal("500.00"), CERO, new BigDecimal("95.00"), new BigDecimal("595.00"))
         );
         LibroVentasService.LibroVentasSubtotal totalGeneral = new LibroVentasService.LibroVentasSubtotal(
                 "Total", 2, new BigDecimal("1500.00"), CERO, new BigDecimal("285.00"), new BigDecimal("1785.00"));
         return new LibroVentasService.LibroVentasResponse(
-                LocalDate.of(2026, 9, 1), LocalDate.of(2026, 9, 30), filas, subtotales, totalGeneral);
+                LocalDate.of(2026, 9, 1), LocalDate.of(2026, 9, 30), null, null, filas, subtotales, totalGeneral,
+                filas.size(), 0, filas.size());
     }
 
     @Test
@@ -64,39 +65,48 @@ class LibroVentasExcelServiceTest {
             assertEquals(0.00, subtotalFactura.getCell(3).getNumericCellValue(), 0.001);
             assertEquals(1190.00, subtotalFactura.getCell(5).getNumericCellValue(), 0.001);
 
-            Row subtotalBoleta = hoja.getRow(4);
-            assertEquals("Boleta", subtotalBoleta.getCell(0).getStringCellValue());
+            Row subtotalVoucher = hoja.getRow(4);
+            assertEquals("Voucher", subtotalVoucher.getCell(0).getStringCellValue());
 
             Row filaTotal = hoja.getRow(5);
             assertEquals("Total", filaTotal.getCell(0).getStringCellValue());
             assertEquals(1785.00, filaTotal.getCell(5).getNumericCellValue(), 0.001);
 
-            // Fila 6: blank. Fila 7: encabezado detalle. Filas 8+: detalle.
+            // Fila 6: blank. Fila 7: encabezado detalle (N°, Fecha, Tipo documento, Folio,
+            // Código SII, RUT, Cliente, Neto Afecto, Neto Exento, IVA, Total). Filas 8+: detalle.
             Row encabezadoDetalle = hoja.getRow(7);
-            assertEquals("Cliente", encabezadoDetalle.getCell(4).getStringCellValue());
-            assertEquals("Neto Afecto", encabezadoDetalle.getCell(5).getStringCellValue());
-            assertEquals("Neto Exento", encabezadoDetalle.getCell(6).getStringCellValue());
+            assertEquals("Folio", encabezadoDetalle.getCell(3).getStringCellValue());
+            assertEquals("Código SII", encabezadoDetalle.getCell(4).getStringCellValue());
+            assertEquals("Cliente", encabezadoDetalle.getCell(6).getStringCellValue());
+            assertEquals("Neto Afecto", encabezadoDetalle.getCell(7).getStringCellValue());
+            assertEquals("Neto Exento", encabezadoDetalle.getCell(8).getStringCellValue());
 
             Row detalle1 = hoja.getRow(8);
             assertEquals(1.0, detalle1.getCell(0).getNumericCellValue(), 0.001);
             assertEquals("Factura", detalle1.getCell(2).getStringCellValue());
-            assertEquals("11.111.111-1", detalle1.getCell(3).getStringCellValue());
-            assertEquals("Cliente Uno", detalle1.getCell(4).getStringCellValue());
-            assertEquals(1000.00, detalle1.getCell(5).getNumericCellValue(), 0.001);
-            assertEquals(0.00, detalle1.getCell(6).getNumericCellValue(), 0.001);
-            assertEquals(1190.00, detalle1.getCell(8).getNumericCellValue(), 0.001);
+            assertEquals(10.0, detalle1.getCell(3).getNumericCellValue(), 0.001);
+            assertEquals(33.0, detalle1.getCell(4).getNumericCellValue(), 0.001);
+            assertEquals("11.111.111-1", detalle1.getCell(5).getStringCellValue());
+            assertEquals("Cliente Uno", detalle1.getCell(6).getStringCellValue());
+            assertEquals(1000.00, detalle1.getCell(7).getNumericCellValue(), 0.001);
+            assertEquals(0.00, detalle1.getCell(8).getNumericCellValue(), 0.001);
+            assertEquals(1190.00, detalle1.getCell(10).getNumericCellValue(), 0.001);
 
+            // Venta 2 es Voucher: sin código SII (celda de "Código SII" queda sin escribir/null).
             Row detalle2 = hoja.getRow(9);
-            assertEquals("", detalle2.getCell(3).getStringCellValue());
-            assertEquals("Cliente Sin Rut", detalle2.getCell(4).getStringCellValue());
+            assertEquals(5.0, detalle2.getCell(3).getNumericCellValue(), 0.001);
+            assertNull(detalle2.getCell(4));
+            assertEquals("", detalle2.getCell(5).getStringCellValue());
+            assertEquals("Cliente Sin Rut", detalle2.getCell(6).getStringCellValue());
         }
     }
 
     @Test
     void unLibroSinVentasGeneraUnExcelValidoSinFilasDeDetalle() throws IOException {
         LibroVentasService.LibroVentasResponse libroVacio = new LibroVentasService.LibroVentasResponse(
-                LocalDate.of(2026, 9, 1), LocalDate.of(2026, 9, 30), List.of(), List.of(),
-                new LibroVentasService.LibroVentasSubtotal("Total", 0, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO));
+                LocalDate.of(2026, 9, 1), LocalDate.of(2026, 9, 30), null, null, List.of(), List.of(),
+                new LibroVentasService.LibroVentasSubtotal("Total", 0, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO),
+                0, 0, 0);
 
         byte[] excel = service.generar(libroVacio);
 

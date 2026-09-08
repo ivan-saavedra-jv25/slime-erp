@@ -28,16 +28,23 @@ public class LibroVentasController {
     @PreAuthorize("hasAuthority('VENTAS_VER')")
     public LibroVentasService.LibroVentasResponse libroVentas(
             @RequestParam LocalDate desde,
-            @RequestParam LocalDate hasta) {
-        return libroVentasService.generar(TenantContext.getTenantId(), desde, hasta);
+            @RequestParam LocalDate hasta,
+            @RequestParam(required = false) String tipoDocumento,
+            @RequestParam(required = false) String q,
+            @RequestParam(defaultValue = "0") int pagina,
+            @RequestParam(defaultValue = "10") int tamano) {
+        return libroVentasService.generar(TenantContext.getTenantId(), desde, hasta, tipoDocumento, q, pagina, tamano);
     }
 
     @GetMapping("/libro-ventas/excel")
     @PreAuthorize("hasAuthority('VENTAS_VER')")
     public ResponseEntity<byte[]> libroVentasExcel(
             @RequestParam LocalDate desde,
-            @RequestParam LocalDate hasta) {
-        LibroVentasService.LibroVentasResponse libro = libroVentasService.generar(TenantContext.getTenantId(), desde, hasta);
+            @RequestParam LocalDate hasta,
+            @RequestParam(required = false) String tipoDocumento,
+            @RequestParam(required = false) String q) {
+        LibroVentasService.LibroVentasResponse libro =
+                libroVentasService.generarCompleto(TenantContext.getTenantId(), desde, hasta, tipoDocumento, q);
         byte[] excel = libroVentasExcelService.generar(libro);
         String nombreArchivo = "libro-ventas-" + desde + "-a-" + hasta + ".xlsx";
         return ResponseEntity.ok()

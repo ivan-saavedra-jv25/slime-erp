@@ -62,7 +62,11 @@ public class VentaPdfService {
             Font fuenteSubtitulo = FontFactory.getFont(FontFactory.HELVETICA, 11);
             Font fuenteNegrita = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 11);
 
-            document.add(new Paragraph(etiquetaDocumento(venta) + " N° " + venta.getId(), fuenteTitulo));
+            String tituloDocumento = etiquetaDocumento(venta) + " N° " + venta.getFolio();
+            if (venta.getCodigoSii() != null) {
+                tituloDocumento += " (SII " + venta.getCodigoSii() + ")";
+            }
+            document.add(new Paragraph(tituloDocumento, fuenteTitulo));
             document.add(new Paragraph(tenant.getNombre() + " - RUT " + tenant.getRut(), fuenteSubtitulo));
             document.add(new Paragraph("Fecha: " + venta.getFecha().format(FORMATO_FECHA), fuenteSubtitulo));
             document.add(new Paragraph(" "));
@@ -115,11 +119,7 @@ public class VentaPdfService {
     }
 
     private String etiquetaDocumento(Venta venta) {
-        return switch (venta.getTipoDocumento()) {
-            case BOLETA -> "Boleta";
-            case FACTURA -> "Factura";
-            case VOUCHER -> "Voucher";
-        };
+        return CodigoSiiVenta.etiqueta(venta.getTipoDocumento(), venta.isExento());
     }
 
     private void agregarCelda(PdfPTable tabla, String texto) {

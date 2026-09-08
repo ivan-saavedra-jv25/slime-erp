@@ -59,6 +59,8 @@ class VentaPdfServiceTest {
                 .formaPagoId(1L)
                 .bodegaId(1L)
                 .tipoDocumento(TipoDocumentoVenta.BOLETA)
+                .folio(12)
+                .codigoSii(39)
                 .montoNeto(new BigDecimal("1000"))
                 .montoIva(new BigDecimal("190"))
                 .montoTotal(new BigDecimal("1190"))

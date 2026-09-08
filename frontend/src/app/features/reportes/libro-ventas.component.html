@@ -17,6 +17,15 @@
       <label for="hasta">Hasta<span class="required-mark">*</span></label>
       <input id="hasta" type="date" [(ngModel)]="hasta" name="hasta" />
     </div>
+    <div class="form-group">
+      <label for="tipoDocumento">Tipo de documento</label>
+      <select id="tipoDocumento" name="tipoDocumento" [(ngModel)]="tipoDocumento">
+        <option [ngValue]="null">Todos los tipos</option>
+        @for (tipo of tiposDocumento; track tipo) {
+          <option [ngValue]="tipo">{{ tipo }}</option>
+        }
+      </select>
+    </div>
   </div>
   <div class="form-actions form-actions--start">
     <button type="button" mat-flat-button color="primary" [disabled]="cargando" (click)="consultar()">
@@ -26,7 +35,7 @@
   </div>
 </mat-card>
 
-@if (libro && libro.filas.length) {
+@if (libro && libro.totalFilas) {
   <mat-card class="form-panel">
     <h2>Resumen por tipo de documento</h2>
     <div class="table-scroll">
@@ -72,7 +81,7 @@
     <button
       type="button"
       mat-stroked-button
-      [disabled]="!libro || !libro.filas.length || exportando"
+      [disabled]="!libro || !libro.totalFilas || exportando"
       (click)="exportarExcel()"
     >
       <mat-icon>download</mat-icon>
@@ -80,13 +89,24 @@
     </button>
   </div>
 
-  @if (cargando) {
+  <div class="form-group detalle-buscador">
+    <label for="busqueda">Buscar</label>
+    <input
+      id="busqueda"
+      name="busqueda"
+      placeholder="Cliente, RUT o N° de venta..."
+      [(ngModel)]="busqueda"
+      (ngModelChange)="onBusquedaChange()"
+    />
+  </div>
+
+  @if (cargando && !libro) {
     <p class="empty-state">Consultando ventas...</p>
   }
-  @if (!cargando && libro && !libro.filas.length) {
-    <p class="empty-state">No hay ventas en el período seleccionado.</p>
+  @if (libro && !libro.totalFilas) {
+    <p class="empty-state">No hay ventas que coincidan con el período y la búsqueda.</p>
   }
-  @if (!cargando && libro && libro.filas.length) {
+  @if (libro && libro.totalFilas) {
     <div class="table-scroll">
       <table class="libro-table">
         <thead>
@@ -94,6 +114,8 @@
             <th>N°</th>
             <th>Fecha</th>
             <th>Tipo documento</th>
+            <th class="right">Folio</th>
+            <th>Código SII</th>
             <th>RUT</th>
             <th>Cliente</th>
             <th class="right">Neto Afecto</th>
@@ -108,6 +130,8 @@
               <td>{{ f.ventaId }}</td>
               <td>{{ f.fecha | date: 'short' }}</td>
               <td>{{ f.tipoDocumento }}</td>
+              <td class="right">{{ f.folio }}</td>
+              <td>{{ f.codigoSii || '—' }}</td>
               <td>{{ f.clienteRut || '—' }}</td>
               <td>{{ f.clienteNombre }}</td>
               <td class="right">{{ f.montoNetoAfecto | moneda }}</td>
@@ -119,5 +143,14 @@
         </tbody>
       </table>
     </div>
+    <mat-paginator
+      [length]="libro.totalFilas"
+      [pageIndex]="paginaActual"
+      [pageSize]="tamanoPagina"
+      [pageSizeOptions]="opcionesTamano"
+      [disabled]="cargando"
+      (page)="onPageChange($event)"
+      showFirstLastButtons
+    ></mat-paginator>
   }
 </mat-card>
