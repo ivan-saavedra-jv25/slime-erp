@@ -39,7 +39,7 @@ class EmpresaAdminControllerTest {
         EmpresaResponse empresa = new EmpresaResponse(
                 1L, "Empresa Demo", "76.123.456-7", null, "basico", "ACTIVE", true,
                 LocalDateTime.now(), null, 3L, java.math.BigDecimal.ZERO);
-        when(service.listar(0, 10, null, null, null, "ACTIVE", null, null))
+        when(service.listar(0, 10, null, null, null, null, "ACTIVE", null, null))
                 .thenReturn(new Paginated<>(List.of(empresa), 1, 1, 0, 10));
 
         mvc.perform(get("/api/admin/empresas").param("estado", "ACTIVE"))
@@ -48,7 +48,7 @@ class EmpresaAdminControllerTest {
                 .andExpect(jsonPath("$.totalElements").value(1))
                 .andExpect(jsonPath("$.totalPages").value(1));
 
-        verify(service).listar(eq(0), eq(10), any(), any(), any(), eq("ACTIVE"), any(), any());
+        verify(service).listar(eq(0), eq(10), any(), any(), any(), any(), eq("ACTIVE"), any(), any());
     }
 
     @Test

@@ -1,0 +1,98 @@
+.empresa-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  h1 {
+    margin: 0;
+  }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+
+    .estado-select {
+      border: 1px solid var(--border-color, #d0d5dd);
+      border-radius: 8px;
+      padding: 0.5rem 0.6rem;
+      font-family: inherit;
+      font-size: 0.9rem;
+    }
+  }
+}
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+
+  .kpi-card {
+    background: #fff;
+    border: 1px solid var(--border-color, #e3e6ea);
+    border-radius: 12px;
+    padding: 1rem 1.1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+
+    .kpi-label {
+      color: var(--text-secondary, #5b6472);
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .kpi-value {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--text-primary, #1c2333);
+
+      small {
+        font-size: 0.8rem;
+        font-weight: 500;
+        color: var(--text-secondary, #5b6472);
+      }
+    }
+  }
+}
+
+.tab-body {
+  padding: 1.25rem;
+}
+
+.datos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
+
+  .dato {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    padding: 0.6rem 0.8rem;
+    background: var(--surface-muted, #f6f7f9);
+    border-radius: 8px;
+
+    span {
+      color: var(--text-secondary, #5b6472);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    strong {
+      color: var(--text-primary, #1c2333);
+      font-size: 0.95rem;
+    }
+  }
+}

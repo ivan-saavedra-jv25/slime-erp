@@ -12,7 +12,7 @@ import {
 } from '../models/models';
 
 @Injectable({ providedIn: 'root' })
-export class EmpresaService {
+export class EmpresaAdminService {
   private readonly base = `${environment.adminApiUrl}/admin/empresas`;
 
   constructor(private http: HttpClient) {}
@@ -22,6 +22,7 @@ export class EmpresaService {
     if (filtros) {
       if (filtros.page !== undefined) params = params.set('page', filtros.page);
       if (filtros.limit !== undefined) params = params.set('limit', filtros.limit);
+      if (filtros.id !== undefined) params = params.set('id', filtros.id);
       if (filtros.rut) params = params.set('rut', filtros.rut);
       if (filtros.razonSocial) params = params.set('razonSocial', filtros.razonSocial);
       if (filtros.nombreComercial) params = params.set('nombreComercial', filtros.nombreComercial);

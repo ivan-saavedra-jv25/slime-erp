@@ -1,0 +1,114 @@
+<div class="page-header empresa-header">
+  <div class="header-left">
+    <button mat-icon-button (click)="volver()" aria-label="Volver">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <div>
+      <h1>{{ empresa?.nombre ?? 'Detalle de empresa' }}</h1>
+      <p class="page-subtitle">
+        @if (empresa) {
+          RUT {{ empresa.rut }} · ID {{ empresa.id }}
+        }
+      </p>
+    </div>
+  </div>
+  @if (empresa) {
+    <div class="header-actions">
+      <span [class]="'tag ' + claseEstado(empresa.status)">{{ etiquetaEstado(empresa.status) }}</span>
+      <select [(ngModel)]="nuevoEstado" name="nuevoEstado" class="estado-select">
+        <option value="">Cambiar estado…</option>
+        @for (estado of estados; track estado) {
+          <option [value]="estado">{{ etiquetaEstado(estado) }}</option>
+        }
+      </select>
+      <button mat-flat-button color="primary" [disabled]="!nuevoEstado" (click)="confirmarCambioEstado()">
+        Aplicar
+      </button>
+    </div>
+  }
+</div>
+
+@if (error) {
+  <div class="alert error">{{ error }}</div>
+}
+
+@if (cargando) {
+  <div class="empty-state">Cargando detalle…</div>
+} @else if (empresa) {
+  <section class="kpi-grid">
+    <div class="kpi-card">
+      <span class="kpi-label">Usuarios</span>
+      <span class="kpi-value">{{ empresa.usuariosActivos }}<small> de {{ empresa.usuariosTotales }}</small></span>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-label">Documentos emitidos</span>
+      <span class="kpi-value">—</span>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-label">Último acceso</span>
+      <span class="kpi-value">{{ (empresa.lastAccessAt | slice:0:10) || '—' }}</span>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-label">Estado SII</span>
+      <span class="kpi-value">—</span>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-label">Suscripción</span>
+      <span class="kpi-value">{{ empresa.suscripcionEstado || '—' }}</span>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-label">Alertas</span>
+      <span class="kpi-value">{{ empresa.alertasAbiertas }}</span>
+    </div>
+  </section>
+
+  <mat-card class="table-panel">
+    <mat-tab-group animationDuration="0ms">
+      <mat-tab label="Resumen">
+        <div class="tab-body">
+          <div class="datos-grid">
+            <div class="dato"><span>Razón social</span><strong>{{ empresa.nombre }}</strong></div>
+            <div class="dato"><span>Nombre comercial</span><strong>{{ empresa.businessName || '—' }}</strong></div>
+            <div class="dato"><span>RUT</span><strong>{{ empresa.rut }}</strong></div>
+            <div class="dato"><span>Estado</span><strong>{{ etiquetaEstado(empresa.status) }}</strong></div>
+            <div class="dato"><span>Plan</span><strong>{{ empresa.plan || '—' }}</strong></div>
+            <div class="dato"><span>Saldo pendiente</span><strong>{{ empresa.saldoPendiente }}</strong></div>
+            <div class="dato"><span>Fecha de creación</span><strong>{{ (empresa.fechaAlta | slice:0:10) || '—' }}</strong></div>
+            <div class="dato"><span>Último acceso</span><strong>{{ (empresa.lastAccessAt | slice:0:10) || '—' }}</strong></div>
+          </div>
+        </div>
+      </mat-tab>
+      <mat-tab label="Información">
+        <div class="tab-body empty-state">La información comercial (giro, dirección) se incorporará próximamente.</div>
+      </mat-tab>
+      <mat-tab label="Usuarios">
+        <div class="tab-body empty-state">El detalle de usuarios estará disponible en una próxima etapa.</div>
+      </mat-tab>
+      <mat-tab label="Suscripción">
+        <div class="tab-body empty-state">No existen suscripciones registradas para esta empresa.</div>
+      </mat-tab>
+      <mat-tab label="Pagos">
+        <div class="tab-body empty-state">No existen pagos registrados para esta empresa.</div>
+      </mat-tab>
+      <mat-tab label="DTE">
+        <div class="tab-body empty-state">El monitoreo de documentos tributarios estará disponible próximamente.</div>
+      </mat-tab>
+      <mat-tab label="SII">
+        <div class="tab-body empty-state">El estado SII se incorporará en una próxima etapa.</div>
+      </mat-tab>
+      <mat-tab label="Actividad">
+        <div class="tab-body empty-state">No hay actividad registrada.</div>
+      </mat-tab>
+      <mat-tab label="Alertas">
+        <div class="tab-body empty-state">
+          {{ empresa.alertasAbiertas > 0 ? empresa.alertasAbiertas + ' alerta(s) abierta(s).' : 'No existen alertas abiertas.' }}
+        </div>
+      </mat-tab>
+      <mat-tab label="Soporte">
+        <div class="tab-body empty-state">No existen tickets de soporte para esta empresa.</div>
+      </mat-tab>
+    </mat-tab-group>
+  </mat-card>
+} @else {
+  <div class="empty-state">No se encontró la empresa.</div>
+}

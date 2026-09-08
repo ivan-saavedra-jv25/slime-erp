@@ -26,6 +26,13 @@ export const routes: Routes = [
           import('./features/admin/admin-empresas.component').then((m) => m.AdminEmpresasComponent),
       },
       {
+        path: 'empresas/:id',
+        loadComponent: () =>
+          import('./features/admin/empresas-detalle/empresas-detalle.component').then(
+            (m) => m.EmpresasDetalleComponent
+          ),
+      },
+      {
         path: 'usuarios',
         loadComponent: () =>
           import('./features/admin/admin-usuarios.component').then((m) => m.AdminUsuariosComponent),

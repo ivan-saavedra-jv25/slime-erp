@@ -1,27 +1,27 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideHttpClient } from '@angular/common/http';
-import { EmpresaService } from './empresa.service';
+import { EmpresaAdminService } from './empresa-admin.service';
 import { environment } from '../../../environments/environment';
 
-describe('EmpresaService', () => {
-  let service: EmpresaService;
+describe('EmpresaAdminService', () => {
+  let service: EmpresaAdminService;
   let httpMock: HttpTestingController;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [provideHttpClient(), provideHttpClientTesting()],
     });
-    service = TestBed.inject(EmpresaService);
+    service = TestBed.inject(EmpresaAdminService);
     httpMock = TestBed.inject(HttpTestingController);
   });
 
   afterEach(() => httpMock.verify());
 
   it('listar hace GET con parámetros de filtro a /admin/empresas', () => {
-    service.listar({ page: 0, limit: 10, estado: 'ACTIVE', razonSocial: 'Demo' }).subscribe();
+    service.listar({ page: 0, limit: 10, id: 7, estado: 'ACTIVE', razonSocial: 'Demo' }).subscribe();
     const req = httpMock.expectOne(
-      `${environment.adminApiUrl}/admin/empresas?page=0&limit=10&razonSocial=Demo&estado=ACTIVE`
+      `${environment.adminApiUrl}/admin/empresas?page=0&limit=10&id=7&razonSocial=Demo&estado=ACTIVE`
     );
     expect(req.request.method).toBe('GET');
     req.flush({ content: [], totalElements: 0, totalPages: 0, number: 0, size: 10 });
@@ -31,14 +31,6 @@ describe('EmpresaService', () => {
     service.detalle(5).subscribe();
     const req = httpMock.expectOne(`${environment.adminApiUrl}/admin/empresas/5`);
     expect(req.request.method).toBe('GET');
-    req.flush({});
-  });
-
-  it('cambiarEstado hace PATCH a /admin/empresas/{id}/estado', () => {
-    service.cambiarEstado(5, { estado: 'SUSPENDED', motivo: 'Impago' }).subscribe();
-    const req = httpMock.expectOne(`${environment.adminApiUrl}/admin/empresas/5/estado`);
-    expect(req.request.method).toBe('PATCH');
-    expect(req.request.body).toEqual({ estado: 'SUSPENDED', motivo: 'Impago' });
     req.flush({});
   });
 
@@ -62,6 +54,14 @@ describe('EmpresaService', () => {
     service.desactivar(5).subscribe();
     const req = httpMock.expectOne(`${environment.adminApiUrl}/admin/empresas/5/desactivar`);
     expect(req.request.method).toBe('PATCH');
+    req.flush({});
+  });
+
+  it('cambiarEstado hace PATCH a /admin/empresas/{id}/estado', () => {
+    service.cambiarEstado(5, { estado: 'SUSPENDED', motivo: 'Impago' }).subscribe();
+    const req = httpMock.expectOne(`${environment.adminApiUrl}/admin/empresas/5/estado`);
+    expect(req.request.method).toBe('PATCH');
+    expect(req.request.body).toEqual({ estado: 'SUSPENDED', motivo: 'Impago' });
     req.flush({});
   });
 });

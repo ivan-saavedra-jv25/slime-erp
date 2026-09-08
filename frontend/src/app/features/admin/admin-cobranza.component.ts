@@ -6,7 +6,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
 import { CobranzaService } from '../../core/services/cobranza.service';
-import { EmpresaService } from '../../core/services/empresa.service';
+import { EmpresaAdminService } from '../../core/services/empresa-admin.service';
 import { CobranzaEmpresa, EstadoCobranza, Empresa, ResumenCobranza } from '../../core/models/models';
 import { MonedaPipe } from '../../core/pipes/moneda.pipe';
 
@@ -51,7 +51,7 @@ export class AdminCobranzaComponent implements OnInit {
 
   constructor(
     private cobranzaService: CobranzaService,
-    private empresaService: EmpresaService
+    private empresaService: EmpresaAdminService
   ) {}
 
   ngOnInit(): void {

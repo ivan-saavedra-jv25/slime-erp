@@ -25,6 +25,7 @@ public class EmpresaAdminController {
     public Paginated<EmpresaResponse> listar(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int limit,
+            @RequestParam(required = false) Long id,
             @RequestParam(required = false) String rut,
             @RequestParam(required = false) String razonSocial,
             @RequestParam(required = false) String nombreComercial,
@@ -32,7 +33,7 @@ public class EmpresaAdminController {
             @RequestParam(required = false) String plan,
             @RequestParam(required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fechaCreacionDesde) {
-        return empresaAdminService.listar(page, limit, rut, razonSocial, nombreComercial,
+        return empresaAdminService.listar(page, limit, id, rut, razonSocial, nombreComercial,
                 estado, plan, fechaCreacionDesde);
     }
 

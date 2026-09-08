@@ -56,10 +56,13 @@ public class EmpresaAdminService {
         this.alertaRepository = alertaRepository;
     }
 
-    public Paginated<EmpresaResponse> listar(int page, int limit, String rut, String razonSocial,
+    public Paginated<EmpresaResponse> listar(int page, int limit, Long id, String rut, String razonSocial,
                                              String nombreComercial, String estado, String plan,
                                              LocalDateTime fechaCreacionDesde) {
         Specification<Tenant> spec = (root, query, cb) -> cb.notEqual(root.get("plan"), PLAN_PLATAFORMA);
+        if (id != null) {
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("id"), id));
+        }
         if (rut != null && !rut.isBlank()) {
             spec = spec.and((root, query, cb) -> cb.like(cb.lower(root.get("rut")), "%" + rut.toLowerCase() + "%"));
         }

@@ -130,7 +130,7 @@ class EmpresaAdminServiceTest {
         Page<Tenant> pagina = new PageImpl<>(List.of(negocio), PageRequest.of(0, 10), 1);
         when(tenantRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(pagina);
 
-        Paginated<EmpresaResponse> resultado = service.listar(0, 10, null, null, null, null, null, null);
+        Paginated<EmpresaResponse> resultado = service.listar(0, 10, null, null, null, null, null, null, null);
 
         assertEquals(1, resultado.totalElements());
         assertEquals(1, resultado.totalPages());
@@ -138,6 +138,19 @@ class EmpresaAdminServiceTest {
         assertEquals("Empresa Demo", resultado.content().get(0).nombre());
         verify(tenantRepository).findAll(any(Specification.class), eq(PageRequest.of(0, 10, org.springframework.data.domain.Sort.by(
                 org.springframework.data.domain.Sort.Direction.DESC, "fechaAlta"))));
+    }
+
+    @Test
+    void listarPorIdFiltraEnBackend() {
+        Tenant negocio = Tenant.builder().id(7L).nombre("Empresa Demo").rut("76.123.456-7")
+                .plan("basico").status("ACTIVE").build();
+        Page<Tenant> pagina = new PageImpl<>(List.of(negocio), PageRequest.of(0, 10), 1);
+        when(tenantRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(pagina);
+
+        Paginated<EmpresaResponse> resultado = service.listar(0, 10, 7L, null, null, null, null, null, null);
+
+        assertEquals(7L, resultado.content().get(0).id());
+        verify(tenantRepository).findAll(any(Specification.class), any(Pageable.class));
     }
 
     @Test

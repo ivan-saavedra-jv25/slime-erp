@@ -1,0 +1,22 @@
+<h2 mat-dialog-title class="confirm-title">{{ data.titulo }}</h2>
+<mat-dialog-content class="confirm-content">
+  <p class="confirm-text">
+    ¿Está seguro? <strong>{{ data.entidad }}</strong> — {{ data.accion }}.
+  </p>
+  <div class="form-group">
+    <label for="motivo">Motivo *</label>
+    <textarea
+      id="motivo"
+      rows="3"
+      placeholder="Indica el motivo de la acción (se registrará en la auditoría)"
+      [(ngModel)]="motivo"
+      name="motivo"
+    ></textarea>
+  </div>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-stroked-button (click)="cancelar()">Cancelar</button>
+  <button mat-flat-button color="primary" [disabled]="!motivo.trim()" (click)="confirmar()">
+    Confirmar
+  </button>
+</mat-dialog-actions>

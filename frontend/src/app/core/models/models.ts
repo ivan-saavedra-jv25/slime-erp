@@ -390,6 +390,7 @@ export interface EmpresaDetalle extends Empresa {
 export interface EmpresaFiltros {
   page?: number;
   limit?: number;
+  id?: number;
   rut?: string;
   razonSocial?: string;
   nombreComercial?: string;

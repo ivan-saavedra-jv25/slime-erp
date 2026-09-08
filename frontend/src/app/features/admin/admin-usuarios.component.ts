@@ -5,7 +5,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
-import { EmpresaService } from '../../core/services/empresa.service';
+import { EmpresaAdminService } from '../../core/services/empresa-admin.service';
 import { UsuarioPlataformaService, UsuarioAdminRequest } from '../../core/services/usuario-plataforma.service';
 import { Empresa, Rol, UsuarioPlataforma } from '../../core/models/models';
 
@@ -50,7 +50,7 @@ export class AdminUsuariosComponent implements OnInit {
   rol: Rol = 'VENDEDOR';
 
   constructor(
-    private empresaService: EmpresaService,
+    private empresaService: EmpresaAdminService,
     private usuarioPlataformaService: UsuarioPlataformaService
   ) {}
 

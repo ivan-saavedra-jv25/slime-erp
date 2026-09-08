@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatTableModule } from '@angular/material/table';
@@ -6,7 +6,11 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
-import { EmpresaService } from '../../core/services/empresa.service';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { Router, ActivatedRoute } from '@angular/router';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { EmpresaAdminService } from '../../core/services/empresa-admin.service';
 import {
   Empresa,
   CrearEmpresaRequest,
@@ -14,6 +18,7 @@ import {
   ESTADOS_EMPRESA,
   ETIQUETAS_ESTADO_EMPRESA,
 } from '../../core/models/models';
+import { ConfirmActionDialog } from '../../core/components/confirm-action-dialog/confirm-action-dialog.component';
 import { MonedaPipe } from '../../core/pipes/moneda.pipe';
 
 @Component({
@@ -27,12 +32,13 @@ import { MonedaPipe } from '../../core/pipes/moneda.pipe';
     MatIconModule,
     MatCardModule,
     MatPaginatorModule,
+    MatDialogModule,
     MonedaPipe,
   ],
   templateUrl: './admin-empresas.component.html',
   styleUrl: './admin-empresas.component.scss',
 })
-export class AdminEmpresasComponent implements OnInit {
+export class AdminEmpresasComponent implements OnInit, OnDestroy {
   columnas = ['nombre', 'rut', 'plan', 'usuariosActivos', 'saldoPendiente', 'status', 'fechaAlta', 'acciones'];
   empresas: Empresa[] = [];
   error = '';
@@ -57,20 +63,45 @@ export class AdminEmpresasComponent implements OnInit {
   adminEmail = '';
   adminPassword = '';
 
-  constructor(private empresaService: EmpresaService) {}
+  private readonly busqueda$ = new Subject<string>();
+  private readonly dialog = inject(MatDialog);
+  private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
+
+  constructor(private empresaService: EmpresaAdminService) {}
 
   ngOnInit(): void {
+    this.recuperarEstadoDesdeURL();
+    this.busqueda$.pipe(debounceTime(400), distinctUntilChanged()).subscribe(() => this.aplicarFiltros());
     this.cargar();
+  }
+
+  ngOnDestroy(): void {
+    this.busqueda$.complete();
+  }
+
+  recuperarEstadoDesdeURL(): void {
+    const qp = this.route.snapshot.queryParamMap;
+    this.filtroTexto = qp.get('q') ?? '';
+    this.filtroEstado = (qp.get('estado') as EstadoEmpresa | '') ?? '';
+    this.pagina = Number(qp.get('page') ?? 0) || 0;
+    this.tamanio = Number(qp.get('limit') ?? 10) || 10;
+  }
+
+  onBusqueda(): void {
+    this.busqueda$.next(this.filtroTexto);
   }
 
   cargar(): void {
     const texto = this.filtroTexto.trim();
+    const idBusqueda = /^\d+$/.test(texto) ? Number(texto) : undefined;
     this.empresaService
       .listar({
         page: this.pagina,
         limit: this.tamanio,
-        ...(texto ? { razonSocial: texto } : {}),
+        ...(idBusqueda !== undefined ? { id: idBusqueda } : {}),
         ...(this.filtroEstado ? { estado: this.filtroEstado } : {}),
+        ...(texto && idBusqueda === undefined ? { razonSocial: texto } : {}),
       })
       .subscribe({
         next: (p) => {
@@ -84,13 +115,32 @@ export class AdminEmpresasComponent implements OnInit {
 
   aplicarFiltros(): void {
     this.pagina = 0;
+    this.persistirEstado();
     this.cargar();
   }
 
   onPagina(evento: PageEvent): void {
     this.pagina = evento.pageIndex;
     this.tamanio = evento.pageSize;
+    this.persistirEstado();
     this.cargar();
+  }
+
+  private persistirEstado(): void {
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: {
+        q: this.filtroTexto.trim() || null,
+        estado: this.filtroEstado || null,
+        page: this.pagina || null,
+        limit: this.tamanio !== 10 ? this.tamanio : null,
+      },
+      queryParamsHandling: 'merge',
+    });
+  }
+
+  irDetalle(empresa: Empresa): void {
+    this.router.navigate(['/admin/empresas', empresa.id]);
   }
 
   etiquetaEstado(estado: EstadoEmpresa): string {
@@ -122,15 +172,27 @@ export class AdminEmpresasComponent implements OnInit {
 
   confirmarCambioEstado(empresa: Empresa): void {
     if (!this.nuevoEstado) return;
-    this.empresaService.cambiarEstado(empresa.id, { estado: this.nuevoEstado, motivo: 'Cambio desde consola admin' }).subscribe({
-      next: () => {
-        this.cambiandoEstadoId = null;
-        this.nuevoEstado = '';
-        this.cargar();
+    const dialogRef = this.dialog.open(ConfirmActionDialog, {
+      width: '460px',
+      data: {
+        titulo: `${ETIQUETAS_ESTADO_EMPRESA[this.nuevoEstado]} empresa`,
+        entidad: empresa.nombre,
+        accion: `Cambiar el estado a "${ETIQUETAS_ESTADO_EMPRESA[this.nuevoEstado]}"`,
       },
-      error: (err) => {
-        this.error = err?.error?.error ?? 'Ocurrió un error al cambiar el estado.';
-      },
+    });
+    dialogRef.afterClosed().subscribe((motivo?: string) => {
+      if (!motivo) return;
+      this.empresaService.cambiarEstado(empresa.id, { estado: this.nuevoEstado as EstadoEmpresa, motivo }).subscribe({
+        next: () => {
+          this.cambiandoEstadoId = null;
+          this.nuevoEstado = '';
+          this.error = '';
+          this.cargar();
+        },
+        error: (err) => {
+          this.error = err?.error?.error ?? 'Ocurrió un error al cambiar el estado.';
+        },
+      });
     });
   }
 
@@ -155,19 +217,6 @@ export class AdminEmpresasComponent implements OnInit {
       },
       error: (err) => {
         this.guardando = false;
-        this.error = err?.error?.error ?? 'Ocurrió un error. Intenta nuevamente.';
-      },
-    });
-  }
-
-  toggleEstado(empresa: Empresa): void {
-    const accion = empresa.activo ? this.empresaService.desactivar(empresa.id) : this.empresaService.activar(empresa.id);
-    accion.subscribe({
-      next: () => {
-        this.error = '';
-        this.cargar();
-      },
-      error: (err) => {
         this.error = err?.error?.error ?? 'Ocurrió un error. Intenta nuevamente.';
       },
     });
