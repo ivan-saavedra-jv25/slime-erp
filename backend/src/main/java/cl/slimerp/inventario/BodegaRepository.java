@@ -16,6 +16,8 @@ public interface BodegaRepository extends JpaRepository<Bodega, Long> {
 
     Optional<Bodega> findByTenantIdAndPrincipalTrueAndActivoTrue(Long tenantId);
 
+    Optional<Bodega> findFirstByTenantIdAndNombreIgnoreCaseAndActivoTrue(Long tenantId, String nombre);
+
     // Ver la nota en ProductoRepository.buscar(): "busqueda" siempre trae el
     // patrón LIKE ya armado para evitar comparar contra un parámetro nulo.
     @Query("""

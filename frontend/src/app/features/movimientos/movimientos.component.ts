@@ -1,40 +1,53 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
-import { Bodega, MovimientoItem, Producto, TipoMovimiento } from '../../core/models/models';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { Bodega, MovimientoItem, Producto, TipoMovimiento, UsuarioBasico } from '../../core/models/models';
 import { BodegaService } from '../../core/services/bodega.service';
 import { ProductoService } from '../../core/services/producto.service';
-import { MovimientoService } from '../../core/services/movimiento.service';
+import { ImportItemResuelto, ImportResultado, MovimientoService } from '../../core/services/movimiento.service';
 import { AuthService } from '../../core/services/auth.service';
+import { UsuarioService } from '../../core/services/usuario.service';
+import { ProductoRapidoDialogComponent, ProductoRapidoDialogData } from './producto-rapido-dialog.component';
 
 @Component({
   selector: 'app-movimientos',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, MatButtonModule, MatIconModule, MatCardModule],
+  imports: [CommonModule, FormsModule, RouterLink, MatButtonModule, MatIconModule, MatCardModule, MatDialogModule],
   templateUrl: './movimientos.component.html',
   styleUrl: './movimientos.component.scss',
 })
-export class MovimientosComponent implements OnInit {
+export class MovimientosComponent implements OnInit, OnDestroy {
   bodegas: Bodega[] = [];
-  productos: Producto[] = [];
+  usuarios: UsuarioBasico[] = [];
+  productosResultados: Producto[] = [];
+  productosTotal = 0;
+  // Map ligero (no Producto completo) para poder registrar también los productos
+  // resueltos por la carga masiva de Excel, que solo trae nombre/sku, no el producto entero.
+  private readonly productosConocidos = new Map<number, { nombre: string; sku: string | null }>();
+  private readonly busquedaProducto$ = new Subject<string>();
+  private busquedaEnCurso = false;
 
   tipo: TipoMovimiento = 'ENTRADA';
   bodegaOrigenId: number | null = null;
   bodegaDestinoId: number | null = null;
   observacion = '';
+  responsableId: number | null = null;
   items: MovimientoItem[] = [];
   guardando = false;
   mensaje = '';
   error = '';
 
   filtroProducto = '';
-  itemProductoId: number | null = null;
-  itemCantidad = 1;
-  itemError: string | null = null;
+
+  resultadoImportacion: ImportResultado | null = null;
+  importando = false;
 
   readonly tipos: { value: TipoMovimiento; label: string; icon: string; desc: string }[] = [
     { value: 'ENTRADA', label: 'Entrada', icon: 'input', desc: 'Agregar stock a una bodega' },
@@ -47,31 +60,51 @@ export class MovimientosComponent implements OnInit {
     private bodegaService: BodegaService,
     private productoService: ProductoService,
     private movimientoService: MovimientoService,
+    private usuarioService: UsuarioService,
+    private dialog: MatDialog,
     public auth: AuthService
   ) {}
 
   ngOnInit(): void {
     this.bodegaService.listar().subscribe((data) => (this.bodegas = data));
-    this.productoService.listar().subscribe((data) => (this.productos = data));
+    this.usuarioService.listarBasico().subscribe((data) => (this.usuarios = data));
+    this.responsableId = this.auth.session()?.usuarioId ?? null;
+    this.busquedaProducto$.pipe(debounceTime(300), distinctUntilChanged()).subscribe((q) => this.buscarProductos(q));
   }
 
-  get nombreUsuario(): string {
-    return this.auth.session()?.nombre ?? '';
+  ngOnDestroy(): void {
+    this.busquedaProducto$.complete();
   }
 
-  get productosFiltrados(): Producto[] {
-    const q = this.filtroProducto.trim().toLowerCase();
-    if (!q) return [];
-    return this.productos.filter(
-      (p) => p.nombre.toLowerCase().includes(q) || (p.sku ?? '').toLowerCase().includes(q)
-    );
+  private buscarProductos(q: string): void {
+    const texto = q.trim();
+    if (!texto) {
+      this.productosResultados = [];
+      this.productosTotal = 0;
+      this.busquedaEnCurso = false;
+      return;
+    }
+    this.productoService.listarPagina(texto, 0, 8).subscribe((resp) => {
+      this.productosResultados = resp.contenido;
+      this.productosTotal = resp.total;
+      resp.contenido.forEach((p) => this.productosConocidos.set(p.id, p));
+      this.busquedaEnCurso = false;
+    });
+  }
+
+  onFiltroProductoChange(): void {
+    this.busquedaEnCurso = true;
+    this.busquedaProducto$.next(this.filtroProducto);
+  }
+
+  get sinResultados(): boolean {
+    return this.filtroProducto.trim().length > 0 && !this.busquedaEnCurso && this.productosResultados.length === 0;
   }
 
   seleccionarTipo(t: TipoMovimiento): void {
     this.tipo = t;
     this.bodegaOrigenId = null;
     this.bodegaDestinoId = null;
-    this.itemError = null;
   }
 
   get mostrarOrigen(): boolean {
@@ -87,35 +120,52 @@ export class MovimientosComponent implements OnInit {
   }
 
   seleccionarProducto(producto: Producto): void {
-    this.itemProductoId = producto.id;
-    this.itemCantidad = 1;
+    this.productosConocidos.set(producto.id, producto);
+    const existente = this.items.find((it) => it.productoId === producto.id);
+    if (existente) {
+      existente.cantidad += 1;
+    } else {
+      this.items.push({ productoId: producto.id, cantidad: 1 });
+    }
     this.filtroProducto = '';
-    this.itemError = null;
+    this.productosResultados = [];
+    this.busquedaProducto$.next('');
   }
 
   seleccionarPrimero(): void {
-    const primero = this.productosFiltrados[0];
-    if (primero) this.seleccionarProducto(primero);
-  }
-
-  get productoSeleccionado(): Producto | null {
-    if (!this.itemProductoId) return null;
-    return this.productos.find((p) => p.id === this.itemProductoId) ?? null;
-  }
-
-  agregarItem(): void {
-    if (!this.itemProductoId || this.itemCantidad <= 0) return;
-    this.itemError = null;
-
-    if (this.items.some((it) => it.productoId === this.itemProductoId)) {
-      this.itemError = 'Este producto ya está en la lista.';
+    const primero = this.productosResultados[0];
+    if (primero) {
+      this.seleccionarProducto(primero);
       return;
     }
+    const texto = this.filtroProducto.trim();
+    if (!texto) return;
+    this.productoService.listarPagina(texto, 0, 8).subscribe((resp) => {
+      resp.contenido.forEach((p) => this.productosConocidos.set(p.id, p));
+      if (resp.contenido[0]) {
+        this.seleccionarProducto(resp.contenido[0]);
+      } else {
+        this.productosResultados = [];
+        this.productosTotal = resp.total;
+        this.busquedaEnCurso = false;
+      }
+    });
+  }
 
-    this.items.push({ productoId: this.itemProductoId, cantidad: this.itemCantidad });
-    this.itemProductoId = null;
-    this.itemCantidad = 1;
-    this.filtroProducto = '';
+  abrirCreacionRapida(): void {
+    const data: ProductoRapidoDialogData = { textoBusqueda: this.filtroProducto };
+    this.dialog
+      .open(ProductoRapidoDialogComponent, { data })
+      .afterClosed()
+      .subscribe((producto) => {
+        if (!producto) return;
+        this.seleccionarProducto(producto);
+      });
+  }
+
+  actualizarCantidad(index: number, valor: number): void {
+    if (!valor || valor <= 0) return;
+    this.items[index].cantidad = valor;
   }
 
   quitarItem(index: number): void {
@@ -123,11 +173,11 @@ export class MovimientosComponent implements OnInit {
   }
 
   nombreProducto(id: number): string {
-    return this.productos.find((p) => p.id === id)?.nombre ?? String(id);
+    return this.productosConocidos.get(id)?.nombre ?? String(id);
   }
 
   skuProducto(id: number): string {
-    return this.productos.find((p) => p.id === id)?.sku ?? '—';
+    return this.productosConocidos.get(id)?.sku ?? '—';
   }
 
   get totalUnidades(): number {
@@ -135,7 +185,7 @@ export class MovimientosComponent implements OnInit {
   }
 
   get puedeConfirmar(): boolean {
-    if (this.guardando || !this.items.length) return false;
+    if (this.guardando || !this.items.length || !this.responsableId) return false;
     if (this.mostrarOrigen && !this.bodegaOrigenId) return false;
     if (this.mostrarDestino && !this.bodegaDestinoId) return false;
     return true;
@@ -144,7 +194,6 @@ export class MovimientosComponent implements OnInit {
   confirmar(): void {
     if (!this.puedeConfirmar) return;
     this.guardando = true;
-    this.itemError = '';
     this.error = '';
     this.mensaje = '';
 
@@ -155,6 +204,7 @@ export class MovimientosComponent implements OnInit {
         bodegaDestinoId: this.bodegaDestinoId,
         observacion: this.observacion,
         items: this.items,
+        responsableId: this.responsableId,
       })
       .subscribe({
         next: () => {
@@ -170,5 +220,39 @@ export class MovimientosComponent implements OnInit {
           this.guardando = false;
         },
       });
+  }
+
+  onArchivoExcelSeleccionado(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const archivo = input.files?.[0];
+    input.value = '';
+    if (!archivo) return;
+    this.importando = true;
+    this.resultadoImportacion = null;
+    this.movimientoService.importarExcel(archivo).subscribe({
+      next: (resultado) => {
+        this.resultadoImportacion = resultado;
+        this.importando = false;
+        this.agregarItemsImportados(resultado.items);
+      },
+      error: (err) => {
+        this.error = err?.error?.error ?? 'No se pudo importar el archivo.';
+        this.importando = false;
+      },
+    });
+  }
+
+  // Suma cada fila resuelta del Excel al detalle de la operación en curso: mismo
+  // criterio "sumar cantidad si el producto ya está en la lista" que el buscador manual.
+  private agregarItemsImportados(itemsResueltos: ImportItemResuelto[]): void {
+    for (const item of itemsResueltos) {
+      this.productosConocidos.set(item.productoId, { nombre: item.productoNombre, sku: item.productoSku });
+      const existente = this.items.find((it) => it.productoId === item.productoId);
+      if (existente) {
+        existente.cantidad += item.cantidad;
+      } else {
+        this.items.push({ productoId: item.productoId, cantidad: item.cantidad });
+      }
+    }
   }
 }

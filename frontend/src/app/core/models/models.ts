@@ -86,6 +86,7 @@ export interface Proveedor {
 export interface Producto {
   id: number;
   sku: string | null;
+  codigoBarra: string | null;
   nombre: string;
   descripcion: string | null;
   categoriaId: number | null;
@@ -143,6 +144,11 @@ export interface FormaPago {
   categoria: CategoriaFormaPago;
   activo: boolean;
   fechaCreacion: string;
+}
+
+export interface UsuarioBasico {
+  id: number;
+  nombre: string;
 }
 
 export type TipoMovimiento = 'ENTRADA' | 'SALIDA' | 'TRASLADO' | 'AJUSTE';

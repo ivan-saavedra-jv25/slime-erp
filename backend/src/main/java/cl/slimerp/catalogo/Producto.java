@@ -25,6 +25,9 @@ public class Producto {
     @Column(length = 50)
     private String sku;
 
+    @Column(name = "codigo_barra", length = 64)
+    private String codigoBarra;
+
     @Column(nullable = false, length = 150)
     private String nombre;
 

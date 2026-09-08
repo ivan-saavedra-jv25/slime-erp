@@ -72,7 +72,7 @@ class MovimientoInventarioServiceTest {
     private MovimientoInventarioService.MovimientoRequest request(
             TipoMovimiento tipo, Long origen, Long destino, BigDecimal cantidad) {
         return new MovimientoInventarioService.MovimientoRequest(tipo, origen, destino, null,
-                List.of(new MovimientoInventarioService.MovimientoItemRequest(10L, cantidad)));
+                List.of(new MovimientoInventarioService.MovimientoItemRequest(10L, cantidad)), null);
     }
 
     @Test

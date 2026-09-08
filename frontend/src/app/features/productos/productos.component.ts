@@ -23,7 +23,7 @@ import { MonedaPipe } from '../../core/pipes/moneda.pipe';
   styleUrl: './productos.component.scss',
 })
 export class ProductosComponent implements OnInit, OnDestroy {
-  columnas = ['sku', 'nombre', 'categoria', 'precioVenta', 'acciones'];
+  columnas = ['sku', 'codigoBarra', 'nombre', 'categoria', 'precioVenta', 'acciones'];
   productos: Producto[] = [];
   total = 0;
   categorias: Categoria[] = [];
@@ -38,6 +38,7 @@ export class ProductosComponent implements OnInit, OnDestroy {
   readonly opcionesTamano = [10, 25, 50];
 
   sku = '';
+  codigoBarra = '';
   nombre = '';
   descripcion = '';
   categoriaId: number | null = null;
@@ -105,6 +106,7 @@ export class ProductosComponent implements OnInit, OnDestroy {
   editar(producto: Producto): void {
     this.editandoId = producto.id;
     this.sku = producto.sku ?? '';
+    this.codigoBarra = producto.codigoBarra ?? '';
     this.nombre = producto.nombre;
     this.descripcion = producto.descripcion ?? '';
     this.precioVenta = producto.precioVenta;
@@ -130,6 +132,7 @@ export class ProductosComponent implements OnInit, OnDestroy {
     if (!this.nombre) return;
     const request: ProductoRequest = {
       sku: this.sku || null,
+      codigoBarra: this.codigoBarra || null,
       nombre: this.nombre,
       descripcion: this.descripcion,
       categoriaId: this.categoriaId,
@@ -172,6 +175,7 @@ export class ProductosComponent implements OnInit, OnDestroy {
 
   private limpiarFormulario(): void {
     this.sku = '';
+    this.codigoBarra = '';
     this.nombre = '';
     this.descripcion = '';
     this.categoriaId = null;

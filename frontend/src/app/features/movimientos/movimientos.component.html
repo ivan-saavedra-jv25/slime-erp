@@ -58,14 +58,14 @@
       </div>
     }
 
-    <div class="form-group span-2">
-      <label for="observacion">Observación <span class="hint">(opcional)</span></label>
-      <textarea id="observacion" name="observacion" rows="2" [(ngModel)]="observacion"></textarea>
-    </div>
-
     <div class="form-group">
-      <label for="responsable">Responsable</label>
-      <input id="responsable" type="text" [value]="nombreUsuario" readonly />
+      <label for="responsable">Responsable<span class="required-mark">*</span></label>
+      <select id="responsable" name="responsable" [(ngModel)]="responsableId">
+        <option [ngValue]="null" disabled>Selecciona un responsable</option>
+        @for (u of usuarios; track u.id) {
+          <option [ngValue]="u.id">{{ u.nombre }}</option>
+        }
+      </select>
     </div>
   </div>
 </mat-card>
@@ -73,55 +73,90 @@
 <mat-card class="form-panel">
   <h2>Detalle de productos</h2>
   <p class="form-section-hint">
-    Busca por <strong>SKU o nombre</strong> y presiona <strong>Enter</strong> para seleccionar el primer resultado.
+    Busca por <strong>nombre, SKU o código de barra</strong>. Selecciona un resultado (o presiona
+    <strong>Enter</strong>) para agregarlo de inmediato; si ya está en la lista, suma una unidad más.
   </p>
 
   <div class="item-entry">
-    <div class="item-entry__row">
-      <div class="form-group item-entry__col item-entry__col--search">
-        <label for="filtroProducto">Buscar producto</label>
-        <input
-          id="filtroProducto"
-          type="text"
-          placeholder="Buscar producto..."
-          [(ngModel)]="filtroProducto"
-          name="filtroProducto"
-          (keydown.enter)="seleccionarPrimero()"
-        />
-        @if (filtroProducto && productosFiltrados.length) {
-          <div class="search-results">
-            @for (p of productosFiltrados; track p.id) {
-              <div class="search-results__item" (click)="seleccionarProducto(p)">
-                <span class="search-results__nombre">{{ p.nombre }}</span>
-                <span class="search-results__sku">SKU: {{ p.sku || '—' }}</span>
-              </div>
-            }
-          </div>
-        }
-      </div>
-
-      <div class="form-group item-entry__col">
-        <label>Producto seleccionado</label>
-        <input type="text" [value]="productoSeleccionado?.nombre ?? ''" readonly placeholder="Selecciona un producto" />
-      </div>
-
-      <div class="form-group item-entry__col item-entry__col--qty">
-        <label for="itemCantidad">Cantidad</label>
-        <input id="itemCantidad" type="number" [(ngModel)]="itemCantidad" name="itemCantidad" min="1" />
-      </div>
-
-      <button
-        type="button"
-        mat-icon-button
-        class="item-entry__add-btn"
-        [disabled]="!itemProductoId"
-        (click)="agregarItem()"
-      >
-        <mat-icon>add_circle</mat-icon>
-      </button>
+    <div class="form-group item-entry__search">
+      <label for="filtroProducto">Buscar o escanear producto (nombre, SKU o código de barra)</label>
+      <input
+        id="filtroProducto"
+        type="text"
+        placeholder="Buscar producto..."
+        [(ngModel)]="filtroProducto"
+        name="filtroProducto"
+        (ngModelChange)="onFiltroProductoChange()"
+        (keydown.enter)="seleccionarPrimero()"
+      />
+      @if (filtroProducto && productosResultados.length) {
+        <div class="search-results">
+          @for (p of productosResultados; track p.id) {
+            <div class="search-results__item" (click)="seleccionarProducto(p)">
+              <span class="search-results__nombre">{{ p.nombre }}</span>
+              <span class="search-results__sku">
+                SKU: {{ p.sku || '—' }} @if (p.codigoBarra) { · Cód. barra: {{ p.codigoBarra }} }
+              </span>
+            </div>
+          }
+          @if (productosTotal > productosResultados.length) {
+            <div class="search-results__hint">
+              Mostrando {{ productosResultados.length }} de {{ productosTotal }} · sigue escribiendo para acotar
+            </div>
+          }
+        </div>
+      }
+      @if (sinResultados) {
+        <div class="search-results">
+          <div class="search-results__hint">No se encontró ningún producto para "{{ filtroProducto }}".</div>
+          <button type="button" mat-button (click)="abrirCreacionRapida()">Crear producto nuevo</button>
+        </div>
+      }
     </div>
-    @if (itemError) {
-      <p class="field-error">{{ itemError }}</p>
+  </div>
+
+  <div class="excel-import">
+    <p class="excel-import__label">
+      O carga varios productos de una vez desde un Excel con columnas <strong>Código</strong> (SKU o
+      código de barra) y <strong>Cantidad</strong> — se agregan al detalle de abajo.
+    </p>
+    <div class="form-actions form-actions--start">
+      <a href="/plantillas/movimientos-carga-masiva.xlsx" download mat-stroked-button>
+        <mat-icon>download</mat-icon>
+        Descargar plantilla
+      </a>
+      <button type="button" mat-stroked-button (click)="excelInput.click()" [disabled]="importando">
+        <mat-icon>upload</mat-icon>
+        {{ importando ? 'Importando...' : 'Cargar Excel' }}
+      </button>
+      <input #excelInput type="file" accept=".xlsx" hidden (change)="onArchivoExcelSeleccionado($event)" />
+    </div>
+
+    @if (resultadoImportacion; as r) {
+      <p class="page-mensaje">
+        {{ r.items.length }} producto(s) agregado(s) al detalle ({{ r.totalFilas }} fila(s) leídas).
+        @if (r.errores.length) {
+          {{ r.errores.length }} fila(s) con error.
+        }
+      </p>
+      @if (r.errores.length) {
+        <table class="items-table excel-import__errores">
+          <thead>
+            <tr>
+              <th>Fila</th>
+              <th>Motivo</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (e of r.errores; track e.numeroFila) {
+              <tr>
+                <td>{{ e.numeroFila }}</td>
+                <td>{{ e.mensaje }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
     }
   </div>
 
@@ -141,7 +176,16 @@
           <td>{{ i + 1 }}</td>
           <td>{{ skuProducto(it.productoId) }}</td>
           <td>{{ nombreProducto(it.productoId) }}</td>
-          <td class="right">{{ it.cantidad }}</td>
+          <td class="right">
+            <input
+              type="number"
+              min="1"
+              class="items-table__qty"
+              [ngModel]="it.cantidad"
+              (ngModelChange)="actualizarCantidad(i, $event)"
+              [name]="'cantidad-' + i"
+            />
+          </td>
           <td class="right">
             <button type="button" mat-icon-button (click)="quitarItem(i)"><mat-icon>delete</mat-icon></button>
           </td>
@@ -157,6 +201,11 @@
 </mat-card>
 
 <mat-card class="form-panel summary-panel">
+  <div class="form-group summary-observacion">
+    <label for="observacion">Observación <span class="hint">(opcional)</span></label>
+    <textarea id="observacion" name="observacion" rows="2" [(ngModel)]="observacion"></textarea>
+  </div>
+
   <div class="summary-grid">
     <div class="summary-stat">
       <span class="summary-stat__value">{{ items.length }}</span>

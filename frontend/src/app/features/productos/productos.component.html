@@ -14,6 +14,11 @@
           <input id="sku" name="sku" [(ngModel)]="sku" />
         </div>
 
+        <div class="form-group">
+          <label for="codigoBarra">Código de barra <span class="hint">(opcional)</span></label>
+          <input id="codigoBarra" name="codigoBarra" [(ngModel)]="codigoBarra" />
+        </div>
+
         <div class="form-group" [class.has-error]="nombreCtrl.invalid && nombreCtrl.touched">
           <label for="nombre">Nombre<span class="required-mark">*</span></label>
           <input id="nombre" name="nombre" [(ngModel)]="nombre" required #nombreCtrl="ngModel" />
@@ -106,6 +111,11 @@
   <ng-container matColumnDef="sku">
     <th mat-header-cell *matHeaderCellDef>SKU</th>
     <td mat-cell *matCellDef="let p">{{ p.sku }}</td>
+  </ng-container>
+
+  <ng-container matColumnDef="codigoBarra">
+    <th mat-header-cell *matHeaderCellDef>Código de barra</th>
+    <td mat-cell *matCellDef="let p">{{ p.codigoBarra || '—' }}</td>
   </ng-container>
 
   <ng-container matColumnDef="nombre">

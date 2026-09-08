@@ -10,6 +10,25 @@ export interface MovimientoRequest {
   bodegaDestinoId: number | null;
   observacion?: string;
   items: MovimientoItem[];
+  responsableId: number | null;
+}
+
+export interface ImportFilaError {
+  numeroFila: number;
+  mensaje: string;
+}
+
+export interface ImportItemResuelto {
+  productoId: number;
+  productoSku: string | null;
+  productoNombre: string;
+  cantidad: number;
+}
+
+export interface ImportResultado {
+  totalFilas: number;
+  items: ImportItemResuelto[];
+  errores: ImportFilaError[];
 }
 
 @Injectable({ providedIn: 'root' })
@@ -28,5 +47,11 @@ export class MovimientoService {
 
   detalle(id: number): Observable<MovimientoHistorial> {
     return this.http.get<MovimientoHistorial>(`${this.base}/${id}`);
+  }
+
+  importarExcel(archivo: File): Observable<ImportResultado> {
+    const formData = new FormData();
+    formData.append('archivo', archivo);
+    return this.http.post<ImportResultado>(`${this.base}/importar`, formData);
   }
 }

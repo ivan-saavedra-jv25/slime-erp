@@ -13,6 +13,7 @@ public record ProductoRequest(
         Long subcategoriaId,
         @NotNull BigDecimal precioVenta,
         BigDecimal precioCompra,
-        BigDecimal stockMinimo
+        BigDecimal stockMinimo,
+        String codigoBarra
 ) {
 }

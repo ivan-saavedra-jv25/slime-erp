@@ -50,26 +50,9 @@
   margin-bottom: var(--space-4);
 }
 
-.item-entry__row {
-  display: flex;
-  align-items: flex-end;
-  gap: var(--space-3);
-  flex-wrap: wrap;
-}
-
-.item-entry__col {
-  flex: 1;
-  min-width: 160px;
+.item-entry__search {
   position: relative;
-}
-
-.item-entry__col--qty {
-  flex: 0 0 100px;
-  min-width: 100px;
-}
-
-.item-entry__add-btn {
-  margin-bottom: var(--space-1);
+  max-width: 480px;
 }
 
 .search-results {
@@ -108,6 +91,14 @@
   color: var(--text-muted);
 }
 
+.search-results__hint {
+  padding: var(--space-2) var(--space-3);
+  font: var(--font-legals);
+  color: var(--text-muted);
+  text-align: center;
+  background: var(--surface-subtle);
+}
+
 .items-table {
   width: 100%;
   border-collapse: collapse;
@@ -130,8 +121,31 @@
   text-align: right;
 }
 
+.items-table__qty {
+  width: 72px;
+  height: 32px;
+  padding: 0 var(--space-2);
+  text-align: right;
+  border: var(--border-width-default) solid var(--border-strong);
+  border-radius: var(--radius-2);
+  font: var(--font-body-sm);
+  background: var(--surface-card);
+  color: var(--text-title);
+}
+
+.items-table__qty:focus {
+  outline: none;
+  border-width: var(--border-width-medium);
+  border-color: var(--border-interactive);
+}
+
 .summary-panel {
   background: var(--surface-subtle);
+}
+
+.summary-observacion {
+  max-width: 480px;
+  margin-bottom: var(--space-4);
 }
 
 .summary-grid {
@@ -159,4 +173,26 @@
 
 .summary-actions {
   margin-left: auto;
+}
+
+.form-actions--start {
+  justify-content: flex-start;
+}
+
+.excel-import {
+  margin: var(--space-4) 0;
+  padding: var(--space-3) var(--space-4);
+  border: var(--border-width-default) solid var(--border-default);
+  border-radius: var(--radius-2);
+  background: var(--surface-subtle);
+}
+
+.excel-import__label {
+  margin: 0 0 var(--space-3);
+  font: var(--font-body-sm);
+  color: var(--text-muted);
+}
+
+.excel-import__errores {
+  margin-top: var(--space-3);
 }

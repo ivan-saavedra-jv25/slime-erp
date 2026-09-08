@@ -6,6 +6,7 @@ import { PaginaResponse, Producto } from '../models/models';
 
 export interface ProductoRequest {
   sku?: string | null;
+  codigoBarra?: string | null;
   nombre: string;
   descripcion?: string;
   categoriaId?: number | null;

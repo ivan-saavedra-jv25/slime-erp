@@ -14,6 +14,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
@@ -37,7 +38,7 @@ class ProductoControllerTest {
 
     @Test
     void crearUsaCerosPorDefectoParaCamposOpcionalesNulos() {
-        var request = new ProductoRequest("SKU-1", "Producto Uno", "desc", null, null, new BigDecimal("1000"), null, null);
+        var request = new ProductoRequest("SKU-1", "Producto Uno", "desc", null, null, new BigDecimal("1000"), null, null, null);
 
         var response = controller.crear(request);
 
@@ -62,7 +63,7 @@ class ProductoControllerTest {
         when(productoRepository.findByIdAndTenantIdAndActivoTrue(99L, 1L)).thenReturn(Optional.empty());
 
         var response = controller.actualizar(99L,
-                new ProductoRequest("SKU-X", "X", null, null, null, BigDecimal.TEN, null, null));
+                new ProductoRequest("SKU-X", "X", null, null, null, BigDecimal.TEN, null, null, null));
 
         assertEquals(404, response.getStatusCode().value());
     }
@@ -87,5 +88,36 @@ class ProductoControllerTest {
         var respuesta = controller.listarPagina(null, 0, 10);
 
         assertEquals(0, respuesta.total());
+    }
+
+    @Test
+    void crearConCodigoBarraDuplicadoLanzaConflicto() {
+        when(productoRepository.existsByTenantIdAndCodigoBarra(1L, "7801234567890")).thenReturn(true);
+        var request = new ProductoRequest("SKU-2", "Producto Dos", null, null, null,
+                new BigDecimal("500"), null, null, "7801234567890");
+
+        assertThrows(ProductoConflictException.class, () -> controller.crear(request));
+    }
+
+    @Test
+    void crearSinCodigoBarraNoValidaUnicidad() {
+        var request = new ProductoRequest("SKU-3", "Producto Tres", null, null, null,
+                new BigDecimal("500"), null, null, null);
+
+        var response = controller.crear(request);
+
+        assertEquals(200, response.getStatusCode().value());
+        verify(productoRepository, never()).existsByTenantIdAndCodigoBarra(anyLong(), any());
+    }
+
+    @Test
+    void listarPaginaBuscaTambienPorCodigoBarra() {
+        Producto producto = Producto.builder().id(1L).tenantId(1L).nombre("Mouse").codigoBarra("7801234567890").activo(true).build();
+        when(productoRepository.buscar(eq(1L), eq("%780123%"), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(producto), PageRequest.of(0, 10), 1));
+
+        var respuesta = controller.listarPagina("780123", 0, 10);
+
+        assertEquals(1, respuesta.total());
     }
 }

@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { Permiso, PermisosUsuario, Usuario, Rol } from '../models/models';
+import { Permiso, PermisosUsuario, Usuario, UsuarioBasico, Rol } from '../models/models';
 
 export interface UsuarioRequest {
   nombre: string;
@@ -21,6 +21,12 @@ export class UsuarioService {
 
   listar(): Observable<Usuario[]> {
     return this.http.get<Usuario[]>(this.base);
+  }
+
+  // Listado liviano (id/nombre) para selectores de "responsable" en otras pantallas —
+  // no requiere el permiso USUARIOS_VER que sí exige listar().
+  listarBasico(): Observable<UsuarioBasico[]> {
+    return this.http.get<UsuarioBasico[]>(`${this.base}/basico`);
   }
 
   crear(request: UsuarioRequest): Observable<Usuario> {

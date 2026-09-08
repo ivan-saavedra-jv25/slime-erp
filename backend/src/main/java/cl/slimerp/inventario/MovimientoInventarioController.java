@@ -10,7 +10,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
@@ -23,15 +25,18 @@ public class MovimientoInventarioController {
     private final ProductoRepository productoRepository;
     private final BodegaRepository bodegaRepository;
     private final UsuarioRepository usuarioRepository;
+    private final MovimientoImportService importService;
 
     public MovimientoInventarioController(MovimientoInventarioService service,
                                            ProductoRepository productoRepository,
                                            BodegaRepository bodegaRepository,
-                                           UsuarioRepository usuarioRepository) {
+                                           UsuarioRepository usuarioRepository,
+                                           MovimientoImportService importService) {
         this.service = service;
         this.productoRepository = productoRepository;
         this.bodegaRepository = bodegaRepository;
         this.usuarioRepository = usuarioRepository;
+        this.importService = importService;
     }
 
     public record MovimientoHistorialResponse(Long id, String tipo,
@@ -46,10 +51,22 @@ public class MovimientoInventarioController {
     @PreAuthorize("hasAuthority('MOVIMIENTOS_EDITAR')")
     public ResponseEntity<?> crear(@Valid @RequestBody MovimientoInventarioService.MovimientoRequest request) {
         Long tenantId = TenantContext.getTenantId();
-        Long usuarioId = resolveUsuarioId(tenantId);
+        Long usuarioId = request.responsableId() != null
+                ? validarResponsable(tenantId, request.responsableId())
+                : resolveUsuarioId(tenantId);
 
         MovimientoInventarioHeader header = service.crear(tenantId, usuarioId, request);
         return ResponseEntity.ok(Map.of("id", header.getId(), "mensaje", "Movimiento registrado"));
+    }
+
+    // Solo resuelve código/código de barra + cantidad contra el catálogo — no crea
+    // movimientos. El tipo, la bodega y la observación los define el formulario en
+    // pantalla; el resultado se agrega al detalle de la operación que ya está armando.
+    @PostMapping(value = "/importar", consumes = "multipart/form-data")
+    @PreAuthorize("hasAuthority('MOVIMIENTOS_EDITAR')")
+    public MovimientoImportService.ImportResultado importar(@RequestParam("archivo") MultipartFile archivo) throws IOException {
+        Long tenantId = TenantContext.getTenantId();
+        return importService.importar(tenantId, archivo.getInputStream());
     }
 
     @GetMapping
@@ -89,6 +106,14 @@ public class MovimientoInventarioController {
                 h.getObservacion(),
                 h.getFecha().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")),
                 detalle);
+    }
+
+    // El "responsable" elegido en pantalla debe pertenecer al mismo tenant, igual que
+    // cualquier otro id que llegue del frontend.
+    private Long validarResponsable(Long tenantId, Long responsableId) {
+        return usuarioRepository.findByIdAndTenantId(responsableId, tenantId)
+                .map(Usuario::getId)
+                .orElseThrow(() -> new IllegalArgumentException("Responsable no encontrado"));
     }
 
     private Long resolveUsuarioId(Long tenantId) {

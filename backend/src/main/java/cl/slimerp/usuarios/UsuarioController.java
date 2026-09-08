@@ -32,6 +32,19 @@ public class UsuarioController {
                 .toList();
     }
 
+    public record UsuarioBasicoResponse(Long id, String nombre) {}
+
+    // Listado liviano (solo id/nombre) para selectores tipo "responsable" en otras
+    // pantallas (Movimientos, etc.). A propósito sin @PreAuthorize de un permiso de
+    // administración: cualquier usuario autenticado del tenant puede ver los nombres
+    // de sus colegas para atribuirles una operación, sin necesitar USUARIOS_VER.
+    @GetMapping("/basico")
+    public List<UsuarioBasicoResponse> listarBasico() {
+        return usuarioRepository.findByTenantIdAndActivoTrueOrderByNombre(TenantContext.getTenantId()).stream()
+                .map(u -> new UsuarioBasicoResponse(u.getId(), u.getNombre()))
+                .toList();
+    }
+
     @PostMapping
     @PreAuthorize("hasAuthority('USUARIOS_EDITAR')")
     public ResponseEntity<UsuarioResponse> crear(@Valid @RequestBody UsuarioRequest request) {

@@ -53,9 +53,13 @@ public class ProductoController {
     @PostMapping
     @PreAuthorize("hasAuthority('PRODUCTOS_EDITAR')")
     public ResponseEntity<Producto> crear(@Valid @RequestBody ProductoRequest request) {
+        Long tenantId = TenantContext.getTenantId();
+        validarCodigoBarraUnico(tenantId, request.codigoBarra(), null);
+
         Producto producto = Producto.builder()
-                .tenantId(TenantContext.getTenantId())
+                .tenantId(tenantId)
                 .sku(request.sku())
+                .codigoBarra(normalizarCodigoBarra(request.codigoBarra()))
                 .nombre(request.nombre())
                 .descripcion(request.descripcion())
                 .categoriaId(request.categoriaId())
@@ -70,9 +74,12 @@ public class ProductoController {
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('PRODUCTOS_EDITAR')")
     public ResponseEntity<Producto> actualizar(@PathVariable Long id, @Valid @RequestBody ProductoRequest request) {
-        return productoRepository.findByIdAndTenantIdAndActivoTrue(id, TenantContext.getTenantId())
+        Long tenantId = TenantContext.getTenantId();
+        return productoRepository.findByIdAndTenantIdAndActivoTrue(id, tenantId)
                 .map(producto -> {
+                    validarCodigoBarraUnico(tenantId, request.codigoBarra(), id);
                     producto.setSku(request.sku());
+                    producto.setCodigoBarra(normalizarCodigoBarra(request.codigoBarra()));
                     producto.setNombre(request.nombre());
                     producto.setDescripcion(request.descripcion());
                     producto.setCategoriaId(request.categoriaId());
@@ -95,5 +102,23 @@ public class ProductoController {
                     return ResponseEntity.noContent().<Void>build();
                 })
                 .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    // El código de barra es opcional; solo se valida unicidad cuando viene con contenido.
+    private String normalizarCodigoBarra(String codigoBarra) {
+        if (codigoBarra == null) return null;
+        String limpio = codigoBarra.trim();
+        return limpio.isEmpty() ? null : limpio;
+    }
+
+    private void validarCodigoBarraUnico(Long tenantId, String codigoBarra, Long idExcluido) {
+        String normalizado = normalizarCodigoBarra(codigoBarra);
+        if (normalizado == null) return;
+        boolean existe = idExcluido == null
+                ? productoRepository.existsByTenantIdAndCodigoBarra(tenantId, normalizado)
+                : productoRepository.existsByTenantIdAndCodigoBarraAndIdNot(tenantId, normalizado, idExcluido);
+        if (existe) {
+            throw new ProductoConflictException("Ya existe un producto con el código de barra " + normalizado);
+        }
     }
 }

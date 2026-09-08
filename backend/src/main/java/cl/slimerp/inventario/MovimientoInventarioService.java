@@ -40,7 +40,11 @@ public class MovimientoInventarioService {
                                     Long bodegaOrigenId,
                                     Long bodegaDestinoId,
                                     String observacion,
-                                    @NotEmpty @Valid List<MovimientoItemRequest> items) {}
+                                    @NotEmpty @Valid List<MovimientoItemRequest> items,
+                                    // Usuario elegido en pantalla como responsable de la operación. El
+                                    // controller lo valida y usa en vez del usuario autenticado cuando viene;
+                                    // este servicio no lo lee (recibe el usuarioId ya resuelto aparte).
+                                    Long responsableId) {}
 
     @Transactional
     public MovimientoInventarioHeader crear(Long tenantId, Long usuarioId, MovimientoRequest request) {
