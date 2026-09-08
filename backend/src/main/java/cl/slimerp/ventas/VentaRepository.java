@@ -17,5 +17,10 @@ public interface VentaRepository extends JpaRepository<Venta, Long> {
     // Usados por el Dashboard: no necesitan el detalle de líneas.
     List<Venta> findByTenantIdAndActivoTrueAndFechaBetween(Long tenantId, LocalDateTime desde, LocalDateTime hasta);
 
+    // Para el Libro de Ventas: mismo filtro que el del Dashboard pero ordenado,
+    // porque el libro se lee de arriba hacia abajo por fecha.
+    List<Venta> findByTenantIdAndActivoTrueAndFechaBetweenOrderByFechaAsc(
+            Long tenantId, LocalDateTime desde, LocalDateTime hasta);
+
     List<Venta> findTop8ByTenantIdAndActivoTrueOrderByFechaDesc(Long tenantId);
 }

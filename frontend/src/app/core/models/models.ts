@@ -207,6 +207,33 @@ export interface Venta {
   detalle: VentaDetalle[];
 }
 
+export interface LibroVentasFila {
+  ventaId: number;
+  fecha: string;
+  tipoDocumento: string;
+  clienteRut: string | null;
+  clienteNombre: string;
+  montoNeto: number;
+  montoIva: number;
+  montoTotal: number;
+}
+
+export interface LibroVentasSubtotal {
+  tipoDocumento: string;
+  cantidad: number;
+  montoNeto: number;
+  montoIva: number;
+  montoTotal: number;
+}
+
+export interface LibroVentasResponse {
+  desde: string;
+  hasta: string;
+  filas: LibroVentasFila[];
+  subtotales: LibroVentasSubtotal[];
+  totalGeneral: LibroVentasSubtotal;
+}
+
 export interface CompraItem {
   productoId: number;
   cantidad: number;

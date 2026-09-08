@@ -1,0 +1,114 @@
+<div class="page-header">
+  <h1>Libro de Ventas</h1>
+</div>
+
+@if (error) {
+  <p class="page-error">{{ error }}</p>
+}
+
+<mat-card class="form-panel">
+  <h2>Período</h2>
+  <div class="form-grid">
+    <div class="form-group">
+      <label for="desde">Desde<span class="required-mark">*</span></label>
+      <input id="desde" type="date" [(ngModel)]="desde" name="desde" />
+    </div>
+    <div class="form-group">
+      <label for="hasta">Hasta<span class="required-mark">*</span></label>
+      <input id="hasta" type="date" [(ngModel)]="hasta" name="hasta" />
+    </div>
+  </div>
+  <div class="form-actions form-actions--start">
+    <button type="button" mat-flat-button color="primary" [disabled]="cargando" (click)="consultar()">
+      <mat-icon>search</mat-icon>
+      {{ cargando ? 'Consultando...' : 'Consultar' }}
+    </button>
+  </div>
+</mat-card>
+
+@if (libro && libro.filas.length) {
+  <mat-card class="form-panel">
+    <h2>Resumen por tipo de documento</h2>
+    <table class="libro-table">
+      <thead>
+        <tr>
+          <th>Tipo</th>
+          <th class="right">Cantidad</th>
+          <th class="right">Neto</th>
+          <th class="right">IVA</th>
+          <th class="right">Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (s of libro.subtotales; track s.tipoDocumento) {
+          <tr>
+            <td>{{ s.tipoDocumento }}</td>
+            <td class="right">{{ s.cantidad }}</td>
+            <td class="right">{{ s.montoNeto | moneda }}</td>
+            <td class="right">{{ s.montoIva | moneda }}</td>
+            <td class="right">{{ s.montoTotal | moneda }}</td>
+          </tr>
+        }
+        <tr class="libro-table__total">
+          <td>Total</td>
+          <td class="right">{{ libro.totalGeneral.cantidad }}</td>
+          <td class="right">{{ libro.totalGeneral.montoNeto | moneda }}</td>
+          <td class="right">{{ libro.totalGeneral.montoIva | moneda }}</td>
+          <td class="right">{{ libro.totalGeneral.montoTotal | moneda }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </mat-card>
+}
+
+<mat-card class="form-panel">
+  <div class="page-header">
+    <h2>Detalle de ventas</h2>
+    <button
+      type="button"
+      mat-stroked-button
+      [disabled]="!libro || !libro.filas.length || exportando"
+      (click)="exportarExcel()"
+    >
+      <mat-icon>download</mat-icon>
+      {{ exportando ? 'Exportando...' : 'Exportar a Excel' }}
+    </button>
+  </div>
+
+  @if (cargando) {
+    <p class="empty-state">Consultando ventas...</p>
+  }
+  @if (!cargando && libro && !libro.filas.length) {
+    <p class="empty-state">No hay ventas en el período seleccionado.</p>
+  }
+  @if (!cargando && libro && libro.filas.length) {
+    <table class="libro-table">
+      <thead>
+        <tr>
+          <th>N°</th>
+          <th>Fecha</th>
+          <th>Tipo documento</th>
+          <th>RUT</th>
+          <th>Cliente</th>
+          <th class="right">Neto</th>
+          <th class="right">IVA</th>
+          <th class="right">Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (f of libro.filas; track f.ventaId) {
+          <tr>
+            <td>{{ f.ventaId }}</td>
+            <td>{{ f.fecha | date: 'short' }}</td>
+            <td>{{ f.tipoDocumento }}</td>
+            <td>{{ f.clienteRut || '—' }}</td>
+            <td>{{ f.clienteNombre }}</td>
+            <td class="right">{{ f.montoNeto | moneda }}</td>
+            <td class="right">{{ f.montoIva | moneda }}</td>
+            <td class="right">{{ f.montoTotal | moneda }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</mat-card>

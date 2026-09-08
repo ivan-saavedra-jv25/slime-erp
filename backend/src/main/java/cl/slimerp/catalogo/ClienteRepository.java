@@ -16,6 +16,10 @@ public interface ClienteRepository extends JpaRepository<Cliente, Long> {
 
     Optional<Cliente> findByIdAndTenantIdAndActivoTrue(Long id, Long tenantId);
 
+    // Resuelve nombre/RUT de varios clientes en una sola consulta (evita N+1
+    // al armar el Libro de Ventas).
+    List<Cliente> findByTenantIdAndIdIn(Long tenantId, List<Long> ids);
+
     // Ver la nota en ProductoRepository.buscar(): "busqueda" siempre trae el
     // patrón LIKE ya armado para evitar comparar contra un parámetro nulo.
     @Query("""

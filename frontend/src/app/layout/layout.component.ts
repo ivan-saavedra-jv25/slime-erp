@@ -78,6 +78,14 @@ const GRUPOS: NavGroup[] = [
     ],
   },
   {
+    key: 'reportes',
+    titulo: 'Reportes',
+    icono: 'bar_chart',
+    items: [
+      { ruta: '/reportes/libro-ventas', label: 'Libro de Ventas', icono: 'receipt_long', permiso: 'VENTAS_VER' },
+    ],
+  },
+  {
     key: 'administracion',
     titulo: 'Administración',
     icono: 'admin_panel_settings',

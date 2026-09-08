@@ -180,6 +180,11 @@ export const routes: Routes = [
         path: 'admin/empresas',
         loadComponent: () => import('./features/empresas/empresas.component').then((m) => m.EmpresasComponent),
       },
+      {
+        path: 'reportes/libro-ventas',
+        loadComponent: () =>
+          import('./features/reportes/libro-ventas.component').then((m) => m.LibroVentasComponent),
+      },
     ],
   },
   { path: '**', redirectTo: 'dashboard' },
