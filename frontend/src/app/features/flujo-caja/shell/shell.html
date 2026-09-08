@@ -1,0 +1,40 @@
+<div class="page-header">
+  <h1>Flujo de caja</h1>
+</div>
+
+<nav class="shell-nav" aria-label="Secciones de Flujo de caja">
+  <a
+    mat-button
+    routerLink="resumen"
+    routerLinkActive="active-link"
+    [routerLinkActiveOptions]="{ exact: false }"
+  >
+    <mat-icon>table_chart</mat-icon>
+    <span class="nav-text">Resumen</span>
+  </a>
+  <a mat-button routerLink="mes" routerLinkActive="active-link">
+    <mat-icon>receipt_long</mat-icon>
+    <span class="nav-text">Mes</span>
+  </a>
+  <a mat-button routerLink="auditoria" routerLinkActive="active-link">
+    <mat-icon>fact_check</mat-icon>
+    <span class="nav-text">Auditoría</span>
+    @if (alerts().total > 0) {
+      <span
+        class="alert-badge"
+        [class.badge-critical]="alerts().critical > 0"
+        [attr.aria-label]="alerts().total + ' meses con alerta'"
+      >
+        {{ alerts().total }}
+      </span>
+    }
+  </a>
+  <a mat-button routerLink="ajustes" routerLinkActive="active-link">
+    <mat-icon>settings</mat-icon>
+    <span class="nav-text">Ajustes</span>
+  </a>
+</nav>
+
+<main class="shell-content">
+  <router-outlet />
+</main>

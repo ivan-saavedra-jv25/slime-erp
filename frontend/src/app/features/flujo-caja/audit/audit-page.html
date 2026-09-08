@@ -1,0 +1,70 @@
+<header class="page-header">
+  <div>
+    <div class="year-picker">
+      <button
+        type="button"
+        mat-icon-button
+        aria-label="Año anterior"
+        [disabled]="!canGoToPreviousYear()"
+        (click)="stepYear(-1)"
+      >
+        <mat-icon>chevron_left</mat-icon>
+      </button>
+      <h1 class="page-title">Auditoría {{ year() }}</h1>
+      <button type="button" mat-icon-button aria-label="Año siguiente" (click)="stepYear(1)">
+        <mat-icon>chevron_right</mat-icon>
+      </button>
+    </div>
+    <p class="page-subtitle">
+      Ocho preguntas sobre liquidez, calidad del flujo y capacidad de pago.
+    </p>
+  </div>
+
+  <div class="score">
+    <span class="score-item pass">{{ report().passed }} cumple</span>
+    <span class="score-item warn">{{ report().warned }} atención</span>
+    <span class="score-item fail">{{ report().failed }} no cumple</span>
+  </div>
+</header>
+
+@if (isEmpty()) {
+  <mat-card class="empty-card">
+    <mat-icon class="empty-icon">fact_check</mat-icon>
+    <h2>Sin movimientos que auditar</h2>
+    <p>
+      Carga tu flujo en el <a routerLink="../mes">detalle mensual</a> o parte con el ejemplo desde
+      <a routerLink="../ajustes">Ajustes</a>.
+    </p>
+  </mat-card>
+} @else {
+  <div class="checks">
+    @for (check of report().checks; track check.id) {
+      <mat-card class="check" [class]="'check-' + check.status">
+        <header class="check-head">
+          <mat-icon class="check-icon">{{ meta(check.status).icon }}</mat-icon>
+          <h2 class="check-title">{{ check.title }}</h2>
+          <span class="check-badge">{{ meta(check.status).label }}</span>
+        </header>
+
+        <p class="check-criterion">{{ check.criterion }}</p>
+        <p class="check-finding">{{ check.finding }}</p>
+
+        <dl class="figures">
+          @for (figure of check.figures; track figure.label) {
+            <div class="figure">
+              <dt>
+                {{ figure.label }}
+                @if (figure.month) {
+                  <span class="figure-month">{{ figure.month | monthLabel }}</span>
+                }
+              </dt>
+              <dd [class.negative]="figure.amount < 0">{{ figure.amount | clp }}</dd>
+            </div>
+          }
+        </dl>
+
+        <p class="check-advice">{{ check.advice }}</p>
+      </mat-card>
+    }
+  </div>
+}

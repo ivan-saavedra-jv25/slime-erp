@@ -1,0 +1,186 @@
+<header class="page-header">
+  <div>
+    <div class="year-picker">
+      <button
+        type="button"
+        mat-icon-button
+        aria-label="Año anterior"
+        [disabled]="!canGoToPreviousYear()"
+        [matTooltip]="canGoToPreviousYear() ? 'Año anterior' : 'El flujo parte en ' + baseYear()"
+        (click)="stepYear(-1)"
+      >
+        <mat-icon>chevron_left</mat-icon>
+      </button>
+      <h1 class="page-title">Resumen {{ year() }}</h1>
+      <button type="button" mat-icon-button aria-label="Año siguiente" (click)="stepYear(1)">
+        <mat-icon>chevron_right</mat-icon>
+      </button>
+    </div>
+    <p class="page-subtitle">
+      @if (isCarriedOver()) {
+        Enero parte con el cierre de diciembre de {{ year() - 1 }}
+      } @else {
+        Enero parte con el saldo inicial definido en Ajustes
+      }
+    </p>
+  </div>
+  <a mat-flat-button color="primary" routerLink="../mes">
+    <mat-icon>add</mat-icon>
+    Registrar movimientos
+  </a>
+</header>
+
+@if (isEmpty()) {
+  <mat-card class="empty-card">
+    <mat-icon class="empty-icon">savings</mat-icon>
+    <h2>Aún no hay movimientos</h2>
+    <p>
+      Define el saldo con el que partes en <a routerLink="../ajustes">Ajustes</a> y luego registra
+      ingresos y gastos en el <a routerLink="../mes">detalle mensual</a>. Los ítems que se repiten,
+      como arriendo o sueldos, se cargan una vez y aplican a todos los meses.
+    </p>
+    <button type="button" mat-flat-button color="primary" class="empty-action" (click)="loadSample()">
+      <mat-icon>auto_awesome</mat-icon>
+      Cargar un flujo de ejemplo
+    </button>
+  </mat-card>
+} @else {
+  <section class="highlights">
+    <mat-card class="highlight">
+      <div class="highlight-label">
+        {{ isCarriedOver() ? 'Saldo arrastrado de ' + (year() - 1) : 'Saldo inicial' }}
+      </div>
+      <div class="highlight-value">{{ projection()[0].openingBalance | clp }}</div>
+      <div class="highlight-hint">{{ months()[0] | monthLabel }}</div>
+    </mat-card>
+
+    <mat-card class="highlight">
+      <div class="highlight-label">Saldo final proyectado</div>
+      <div class="highlight-value" [class.negative]="finalBalance() < 0">
+        {{ finalBalance() | clp }}
+      </div>
+      <div class="highlight-hint">{{ months()[months().length - 1] | monthLabel }}</div>
+    </mat-card>
+
+    @if (hasProvisions()) {
+      <mat-card class="highlight">
+        <div class="highlight-label">Disponible al cierre</div>
+        <div class="highlight-value" [class.negative]="finalAvailable() < 0">
+          {{ finalAvailable() | clp }}
+        </div>
+        <div class="highlight-hint">Descontados los impuestos provisionados</div>
+      </mat-card>
+    }
+
+    <mat-card class="highlight" [class]="'alert-' + worstHealth()">
+      <div class="highlight-label">Meses con alerta</div>
+      <div class="highlight-value">{{ alerts().total }} de {{ months().length }}</div>
+      <div class="highlight-hint">
+        @if (alerts().critical > 0) {
+          {{ alerts().critical }} sin plata suficiente
+        } @else if (alerts().warning > 0) {
+          {{ alerts().warning }} para vigilar
+        } @else {
+          Todo el año en verde
+        }
+      </div>
+    </mat-card>
+
+    <mat-card class="highlight">
+      <div class="highlight-label">Mes más ajustado</div>
+      <div class="highlight-value" [class.negative]="lowestMonth().closingBalance < 0">
+        {{ lowestMonth().closingBalance | clp }}
+      </div>
+      <div class="highlight-hint">{{ lowestMonth().month | monthLabel }}</div>
+    </mat-card>
+  </section>
+
+  <mat-card class="chart-card">
+    <h2 class="card-title">Evolución del saldo</h2>
+    <app-balance-chart [months]="projection()" />
+  </mat-card>
+}
+
+<mat-card class="matrix-card">
+  <h2 class="card-title">Detalle por mes</h2>
+
+  <div class="matrix-scroll">
+    <table class="matrix">
+      <thead>
+        <tr>
+          <th class="sticky-col">Concepto</th>
+          @for (month of months(); track month; let i = $index) {
+            <th class="numeric" [class]="'head-' + statuses()[i].health">
+              <a routerLink="../mes" (click)="goToMonth(month)">
+                <span
+                  class="dot"
+                  [class]="'dot-' + statuses()[i].health"
+                  [matTooltip]="statusTooltip(i)"
+                  [attr.aria-label]="statusTooltip(i)"
+                ></span>
+                {{ month | monthLabel }}
+              </a>
+            </th>
+          }
+          <th class="numeric total-col">Total</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <ng-container *ngTemplateOutlet="rowTpl; context: { $implicit: openingRow() }" />
+
+        <tr class="section-row">
+          <td class="sticky-col" [attr.colspan]="months().length + 2">Ingresos</td>
+        </tr>
+        @for (row of incomeRows(); track row.label) {
+          <ng-container *ngTemplateOutlet="rowTpl; context: { $implicit: row }" />
+        }
+        @if (incomeRows().length === 0) {
+          <tr>
+            <td class="sticky-col muted" [attr.colspan]="months().length + 2">Sin ingresos</td>
+          </tr>
+        }
+        <ng-container *ngTemplateOutlet="rowTpl; context: { $implicit: incomeTotalRow() }" />
+
+        <tr class="section-row">
+          <td class="sticky-col" [attr.colspan]="months().length + 2">Gastos</td>
+        </tr>
+        @for (row of expenseRows(); track row.label) {
+          <ng-container *ngTemplateOutlet="rowTpl; context: { $implicit: row }" />
+        }
+        @if (expenseRows().length === 0) {
+          <tr>
+            <td class="sticky-col muted" [attr.colspan]="months().length + 2">Sin gastos</td>
+          </tr>
+        }
+        <ng-container *ngTemplateOutlet="rowTpl; context: { $implicit: expenseTotalRow() }" />
+
+        <ng-container *ngTemplateOutlet="rowTpl; context: { $implicit: operationalRow() }" />
+        <ng-container *ngTemplateOutlet="rowTpl; context: { $implicit: netRow() }" />
+        <ng-container *ngTemplateOutlet="rowTpl; context: { $implicit: closingRow() }" />
+        @if (hasProvisions()) {
+          <ng-container *ngTemplateOutlet="rowTpl; context: { $implicit: provisionRow() }" />
+          <ng-container *ngTemplateOutlet="rowTpl; context: { $implicit: availableRow() }" />
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <p class="legend">El saldo final de cada mes es el saldo inicial del siguiente.</p>
+</mat-card>
+
+<ng-template #rowTpl let-row>
+  <tr [class]="'row-' + row.style">
+    <th scope="row" class="sticky-col">{{ row.label }}</th>
+    @for (value of row.values; track $index) {
+      <td class="numeric" [class.negative]="value < 0">{{ value | clp }}</td>
+    }
+    <td class="numeric total-col">
+      @if (row.total === null) {
+        <span class="muted" matTooltip="Los saldos no se suman entre meses">—</span>
+      } @else {
+        <span [class.negative]="row.total < 0">{{ row.total | clp }}</span>
+      }
+    </td>
+  </tr>
+</ng-template>

@@ -1,0 +1,260 @@
+:host {
+  display: block;
+}
+
+.page-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--space-4);
+  margin-bottom: var(--space-5);
+}
+
+.year-picker {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin-left: -0.5rem;
+}
+
+.page-title {
+  margin: 0;
+  font: var(--font-h2);
+  min-width: 8.5rem;
+  text-align: center;
+}
+
+.page-subtitle {
+  margin: var(--space-1) 0 0;
+  color: var(--text-muted);
+}
+
+.page-header > a {
+  margin-left: auto;
+}
+
+.empty-card {
+  padding: var(--space-6);
+  text-align: center;
+  margin-bottom: var(--space-4);
+}
+
+.empty-icon {
+  font-size: 3rem;
+  width: 3rem;
+  height: 3rem;
+  color: var(--primary-base);
+}
+
+.empty-card h2 {
+  margin: var(--space-2) 0;
+  font: var(--font-h1);
+}
+
+.empty-card p {
+  margin: 0 auto;
+  max-width: 46ch;
+  color: var(--text-muted);
+}
+
+.empty-action {
+  margin-top: var(--space-4);
+}
+
+.highlights {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.highlight {
+  padding: var(--space-3) var(--space-4);
+}
+
+.highlight-label {
+  font: var(--font-body-sm);
+  color: var(--text-muted);
+}
+
+.highlight-value {
+  font: var(--font-h2);
+  margin-top: var(--space-1);
+}
+
+.highlight-hint {
+  font: var(--font-legals);
+  color: var(--text-muted);
+}
+
+.card-title {
+  margin: 0 0 var(--space-3);
+  font: var(--font-h3);
+}
+
+.chart-card,
+.matrix-card {
+  padding: var(--space-4) var(--space-5) var(--space-5);
+  margin-bottom: var(--space-4);
+}
+
+.matrix-scroll {
+  overflow-x: auto;
+}
+
+.matrix {
+  border-collapse: collapse;
+  width: 100%;
+  font-variant-numeric: tabular-nums;
+}
+
+.matrix th,
+.matrix td {
+  padding: var(--space-2) var(--space-3);
+  white-space: nowrap;
+  text-align: right;
+  border-bottom: var(--border-width-default) solid var(--border-default);
+}
+
+.matrix thead th {
+  font: var(--font-body-sm);
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.matrix thead a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.matrix thead a:hover {
+  text-decoration: underline;
+}
+
+.sticky-col {
+  position: sticky;
+  left: 0;
+  text-align: left;
+  background: var(--surface-card);
+  z-index: 1;
+  font-weight: 400;
+}
+
+.section-row td {
+  font: var(--font-body-sm);
+  font-weight: 600;
+  color: var(--text-muted);
+  padding-top: var(--space-3);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-bottom: none;
+}
+
+.row-subtotal th,
+.row-subtotal td {
+  font-weight: 600;
+}
+
+.row-result th,
+.row-result td {
+  font-weight: 600;
+  background: var(--surface-subtle);
+}
+
+.row-result .sticky-col {
+  background: var(--surface-subtle);
+}
+
+.row-balance th,
+.row-balance td {
+  font-weight: 600;
+  background: var(--primary-background);
+  color: var(--primary-dark);
+}
+
+.row-balance .sticky-col {
+  background: var(--primary-background);
+}
+
+.negative {
+  color: var(--error-base);
+}
+
+.muted {
+  color: var(--text-muted);
+}
+
+.total-col {
+  border-left: var(--border-width-default) solid var(--border-default);
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-5);
+  margin-top: var(--space-3);
+  font: var(--font-body-sm);
+  color: var(--text-muted);
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.legend-note {
+  margin: var(--space-2) 0 0;
+  font: var(--font-legals);
+  color: var(--text-muted);
+}
+
+.dot {
+  display: inline-block;
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 50%;
+  flex: none;
+}
+
+.dot-ok {
+  background: var(--success-base);
+}
+
+.dot-warning {
+  background: var(--warning-base);
+}
+
+.dot-critical {
+  background: var(--error-base);
+}
+
+.matrix thead a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.head-warning {
+  box-shadow: inset 0 -3px 0 var(--warning-base);
+}
+
+.head-critical {
+  box-shadow: inset 0 -3px 0 var(--error-base);
+}
+
+.highlight.alert-warning {
+  border-color: var(--warning-base);
+}
+
+.highlight.alert-warning .highlight-value {
+  color: var(--warning-base);
+}
+
+.highlight.alert-critical {
+  border-color: var(--error-base);
+}
+
+.highlight.alert-critical .highlight-value {
+  color: var(--error-base);
+}

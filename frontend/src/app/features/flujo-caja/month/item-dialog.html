@@ -1,0 +1,121 @@
+<h2 mat-dialog-title>{{ isEdit ? 'Editar movimiento' : 'Nuevo movimiento' }}</h2>
+
+<mat-dialog-content class="dialog-body">
+  <mat-button-toggle-group
+    [value]="kind()"
+    (valueChange)="onKindChange($event)"
+    aria-label="Tipo de movimiento"
+    class="kind-toggle"
+  >
+    <mat-button-toggle value="income">Ingreso</mat-button-toggle>
+    <mat-button-toggle value="expense">Gasto</mat-button-toggle>
+  </mat-button-toggle-group>
+
+  <div class="form-group">
+    <label for="itemDescription">Descripción</label>
+    <input
+      id="itemDescription"
+      [ngModel]="description()"
+      (ngModelChange)="description.set($event)"
+      placeholder="Arriendo oficina"
+      cdkFocusInitial
+    />
+  </div>
+
+  <div class="form-group">
+    <label for="itemAmount">Monto</label>
+    <input
+      id="itemAmount"
+      type="number"
+      min="1"
+      step="1000"
+      [ngModel]="amount()"
+      (ngModelChange)="amount.set($event === null || $event === '' ? null : +$event)"
+    />
+    <span class="hint">Siempre positivo: el signo lo define el tipo</span>
+  </div>
+
+  <div class="form-group">
+    <label for="itemCategory">Categoría</label>
+    <select id="itemCategory" [ngModel]="categoryId()" (ngModelChange)="categoryId.set($event)">
+      @for (category of categories(); track category.id) {
+        <option [value]="category.id">{{ category.name }}</option>
+      }
+    </select>
+  </div>
+
+  @if (isDebtPayment()) {
+    <div class="form-group" [class.has-error]="interestInvalid()">
+      <label for="itemInterest">Interés incluido en la cuota</label>
+      <input
+        id="itemInterest"
+        type="number"
+        min="0"
+        step="1000"
+        [ngModel]="interestAmount()"
+        (ngModelChange)="interestAmount.set($event === null || $event === '' ? null : +$event)"
+      />
+      @if (interestInvalid()) {
+        <span class="field-error">El interés no puede superar la cuota.</span>
+      } @else {
+        <span class="hint">El resto de la cuota amortiza capital. Déjalo vacío si no lo sabes.</span>
+      }
+    </div>
+  }
+
+  <label class="checkbox-row">
+    <input
+      type="checkbox"
+      [ngModel]="recurrent()"
+      (ngModelChange)="recurrent.set($event)"
+    />
+    Se repite todos los meses
+  </label>
+
+  @if (recurrent()) {
+    <div class="month-row">
+      <div class="form-group">
+        <label for="itemFromMonth">Desde</label>
+        <select id="itemFromMonth" [ngModel]="fromMonth()" (ngModelChange)="fromMonth.set($event)">
+          @for (m of data.monthOptions; track m) {
+            <option [ngValue]="m">{{ m | monthLabel }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="form-group" [class.hidden-field]="!hasEnd()">
+        <label for="itemToMonth">Hasta</label>
+        <select id="itemToMonth" [ngModel]="toMonth()" (ngModelChange)="toMonth.set($event)">
+          @for (m of data.monthOptions; track m) {
+            <option [ngValue]="m">{{ m | monthLabel }}</option>
+          }
+        </select>
+      </div>
+    </div>
+
+    <label class="checkbox-row">
+      <input type="checkbox" [ngModel]="hasEnd()" (ngModelChange)="hasEnd.set($event)" />
+      Tiene fecha de término
+    </label>
+
+    @if (rangeInvalid()) {
+      <span class="field-error">El mes de término no puede ser anterior al de inicio.</span>
+    }
+  } @else {
+    <div class="form-group">
+      <label for="itemMonth">Mes</label>
+      <select id="itemMonth" [ngModel]="month()" (ngModelChange)="month.set($event)">
+        @for (m of data.monthOptions; track m) {
+          <option [ngValue]="m">{{ m | monthLabel }}</option>
+        }
+      </select>
+    </div>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button type="button" mat-button mat-dialog-close>Cancelar</button>
+  <button type="button" mat-flat-button color="primary" [disabled]="!valid()" (click)="save()">
+    Guardar
+  </button>
+</mat-dialog-actions>

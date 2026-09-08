@@ -1,0 +1,250 @@
+<div class="page-header">
+  <h1>Ajustes</h1>
+</div>
+
+<mat-card class="form-panel">
+  <h2>Punto de partida</h2>
+  <p class="form-section-hint">
+    Todo el flujo se calcula desde acá: el saldo inicial del primer mes y el largo de la proyección.
+  </p>
+
+  <div class="form-grid">
+    <div class="form-group">
+      <label for="openingBalance">Saldo inicial de enero {{ baseYear() }}</label>
+      <input
+        id="openingBalance"
+        type="number"
+        step="1000"
+        [ngModel]="settings().openingBalance"
+        (ngModelChange)="setOpeningBalance($event)"
+      />
+      <span class="hint">{{ settings().openingBalance | clp }}</span>
+    </div>
+
+    <div class="form-group">
+      <label for="baseYear">Año base</label>
+      <select id="baseYear" [ngModel]="baseYear()" (ngModelChange)="setBaseYear($event)">
+        @for (option of yearOptions(); track option) {
+          <option [ngValue]="option">{{ option }}</option>
+        }
+      </select>
+      <span class="hint">El flujo parte en enero de {{ baseYear() }}</span>
+    </div>
+  </div>
+</mat-card>
+
+<mat-card class="form-panel">
+  <h2>Categorías</h2>
+  <p class="form-section-hint">
+    Agrupan los movimientos y definen cómo se leen. <strong>Operacional</strong> es la caja del
+    giro; <strong>no operacional</strong> es puntual y no se repite;
+    <strong>financiamiento</strong> son préstamos y sus cuotas. En gastos, <strong>fijo</strong> se
+    paga aunque no haya ventas. Una categoría en uso no se puede borrar.
+  </p>
+
+  <div class="new-category">
+    <div class="form-group grow">
+      <label for="newCategoryName">Nueva categoría</label>
+      <input
+        id="newCategoryName"
+        [ngModel]="newCategoryName()"
+        (ngModelChange)="newCategoryName.set($event)"
+        (keyup.enter)="addCategory()"
+        placeholder="Marketing"
+      />
+    </div>
+
+    <div class="form-group">
+      <label for="newCategoryKind">Tipo</label>
+      <select id="newCategoryKind" [ngModel]="newCategoryKind()" (ngModelChange)="newCategoryKind.set($event)">
+        <option value="income">Ingreso</option>
+        <option value="expense">Gasto</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="newCategoryNature">Naturaleza</label>
+      <select id="newCategoryNature" [ngModel]="newCategoryNature()" (ngModelChange)="newCategoryNature.set($event)">
+        @for (option of natureLabels; track option.value) {
+          <option [ngValue]="option.value">{{ option.label }}</option>
+        }
+      </select>
+    </div>
+
+    @if (newCategoryKind() === 'expense') {
+      <div class="form-group">
+        <label for="newCategoryVariability">Comportamiento</label>
+        <select
+          id="newCategoryVariability"
+          [ngModel]="newCategoryVariability()"
+          (ngModelChange)="newCategoryVariability.set($event)"
+        >
+          @for (option of variabilityLabels; track option.value) {
+            <option [ngValue]="option.value">{{ option.label }}</option>
+          }
+        </select>
+      </div>
+    }
+
+    <button type="button" mat-flat-button color="primary" (click)="addCategory()">Agregar</button>
+  </div>
+
+  <div class="category-columns">
+    <div>
+      <h3 class="form-section-title">Ingresos</h3>
+      @for (category of incomeCategories(); track category.id) {
+        <div class="category-row">
+          <input
+            class="grow"
+            [ngModel]="category.name"
+            (ngModelChange)="renameCategory(category.id, $event)"
+          />
+
+          <select
+            class="nature-field"
+            [ngModel]="category.nature"
+            (ngModelChange)="updateCategory(category.id, { nature: $event })"
+          >
+            @for (option of natureLabels; track option.value) {
+              <option [ngValue]="option.value">{{ option.label }}</option>
+            }
+          </select>
+
+          <span class="usage">{{ categoryUsage(category.id) }}</span>
+          <button
+            type="button"
+            mat-icon-button
+            [disabled]="categoryUsage(category.id) > 0"
+            [matTooltip]="
+              categoryUsage(category.id) > 0 ? 'En uso por movimientos' : 'Eliminar categoría'
+            "
+            (click)="removeCategory(category.id, category.name)"
+          >
+            <mat-icon>delete</mat-icon>
+          </button>
+        </div>
+      }
+    </div>
+
+    <div>
+      <h3 class="form-section-title">Gastos</h3>
+      @for (category of expenseCategories(); track category.id) {
+        <div class="category-row">
+          <input
+            class="grow"
+            [ngModel]="category.name"
+            (ngModelChange)="renameCategory(category.id, $event)"
+          />
+
+          <select
+            class="nature-field"
+            [ngModel]="category.nature"
+            (ngModelChange)="updateCategory(category.id, { nature: $event })"
+          >
+            @for (option of natureLabels; track option.value) {
+              <option [ngValue]="option.value">{{ option.label }}</option>
+            }
+          </select>
+
+          <select
+            class="nature-field"
+            [ngModel]="category.variability"
+            (ngModelChange)="updateCategory(category.id, { variability: $event })"
+          >
+            @for (option of variabilityLabels; track option.value) {
+              <option [ngValue]="option.value">{{ option.label }}</option>
+            }
+          </select>
+
+          <span class="usage">{{ categoryUsage(category.id) }}</span>
+          <button
+            type="button"
+            mat-icon-button
+            [disabled]="categoryUsage(category.id) > 0"
+            [matTooltip]="
+              categoryUsage(category.id) > 0 ? 'En uso por movimientos' : 'Eliminar categoría'
+            "
+            (click)="removeCategory(category.id, category.name)"
+          >
+            <mat-icon>delete</mat-icon>
+          </button>
+        </div>
+      }
+    </div>
+  </div>
+</mat-card>
+
+<mat-card class="form-panel">
+  <h2>Provisiones</h2>
+  <p class="form-section-hint">
+    Plata que está en la cuenta pero ya tiene dueño. Se descuenta del saldo para mostrar el
+    <strong>disponible real</strong>, sin tocar el flujo de caja.
+  </p>
+
+  <div class="form-grid">
+    <div class="form-group">
+      <label for="taxRate">Impuestos (%)</label>
+      <input
+        id="taxRate"
+        type="number"
+        min="0"
+        max="100"
+        step="1"
+        [ngModel]="provisions().taxRatePercent"
+        (ngModelChange)="setTaxRate($event)"
+      />
+      <span class="hint">Sobre el resultado operacional positivo de cada mes</span>
+    </div>
+
+    <div class="form-group">
+      <label for="contingencyMonths">Fondo de imprevistos (meses)</label>
+      <input
+        id="contingencyMonths"
+        type="number"
+        min="0"
+        max="24"
+        step="1"
+        [ngModel]="provisions().contingencyMonths"
+        (ngModelChange)="setContingencyMonths($event)"
+      />
+      <span class="hint">Meses de gastos fijos que se mantienen reservados</span>
+    </div>
+  </div>
+</mat-card>
+
+<mat-card class="form-panel">
+  <h2>Respaldo</h2>
+  <p class="form-section-hint">
+    Los datos viven sólo en este navegador. Descarga un respaldo antes de limpiar el historial o
+    cambiar de equipo.
+  </p>
+
+  <div class="backup-actions">
+    <button type="button" mat-stroked-button (click)="exportBackup()">
+      <mat-icon>download</mat-icon>
+      Exportar JSON
+    </button>
+
+    <button type="button" mat-stroked-button (click)="fileInput.click()">
+      <mat-icon>upload</mat-icon>
+      Importar JSON
+    </button>
+    <input
+      #fileInput
+      type="file"
+      accept="application/json,.json"
+      hidden
+      (change)="importBackup($event)"
+    />
+
+    <button type="button" mat-stroked-button (click)="loadSample()">
+      <mat-icon>auto_awesome</mat-icon>
+      Cargar ejemplo
+    </button>
+
+    <button type="button" mat-stroked-button color="warn" (click)="resetAll()">
+      <mat-icon>delete_forever</mat-icon>
+      Borrar todo
+    </button>
+  </div>
+</mat-card>

@@ -50,6 +50,33 @@ export const routes: Routes = [
           import('./features/tesoreria/tesoreria-historial.component').then((m) => m.TesoreriaHistorialComponent),
       },
       {
+        path: 'flujo-caja',
+        loadComponent: () => import('./features/flujo-caja/shell/shell').then((m) => m.Shell),
+        children: [
+          { path: '', pathMatch: 'full', redirectTo: 'resumen' },
+          {
+            path: 'resumen',
+            loadComponent: () =>
+              import('./features/flujo-caja/dashboard/dashboard').then((m) => m.Dashboard),
+          },
+          {
+            path: 'mes',
+            loadComponent: () =>
+              import('./features/flujo-caja/month/month-detail').then((m) => m.MonthDetail),
+          },
+          {
+            path: 'auditoria',
+            loadComponent: () =>
+              import('./features/flujo-caja/audit/audit-page').then((m) => m.AuditPage),
+          },
+          {
+            path: 'ajustes',
+            loadComponent: () =>
+              import('./features/flujo-caja/settings/settings').then((m) => m.SettingsPage),
+          },
+        ],
+      },
+      {
         path: 'compras',
         loadComponent: () => import('./features/compras/compras.component').then((m) => m.ComprasComponent),
       },

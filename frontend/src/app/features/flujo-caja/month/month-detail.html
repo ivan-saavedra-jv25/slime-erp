@@ -1,0 +1,202 @@
+<header class="month-header">
+  <div class="month-picker">
+    <button type="button" mat-icon-button aria-label="Mes anterior" [disabled]="!hasPrev()" (click)="step(-1)">
+      <mat-icon>chevron_left</mat-icon>
+    </button>
+
+    <div class="form-group month-field">
+      <label for="monthSelect">Mes</label>
+      <select id="monthSelect" [ngModel]="selectedMonth()" (ngModelChange)="selectMonth($event)">
+        @for (m of months(); track m) {
+          <option [ngValue]="m">{{ m | monthLabel: 'long' }}</option>
+        }
+      </select>
+    </div>
+
+    <button type="button" mat-icon-button aria-label="Mes siguiente" (click)="step(1)">
+      <mat-icon>chevron_right</mat-icon>
+    </button>
+
+    <div class="year-picker">
+      <button
+        type="button"
+        mat-icon-button
+        aria-label="Año anterior"
+        [disabled]="!canGoToPreviousYear()"
+        (click)="stepYear(-1)"
+      >
+        <mat-icon>keyboard_double_arrow_left</mat-icon>
+      </button>
+      <span class="year-label">{{ year() }}</span>
+      <button type="button" mat-icon-button aria-label="Año siguiente" (click)="stepYear(1)">
+        <mat-icon>keyboard_double_arrow_right</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <div class="month-actions">
+    <button type="button" mat-stroked-button (click)="addItem('income')">
+      <mat-icon>trending_up</mat-icon>
+      Ingreso
+    </button>
+    <button type="button" mat-flat-button color="primary" (click)="addItem('expense')">
+      <mat-icon>trending_down</mat-icon>
+      Gasto
+    </button>
+  </div>
+</header>
+
+@if (status().health !== 'ok') {
+  <div class="status-banner" [class]="'banner-' + status().health" role="status">
+    <mat-icon>{{ status().health === 'critical' ? 'error' : 'warning' }}</mat-icon>
+    <div>
+      <strong>
+        {{ status().health === 'critical' ? 'Este mes la plata no alcanza' : 'Mes para vigilar' }}
+      </strong>
+      <ul class="status-reasons">
+        @for (reason of status().reasons; track reason) {
+          <li>{{ reason }}</li>
+        }
+      </ul>
+    </div>
+  </div>
+}
+
+<section class="totals">
+  <mat-card class="total-card">
+    <div class="total-label">Saldo inicial</div>
+    <div class="total-value">{{ projection().openingBalance | clp }}</div>
+    <div class="total-hint">Viene del mes anterior</div>
+  </mat-card>
+
+  <mat-card class="total-card income">
+    <div class="total-label">Ingresos</div>
+    <div class="total-value">{{ projection().totalIncome | clp }}</div>
+    <div class="total-hint">{{ projection().incomes.length }} movimiento(s)</div>
+  </mat-card>
+
+  <mat-card class="total-card expense">
+    <div class="total-label">Gastos</div>
+    <div class="total-value">{{ projection().totalExpense | clp }}</div>
+    <div class="total-hint">{{ projection().expenses.length }} movimiento(s)</div>
+  </mat-card>
+
+  <mat-card class="total-card">
+    <div class="total-label">Resultado del mes</div>
+    <div class="total-value" [class.negative]="projection().net < 0">
+      {{ projection().net | clp }}
+    </div>
+    <div class="total-hint">Ingresos − gastos</div>
+  </mat-card>
+
+  <mat-card class="total-card closing">
+    <div class="total-label">Saldo final</div>
+    <div class="total-value" [class.negative]="projection().closingBalance < 0">
+      {{ projection().closingBalance | clp }}
+    </div>
+    <div class="total-hint">Pasa al mes siguiente</div>
+  </mat-card>
+</section>
+
+<div class="columns">
+  <mat-card class="detail-card">
+    <h2 class="detail-title">
+      <mat-icon class="income-icon">trending_up</mat-icon>
+      Ingresos
+      <span class="detail-total">{{ projection().totalIncome | clp }}</span>
+    </h2>
+
+    @if (incomeGroups().length === 0) {
+      <p class="empty">Sin ingresos registrados en este mes.</p>
+    } @else {
+      @for (group of incomeGroups(); track group.categoryId) {
+        <ng-container *ngTemplateOutlet="groupTpl; context: { $implicit: group, kind: 'income' }" />
+      }
+    }
+  </mat-card>
+
+  <mat-card class="detail-card">
+    <h2 class="detail-title">
+      <mat-icon class="expense-icon">trending_down</mat-icon>
+      Gastos
+      <span class="detail-total">{{ projection().totalExpense | clp }}</span>
+    </h2>
+
+    @if (expenseGroups().length === 0) {
+      <p class="empty">Sin gastos registrados en este mes.</p>
+    } @else {
+      @for (group of expenseGroups(); track group.categoryId) {
+        <ng-container
+          *ngTemplateOutlet="groupTpl; context: { $implicit: group, kind: 'expense' }"
+        />
+      }
+    }
+  </mat-card>
+</div>
+
+<ng-template #groupTpl let-group let-kind="kind">
+  <div class="group">
+    <div class="group-head">
+      <span class="group-name">{{ group.name }}</span>
+      <span class="group-total" [class.income-text]="kind === 'income'">
+        {{ group.total | clp }}
+      </span>
+    </div>
+
+    @for (line of group.lines; track line.source + line.id) {
+      <div class="line">
+        <div class="line-main">
+          <span class="line-description">{{ line.description }}</span>
+          @if (line.source === 'recurring') {
+            <mat-icon class="line-badge" matTooltip="Se repite todos los meses">repeat</mat-icon>
+          }
+          @if (line.overridden) {
+            <span class="line-chip" matTooltip="Monto ajustado sólo para este mes">ajustado</span>
+          }
+        </div>
+
+        <span class="line-amount">{{ line.amount | clp }}</span>
+
+        <button type="button" mat-icon-button [matMenuTriggerFor]="menu" aria-label="Acciones del movimiento">
+          <mat-icon>more_vert</mat-icon>
+        </button>
+
+        <mat-menu #menu="matMenu">
+          @if (line.source === 'recurring') {
+            <button mat-menu-item (click)="editThisMonthOnly(line)">
+              <mat-icon>edit_calendar</mat-icon>
+              <span>Editar sólo este mes</span>
+            </button>
+            <button mat-menu-item (click)="editLine(line)">
+              <mat-icon>edit</mat-icon>
+              <span>Editar la serie</span>
+            </button>
+            @if (line.overridden) {
+              <button mat-menu-item (click)="restoreTemplate(line)">
+                <mat-icon>restart_alt</mat-icon>
+                <span>Restaurar valor de la serie</span>
+              </button>
+            }
+            <button mat-menu-item (click)="skipThisMonth(line)">
+              <mat-icon>event_busy</mat-icon>
+              <span>Omitir este mes</span>
+            </button>
+            <button mat-menu-item (click)="removeLine(line)">
+              <mat-icon>delete</mat-icon>
+              <span>Eliminar la serie</span>
+            </button>
+          } @else {
+            <button mat-menu-item (click)="editLine(line)">
+              <mat-icon>edit</mat-icon>
+              <span>Editar</span>
+            </button>
+            <button mat-menu-item (click)="removeLine(line)">
+              <mat-icon>delete</mat-icon>
+              <span>Eliminar</span>
+            </button>
+          }
+        </mat-menu>
+      </div>
+    }
+  </div>
+</ng-template>
