@@ -1,0 +1,193 @@
+<div class="page-header">
+  <div>
+    <h1>Monitoreo DTE</h1>
+    <p class="page-subtitle">
+      Documentos tributarios emitidos por las empresas del ERP, con foco en monitoreo y diagnóstico.
+    </p>
+  </div>
+  <button mat-flat-button color="primary" (click)="aplicarFiltros()" aria-label="Recargar documentos">
+    <mat-icon>refresh</mat-icon>
+    Recargar
+  </button>
+</div>
+
+@if (error) {
+  <div class="alert error">{{ error }}</div>
+}
+
+@if (resumen) {
+  <div class="resumen-grid">
+    <mat-card class="resumen-card">
+      <div class="resumen-valor">{{ resumen.emitidos }}</div>
+      <div class="resumen-label">DTE emitidos</div>
+    </mat-card>
+    <mat-card class="resumen-card">
+      <div class="resumen-valor">{{ resumen.anulados }}</div>
+      <div class="resumen-label">DTE anulados</div>
+    </mat-card>
+  </div>
+}
+
+<mat-card class="filtros-panel">
+  <div class="filtros-grid">
+    <div class="form-group">
+      <label for="filtroEmpresaId">Empresa</label>
+      <select id="filtroEmpresaId" [(ngModel)]="filtroEmpresaId" name="filtroEmpresaId">
+        <option [ngValue]="null">Todas</option>
+        @for (empresa of empresas; track empresa.id) {
+          <option [ngValue]="empresa.id">{{ empresa.nombre }}</option>
+        }
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="filtroTipo">Tipo de DTE</label>
+      <select id="filtroTipo" [(ngModel)]="filtroTipo" name="filtroTipo">
+        <option value="">Todos</option>
+        <option value="BOLETA">Boleta</option>
+        <option value="FACTURA">Factura</option>
+        <option value="VOUCHER">Voucher</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="filtroEstado">Estado</label>
+      <select id="filtroEstado" [(ngModel)]="filtroEstado" name="filtroEstado">
+        <option value="">Todos</option>
+        <option value="EMITIDA">Emitida</option>
+        <option value="ANULADA">Anulada</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="filtroDesde">Desde</label>
+      <input id="filtroDesde" type="date" [(ngModel)]="filtroDesde" name="filtroDesde" />
+    </div>
+    <div class="form-group">
+      <label for="filtroHasta">Hasta</label>
+      <input id="filtroHasta" type="date" [(ngModel)]="filtroHasta" name="filtroHasta" />
+    </div>
+    <div class="form-group">
+      <label for="filtroFolio">Folio</label>
+      <input
+        id="filtroFolio"
+        type="number"
+        min="0"
+        [(ngModel)]="filtroFolio"
+        name="filtroFolio"
+        placeholder="Ej: 12"
+      />
+    </div>
+    <div class="form-group">
+      <label for="filtroRut">RUT receptor</label>
+      <input
+        id="filtroRut"
+        type="text"
+        [(ngModel)]="filtroRut"
+        name="filtroRut"
+        placeholder="Ej: 76543210-1"
+      />
+    </div>
+    <div class="filtros-actions">
+      <button mat-stroked-button (click)="limpiarFiltros()" aria-label="Limpiar filtros">
+        <mat-icon>close</mat-icon>
+        Limpiar
+      </button>
+      <button mat-flat-button color="primary" (click)="aplicarFiltros()" aria-label="Filtrar documentos">
+        <mat-icon>search</mat-icon>
+        Filtrar
+      </button>
+    </div>
+  </div>
+</mat-card>
+
+<mat-card class="table-panel">
+  <div class="table-header">
+    <h2>Documentos de la plataforma</h2>
+    @if (!cargando) {
+      <span class="table-count">{{ totalElements }} documento{{ totalElements === 1 ? '' : 's' }}</span>
+    }
+  </div>
+
+  @if (cargando) {
+    <div class="loading">Cargando documentos…</div>
+  } @else if (dtes.length === 0) {
+    <div class="empty">No se encontraron documentos con los filtros aplicados.</div>
+  } @else {
+    <div class="table-wrap">
+      <table mat-table [dataSource]="dtes">
+        <ng-container matColumnDef="fecha">
+          <th mat-header-cell *matHeaderCellDef>Fecha</th>
+          <td mat-cell *matCellDef="let d">{{ formatearFecha(d.fecha) }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="empresa">
+          <th mat-header-cell *matHeaderCellDef>Empresa</th>
+          <td mat-cell *matCellDef="let d">
+            <button class="link-button" (click)="verEmpresa(d)" title="Ver empresa">
+              {{ d.empresaNombre }}
+            </button>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="tipo">
+          <th mat-header-cell *matHeaderCellDef>Tipo</th>
+          <td mat-cell *matCellDef="let d">
+            {{ etiquetaTipo(d.tipoDocumento) }}{{ d.exento ? ' exenta' : '' }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="folio">
+          <th mat-header-cell *matHeaderCellDef>Folio</th>
+          <td mat-cell *matCellDef="let d">{{ d.folio ?? '—' }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="receptor">
+          <th mat-header-cell *matHeaderCellDef>Receptor</th>
+          <td mat-cell *matCellDef="let d">
+            <div>{{ d.rutReceptor ?? '—' }}</div>
+            <div class="receptor-razon">{{ d.razonSocialReceptor }}</div>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="monto">
+          <th mat-header-cell *matHeaderCellDef>Total</th>
+          <td mat-cell *matCellDef="let d">
+            <span class="money">{{ d.montoTotal | currency: 'CLP' : 'symbol-narrow' : '1.0-0' }}</span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="estado">
+          <th mat-header-cell *matHeaderCellDef>Estado</th>
+          <td mat-cell *matCellDef="let d">
+            <span class="tag" [ngClass]="claseEstado(d.estado)">{{ d.estado }}</span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="acciones">
+          <th mat-header-cell *matHeaderCellDef class="right"></th>
+          <td mat-cell *matCellDef="let d" class="right">
+            <button mat-icon-button (click)="verEmpresa(d)" title="Ver empresa" aria-label="Ver empresa">
+              <mat-icon>open_in_new</mat-icon>
+            </button>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="columnas"></tr>
+        <tr mat-row *matRowDef="let row; columns: columnas"></tr>
+      </table>
+    </div>
+
+    <div class="paginacion">
+      <button mat-stroked-button [disabled]="pagina === 0" (click)="paginaAnterior()" aria-label="Página anterior">
+        <mat-icon>chevron_left</mat-icon>
+      </button>
+      <span>Página {{ pagina + 1 }} de {{ totalPages }}</span>
+      <button
+        mat-stroked-button
+        [disabled]="pagina >= totalPages - 1"
+        (click)="paginaSiguiente()"
+        aria-label="Página siguiente"
+      >
+        <mat-icon>chevron_right</mat-icon>
+      </button>
+    </div>
+  }
+</mat-card>

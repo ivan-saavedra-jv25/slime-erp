@@ -83,6 +83,11 @@ export const routes: Routes = [
             (m) => m.VencimientosComponent
           ),
       },
+      {
+        path: 'dte',
+        loadComponent: () =>
+          import('./features/admin/dte/dte.component').then((m) => m.DteComponent),
+      },
     ],
   },
   {

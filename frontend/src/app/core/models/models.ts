@@ -637,6 +637,38 @@ export interface Vencimientos {
   vencidas: Suscripcion[];
 }
 
+export interface DocumentoDte {
+  id: number;
+  empresaId: number;
+  empresaNombre: string | null;
+  tipoDocumento: string;
+  codigoSii: number | null;
+  exento: boolean;
+  folio: number | null;
+  rutReceptor: string | null;
+  razonSocialReceptor: string | null;
+  fecha: string;
+  montoTotal: number;
+  estado: string;
+}
+
+export interface DteDashboard {
+  emitidos: number;
+  anulados: number;
+}
+
+export interface DteFiltros {
+  page?: number;
+  limit?: number;
+  empresaId?: number;
+  tipoDte?: string;
+  estado?: string;
+  fechaDesde?: string;
+  fechaHasta?: string;
+  folio?: number;
+  rutReceptor?: string;
+}
+
 export interface KpiResumen {
   ventasPeriodo: number;
   ventasPeriodoAnterior: number;
