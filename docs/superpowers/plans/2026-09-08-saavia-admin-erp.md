@@ -539,10 +539,10 @@ cd frontend && npx ng build --configuration development
 **Interfaces:**
 - Produce: `GET/POST /api/admin/planes`, `GET/PUT /api/admin/planes/{id}`, `PATCH /api/admin/planes/{id}/estado` (`ACTIVE`/`INACTIVE`). Campos del spec §11 (nombre, descripción, precio mensual/anual, límites, módulos JSONB, características, estado).
 
-- [ ] **Step 1: Tests** — crear valida campos obligatorios; desactivar (`INACTIVE`) está permitido solo si no hay suscripciones activas asociadas; eliminar físicamente queda prohibido (`DELETE` no expuesto); `modulos` se serializa/deserializa como lista de strings.
-- [ ] **Step 2: Implementar** service/controller con `@PreAuthorize("hasAuthority('PLANES_EDITAR')")` para escritura y `PLANES_VER` para lectura.
-- [ ] **Step 3: Frontend** — tabla + formulario de plan (2 columnas: identificación / precios y límites / módulos y estado), usando `PlanResponse`. Responsive.
-- [ ] **Step 4: `ng build`** + suite backend. Commit — "CRUD de planes con validaciones y estado"
+- [x] **Step 1: Tests** — crear valida campos obligatorios; desactivar (`INACTIVE`) está permitido solo si no hay suscripciones activas asociadas; eliminar físicamente queda prohibido (`DELETE` no expuesto); `modulos` se serializa/deserializa como lista de strings.
+- [x] **Step 2: Implementar** service/controller con `@PreAuthorize("hasAuthority('PLANES_EDITAR')")` para escritura y `PLANES_VER` para lectura.
+- [x] **Step 3: Frontend** — tabla + formulario de plan (2 columnas: identificación / precios y límites / módulos y estado), usando `PlanResponse`. Responsive.
+- [x] **Step 4: `ng build`** + suite backend. Commit — "CRUD de planes con validaciones y estado"
 
 ---
 

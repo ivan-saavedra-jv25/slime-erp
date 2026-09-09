@@ -38,6 +38,11 @@ export const routes: Routes = [
           import('./features/admin/admin-usuarios.component').then((m) => m.AdminUsuariosComponent),
       },
       {
+        path: 'planes',
+        loadComponent: () =>
+          import('./features/admin/planes/planes.component').then((m) => m.PlanesComponent),
+      },
+      {
         path: 'cobranza',
         loadComponent: () =>
           import('./features/admin/admin-cobranza.component').then((m) => m.AdminCobranzaComponent),

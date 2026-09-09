@@ -413,6 +413,31 @@ export interface CrearEmpresaRequest {
   adminPassword: string;
 }
 
+export interface Plan {
+  id: number;
+  nombre: string;
+  descripcion: string | null;
+  precioMensual: number;
+  precioAnual: number | null;
+  maxUsuarios: number;
+  maxDocumentos: number;
+  modulos: string[];
+  caracteristicas: string[];
+  estado: 'ACTIVE' | 'INACTIVE';
+}
+
+export interface PlanRequest {
+  nombre: string;
+  descripcion?: string;
+  precioMensual: number;
+  precioAnual?: number;
+  maxUsuarios: number;
+  maxDocumentos: number;
+  modulos: string[];
+  caracteristicas?: string[];
+  estado?: 'ACTIVE' | 'INACTIVE';
+}
+
 export type EstadoCobranza = 'DEUDA' | 'PARCIAL' | 'PAGADO' | 'ANULADO';
 export type EstadoPagoCobranza = 'CONFIRMADA' | 'ANULADA';
 

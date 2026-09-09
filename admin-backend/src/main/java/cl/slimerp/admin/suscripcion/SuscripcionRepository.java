@@ -14,6 +14,8 @@ public interface SuscripcionRepository extends JpaRepository<Suscripcion, Long> 
 
     long countByEstadoIn(Collection<String> estados);
 
+    long countByPlanIdAndEstadoIn(Long planId, Collection<String> estados);
+
     long countByEstadoAndFechaVencimientoBetween(String estado, LocalDate desde, LocalDate hasta);
 
     long countByEstadoAndFechaVencimientoBefore(String estado, LocalDate fecha);

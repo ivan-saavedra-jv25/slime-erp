@@ -1,0 +1,179 @@
+<div class="page-header">
+  <div>
+    <h1>Planes</h1>
+    <p class="page-subtitle">Define los planes de suscripción: precios, límites y módulos disponibles.</p>
+  </div>
+</div>
+
+@if (error) {
+  <div class="alert error">{{ error }}</div>
+}
+
+<mat-card class="form-panel">
+  <h2>{{ editandoId ? 'Editar plan' : 'Nuevo plan' }}</h2>
+  <p class="form-section-hint">
+    Los planes definen qué puede usar cada empresa según su suscripción. Un plan con suscripciones activas no puede desactivarse.
+  </p>
+
+  <h3>Identificación</h3>
+  <div class="form-grid form-grid--wide">
+    <div class="form-group">
+      <label for="nombre">Nombre *</label>
+      <input id="nombre" type="text" [(ngModel)]="nombre" name="nombre" placeholder="Ej: Plan Profesional" />
+    </div>
+    <div class="form-group form-group--full">
+      <label for="descripcion">Descripción</label>
+      <input id="descripcion" type="text" [(ngModel)]="descripcion" name="descripcion" placeholder="Para pymes en crecimiento" />
+    </div>
+  </div>
+
+  <h3>Precios y límites</h3>
+  <div class="form-grid">
+    <div class="form-group">
+      <label for="precioMensual">Precio mensual (CLP) *</label>
+      <input id="precioMensual" type="number" min="0" [(ngModel)]="precioMensual" name="precioMensual" />
+    </div>
+    <div class="form-group">
+      <label for="precioAnual">Precio anual (CLP)</label>
+      <input id="precioAnual" type="number" min="0" [(ngModel)]="precioAnual" name="precioAnual" />
+    </div>
+    <div class="form-group">
+      <label for="maxUsuarios">Límite de usuarios *</label>
+      <input id="maxUsuarios" type="number" min="1" [(ngModel)]="maxUsuarios" name="maxUsuarios" />
+    </div>
+    <div class="form-group">
+      <label for="maxDocumentos">Límite de documentos *</label>
+      <input id="maxDocumentos" type="number" min="1" [(ngModel)]="maxDocumentos" name="maxDocumentos" />
+    </div>
+  </div>
+
+  <h3>Módulos y estado</h3>
+  <div class="form-grid">
+    <div class="form-group">
+      <label>Módulos disponibles</label>
+      <div class="modulos-list">
+        @for (modulo of modulosDisponibles; track modulo) {
+          <label class="checkbox-row">
+            <input
+              type="checkbox"
+              [checked]="modulos.includes(modulo)"
+              (change)="onModuloToggle(modulo, $event)"
+            />
+            <span>{{ etiquetaModulo(modulo) }}</span>
+          </label>
+        }
+      </div>
+    </div>
+    <div class="form-group form-group--full">
+      <label for="caracteristicas">Características (una por línea)</label>
+      <textarea
+        id="caracteristicas"
+        rows="4"
+        [(ngModel)]="caracteristicas"
+        name="caracteristicas"
+        placeholder="Ej:&#10;Soporte prioritario&#10;Respaldos diarios"
+      ></textarea>
+    </div>
+    @if (editandoId) {
+      <div class="form-group">
+        <label for="estado">Estado</label>
+        <select id="estado" name="estado" [(ngModel)]="estado">
+          <option value="ACTIVE">Activo</option>
+          <option value="INACTIVE">Inactivo</option>
+        </select>
+      </div>
+    }
+  </div>
+
+  <div class="form-actions">
+    @if (editandoId) {
+      <button mat-stroked-button (click)="cancelarEdicion()">Cancelar</button>
+    }
+    <button mat-flat-button color="primary" [disabled]="guardando || !formularioCompleto()" (click)="guardar()">
+      <mat-icon>{{ editandoId ? 'save' : 'add' }}</mat-icon>
+      {{ guardando ? 'Guardando...' : editandoId ? 'Guardar cambios' : 'Crear plan' }}
+    </button>
+  </div>
+</mat-card>
+
+<mat-card class="table-panel">
+  <h2>Planes del sistema</h2>
+
+  @if (cargando) {
+    <p class="empty-state">Cargando planes...</p>
+  }
+
+  @if (!cargando && !planes.length) {
+    <p class="empty-state">No hay planes registrados.</p>
+  }
+
+  @if (!cargando && planes.length) {
+    <div class="table-scroll">
+      <table mat-table [dataSource]="planes">
+        <ng-container matColumnDef="nombre">
+          <th mat-header-cell *matHeaderCellDef>Plan</th>
+          <td mat-cell *matCellDef="let p">
+            <span class="text-strong">{{ p.nombre }}</span>
+            @if (p.descripcion) {
+              <p class="table-sub">{{ p.descripcion }}</p>
+            }
+          </td>
+        </ng-container>
+        <ng-container matColumnDef="precios">
+          <th mat-header-cell *matHeaderCellDef>Precios</th>
+          <td mat-cell *matCellDef="let p">
+            <span class="money">{{ p.precioMensual | currency: 'CLP' : 'symbol-narrow' : '1.0-0' }}</span>
+            <span class="table-sub"> /mes</span>
+            @if (p.precioAnual) {
+              <p class="table-sub money">{{ p.precioAnual | currency: 'CLP' : 'symbol-narrow' : '1.0-0' }} /año</p>
+            }
+          </td>
+        </ng-container>
+        <ng-container matColumnDef="limites">
+          <th mat-header-cell *matHeaderCellDef>Límites</th>
+          <td mat-cell *matCellDef="let p">
+            <span>{{ p.maxUsuarios }} usuarios · {{ p.maxDocumentos }} documentos</span>
+          </td>
+        </ng-container>
+        <ng-container matColumnDef="modulos">
+          <th mat-header-cell *matHeaderCellDef>Módulos</th>
+          <td mat-cell *matCellDef="let p">
+            <div class="chips">
+              @for (modulo of p.modulos; track modulo) {
+                <span class="chip">{{ etiquetaModulo(modulo) }}</span>
+              }
+            </div>
+          </td>
+        </ng-container>
+        <ng-container matColumnDef="estado">
+          <th mat-header-cell *matHeaderCellDef>Estado</th>
+          <td mat-cell *matCellDef="let p">
+            <span [class]="'tag ' + (p.estado === 'ACTIVE' ? 'tag--success' : 'tag--error')">
+              {{ p.estado === 'ACTIVE' ? 'Activo' : 'Inactivo' }}
+            </span>
+          </td>
+        </ng-container>
+        <ng-container matColumnDef="acciones">
+          <th mat-header-cell *matHeaderCellDef class="right"></th>
+          <td mat-cell *matCellDef="let p" class="right">
+            <button mat-icon-button (click)="editar(p)" title="Editar" aria-label="Editar plan">
+              <mat-icon>edit</mat-icon>
+            </button>
+            @if (p.estado === 'ACTIVE') {
+              <button mat-icon-button (click)="cambiarEstado(p)" title="Desactivar" aria-label="Desactivar plan">
+                <mat-icon>toggle_off</mat-icon>
+              </button>
+            } @else {
+              <button mat-icon-button (click)="reactivar(p)" title="Reactivar" aria-label="Reactivar plan">
+                <mat-icon>toggle_on</mat-icon>
+              </button>
+            }
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="columnas"></tr>
+        <tr mat-row *matRowDef="let row; columns: columnas"></tr>
+      </table>
+    </div>
+  }
+</mat-card>
