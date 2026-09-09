@@ -36,11 +36,32 @@ services:
         - action: rebuild
           path: ./backend/pom.xml
 
+  admin-backend:
+    build: ./admin-backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_NAME: ${DB_NAME:-slim_erp}
+      DB_USER: ${DB_USER:-slim_erp}
+      DB_PASSWORD: ${DB_PASSWORD:-slim_erp}
+      JWT_SECRET: ${JWT_SECRET:-CAMBIA_ESTE_SECRETO_EN_PRODUCCION_POR_UNO_LARGO_Y_ALEATORIO}
+    ports:
+      - "8081:8081"
+    develop:
+      watch:
+        - action: rebuild
+          path: ./admin-backend/src
+        - action: rebuild
+          path: ./admin-backend/pom.xml
+
   frontend:
     build: ./frontend
     restart: unless-stopped
     depends_on:
       - backend
+      - admin-backend
     ports:
       - "4200:80"
     develop:

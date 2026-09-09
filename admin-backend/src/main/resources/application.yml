@@ -1,0 +1,30 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: slim-erp-admin
+
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:slim_erp}
+    username: ${DB_USER:slim_erp}
+    password: ${DB_PASSWORD:slim_erp}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: none
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+        default_schema: public
+
+app:
+  jwt:
+    secret: ${JWT_SECRET:CAMBIA_ESTE_SECRETO_EN_PRODUCCION_POR_UNO_LARGO_Y_ALEATORIO}
+    expiration-minutes: ${JWT_EXPIRATION_MINUTES:480}
+
+logging:
+  level:
+    cl.slimerp.admin: INFO

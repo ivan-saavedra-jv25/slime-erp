@@ -1,3 +1,4 @@
 backend/target/*
+admin-backend/target/*
 .env
 .superpowers/

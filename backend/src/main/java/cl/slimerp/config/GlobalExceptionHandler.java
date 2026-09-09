@@ -8,7 +8,6 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import cl.slimerp.usuarios.UsuarioConflictException;
-import cl.slimerp.admin.EmpresaConflictException;
 import cl.slimerp.catalogo.ProductoConflictException;
 
 import java.time.Instant;
@@ -44,11 +43,6 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(UsuarioConflictException.class)
     public ResponseEntity<Map<String, Object>> handleUsuarioConflict(UsuarioConflictException ex) {
-        return error(HttpStatus.CONFLICT, ex.getMessage());
-    }
-
-    @ExceptionHandler(EmpresaConflictException.class)
-    public ResponseEntity<Map<String, Object>> handleEmpresaConflict(EmpresaConflictException ex) {
         return error(HttpStatus.CONFLICT, ex.getMessage());
     }
 
