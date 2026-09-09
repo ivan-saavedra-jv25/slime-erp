@@ -53,6 +53,7 @@ const GRUPOS: NavGroup[] = [
     titulo: 'Inventario',
     icono: 'inventory',
     items: [
+      { ruta: '/inventario', label: 'Stock', icono: 'search', permiso: 'BODEGAS_VER', exact: true },
       { ruta: '/movimientos', label: 'Movimientos', icono: 'swap_horiz', permiso: 'MOVIMIENTOS_VER', exact: true },
       { ruta: '/movimientos/historial', label: 'Historial', icono: 'history', permiso: 'MOVIMIENTOS_VER' },
     ],

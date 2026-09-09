@@ -238,6 +238,10 @@ export const routes: Routes = [
         loadComponent: () => import('./features/bodegas/bodegas.component').then((m) => m.BodegasComponent),
       },
       {
+        path: 'inventario',
+        loadComponent: () => import('./features/inventario/inventario.component').then((m) => m.InventarioComponent),
+      },
+      {
         path: 'categorias',
         loadComponent: () => import('./features/categorias/categorias.component').then((m) => m.CategoriasComponent),
       },
