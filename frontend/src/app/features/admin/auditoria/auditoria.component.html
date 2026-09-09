@@ -1,0 +1,184 @@
+<div class="page-header">
+  <div>
+    <h1>Auditoría</h1>
+    <p class="page-subtitle">Registro de las acciones administrativas críticas realizadas sobre la plataforma.</p>
+  </div>
+</div>
+
+@if (error) {
+  <div class="alert error">{{ error }}</div>
+}
+
+<mat-card class="filtros-panel">
+  <div class="filtros-grid">
+    <div class="form-group">
+      <label for="filtroModulo">Módulo</label>
+      <select id="filtroModulo" [(ngModel)]="filtroModulo" name="filtroModulo">
+        <option value="">Todos</option>
+        @for (modulo of modulos; track modulo.valor) {
+          <option [value]="modulo.valor">{{ modulo.etiqueta }}</option>
+        }
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="filtroAction">Acción</label>
+      <input
+        id="filtroAction"
+        type="text"
+        [(ngModel)]="filtroAction"
+        name="filtroAction"
+        placeholder="Ej: PLAN_CHANGE"
+      />
+    </div>
+    <div class="form-group">
+      <label for="filtroEmpresaId">Empresa</label>
+      <select id="filtroEmpresaId" [(ngModel)]="filtroEmpresaId" name="filtroEmpresaId">
+        <option [ngValue]="null">Todas</option>
+        @for (empresa of empresas; track empresa.id) {
+          <option [ngValue]="empresa.id">{{ empresa.nombre }}</option>
+        }
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="filtroDesde">Desde</label>
+      <input id="filtroDesde" type="date" [(ngModel)]="filtroDesde" name="filtroDesde" />
+    </div>
+    <div class="form-group">
+      <label for="filtroHasta">Hasta</label>
+      <input id="filtroHasta" type="date" [(ngModel)]="filtroHasta" name="filtroHasta" />
+    </div>
+    <div class="filtros-actions">
+      <button mat-stroked-button (click)="limpiarFiltros()" aria-label="Limpiar filtros">
+        <mat-icon>close</mat-icon>
+        Limpiar
+      </button>
+      <button mat-flat-button color="primary" (click)="aplicarFiltros()" aria-label="Filtrar auditoría">
+        <mat-icon>search</mat-icon>
+        Filtrar
+      </button>
+    </div>
+  </div>
+</mat-card>
+
+<mat-card class="table-panel">
+  <div class="table-header">
+    <h2>Registros de auditoría</h2>
+    @if (!cargando) {
+      <span class="table-count">{{ totalElements }} registro{{ totalElements === 1 ? '' : 's' }}</span>
+    }
+  </div>
+
+  @if (cargando) {
+    <p class="empty-state">Cargando registros...</p>
+  }
+
+  @if (!cargando && !registros.length) {
+    <p class="empty-state">No hay registros que coincidan con los filtros.</p>
+  }
+
+  @if (!cargando && registros.length) {
+    <div class="table-scroll">
+      <table mat-table [dataSource]="registros">
+        <ng-container matColumnDef="fecha">
+          <th mat-header-cell *matHeaderCellDef>Fecha</th>
+          <td mat-cell *matCellDef="let r">
+            <span class="text-strong">{{ r.creadoEn | date: 'dd-MM-yyyy HH:mm' }}</span>
+          </td>
+        </ng-container>
+        <ng-container matColumnDef="admin">
+          <th mat-header-cell *matHeaderCellDef>Administrador</th>
+          <td mat-cell *matCellDef="let r">
+            <span>{{ r.adminNombre ?? 'Sistema' }}</span>
+            @if (r.adminEmail) {
+              <p class="table-sub">{{ r.adminEmail }}</p>
+            }
+          </td>
+        </ng-container>
+        <ng-container matColumnDef="empresa">
+          <th mat-header-cell *matHeaderCellDef>Empresa</th>
+          <td mat-cell *matCellDef="let r">
+            <span>{{ r.companyNombre ?? '—' }}</span>
+          </td>
+        </ng-container>
+        <ng-container matColumnDef="modulo">
+          <th mat-header-cell *matHeaderCellDef>Módulo</th>
+          <td mat-cell *matCellDef="let r">
+            <span class="chip">{{ etiquetaModulo(r.modulo) }}</span>
+          </td>
+        </ng-container>
+        <ng-container matColumnDef="accion">
+          <th mat-header-cell *matHeaderCellDef>Acción</th>
+          <td mat-cell *matCellDef="let r">
+            <span class="text-strong">{{ r.action }}</span>
+            @if (r.entityType) {
+              <p class="table-sub">{{ r.entityType }} #{{ r.entityId ?? '—' }}</p>
+            }
+          </td>
+        </ng-container>
+        <ng-container matColumnDef="entidad">
+          <th mat-header-cell *matHeaderCellDef>Entidad</th>
+          <td mat-cell *matCellDef="let r">
+            <span>{{ r.entityType ?? '—' }}</span>
+            @if (r.entityId != null) {
+              <p class="table-sub">#{{ r.entityId }}</p>
+            }
+          </td>
+        </ng-container>
+        <ng-container matColumnDef="detalle">
+          <th mat-header-cell *matHeaderCellDef class="right"></th>
+          <td mat-cell *matCellDef="let r" class="right">
+            @if (hayCambios(r)) {
+              <button
+                mat-icon-button
+                (click)="toggleDetalle(r.id)"
+                title="Ver antes y después"
+                aria-label="Ver detalle del registro"
+              >
+                <mat-icon>{{ expandidoId === r.id ? 'expand_less' : 'expand_more' }}</mat-icon>
+              </button>
+            }
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="expandido">
+          <td mat-cell *matCellDef="let r" [attr.colspan]="columnas.length">
+            @if (expandidoId === r.id && hayCambios(r)) {
+              <div class="diff-panel">
+                <div class="diff-col">
+                  <h4>Antes</h4>
+                  <pre class="diff-json">{{ formatoValor(r.oldValue) }}</pre>
+                </div>
+                <div class="diff-col">
+                  <h4>Después</h4>
+                  <pre class="diff-json">{{ formatoValor(r.newValue) }}</pre>
+                </div>
+                @if (r.ipAddress) {
+                  <p class="diff-meta">IP: {{ r.ipAddress }} · Agente: {{ r.userAgent ?? '—' }}</p>
+                }
+              </div>
+            }
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="columnas"></tr>
+        <tr mat-row *matRowDef="let row; columns: columnas"></tr>
+        <tr mat-row *matRowDef="let row; columns: ['expandido']" class="diff-row"></tr>
+      </table>
+    </div>
+
+    <div class="paginacion">
+      <button mat-stroked-button [disabled]="pagina === 0" (click)="paginaAnterior()" aria-label="Página anterior">
+        <mat-icon>chevron_left</mat-icon>
+      </button>
+      <span>Página {{ pagina + 1 }} de {{ totalPages }}</span>
+      <button
+        mat-stroked-button
+        [disabled]="pagina >= totalPages - 1"
+        (click)="paginaSiguiente()"
+        aria-label="Página siguiente"
+      >
+        <mat-icon>chevron_right</mat-icon>
+      </button>
+    </div>
+  }
+</mat-card>

@@ -476,6 +476,35 @@ export interface CambiarPlanRequest {
   motivo?: string;
 }
 
+export interface AuditLogResponse {
+  id: number;
+  adminUserId: number | null;
+  adminNombre: string | null;
+  adminEmail: string | null;
+  companyId: number | null;
+  companyNombre: string | null;
+  action: string;
+  modulo: string;
+  entityType: string | null;
+  entityId: number | null;
+  oldValue: string | null;
+  newValue: string | null;
+  ipAddress: string | null;
+  userAgent: string | null;
+  creadoEn: string;
+}
+
+export interface AuditLogFiltros {
+  page?: number;
+  limit?: number;
+  adminUserId?: number;
+  companyId?: number;
+  modulo?: string;
+  action?: string;
+  desde?: string;
+  hasta?: string;
+}
+
 export type EstadoCobranza = 'DEUDA' | 'PARCIAL' | 'PAGADO' | 'ANULADO';
 export type EstadoPagoCobranza = 'CONFIRMADA' | 'ANULADA';
 
