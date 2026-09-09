@@ -160,6 +160,16 @@ export interface StockPorBodega {
   cantidad: number;
 }
 
+export type TipoBusquedaInventario = 'CODIGO_BARRA' | 'SKU' | 'NOMBRE';
+
+export interface InventarioConsultaItem {
+  productoId: number;
+  nombre: string;
+  sku: string | null;
+  codigoBarra: string | null;
+  stock: number;
+}
+
 export interface InventarioItem {
   productoId: number;
   sku: string | null;
