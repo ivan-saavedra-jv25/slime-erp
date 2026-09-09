@@ -1,6 +1,6 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, NgForm } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { MatTableModule } from '@angular/material/table';
@@ -30,6 +30,9 @@ import { cerrarCargando, mostrarCargando } from '../../core/utils/swal-loading';
   styleUrl: './categorias.component.scss',
 })
 export class CategoriasComponent implements OnInit, OnDestroy {
+  @ViewChild('f') formularioCategoria?: NgForm;
+  @ViewChild('fs') formularioSubcategoria?: NgForm;
+
   columnasCategorias = ['nombre', 'acciones'];
   columnasSubcategorias = ['nombre', 'acciones'];
 
@@ -152,7 +155,7 @@ export class CategoriasComponent implements OnInit, OnDestroy {
 
   cancelarEdicionCategoria(): void {
     this.editandoCategoriaId = null;
-    this.nombreCategoria = '';
+    this.formularioCategoria?.resetForm({ nombreCategoria: '' });
   }
 
   guardarCategoria(): void {
@@ -169,7 +172,7 @@ export class CategoriasComponent implements OnInit, OnDestroy {
         this.error = '';
         this.guardandoCategoria = false;
         this.editandoCategoriaId = null;
-        this.nombreCategoria = '';
+        this.formularioCategoria?.resetForm({ nombreCategoria: '' });
         this.cargarCategorias();
       },
       error: (err) => {
@@ -205,7 +208,7 @@ export class CategoriasComponent implements OnInit, OnDestroy {
 
   cancelarEdicionSubcategoria(): void {
     this.editandoSubcategoriaId = null;
-    this.nombreSubcategoria = '';
+    this.formularioSubcategoria?.resetForm({ nombreSubcategoria: '' });
   }
 
   guardarSubcategoria(): void {
@@ -225,7 +228,7 @@ export class CategoriasComponent implements OnInit, OnDestroy {
         this.error = '';
         this.guardandoSubcategoria = false;
         this.editandoSubcategoriaId = null;
-        this.nombreSubcategoria = '';
+        this.formularioSubcategoria?.resetForm({ nombreSubcategoria: '' });
         this.cargarSubcategorias();
       },
       error: (err) => {

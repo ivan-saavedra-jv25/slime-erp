@@ -1,6 +1,6 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, NgForm } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { MatTableModule } from '@angular/material/table';
@@ -44,6 +44,8 @@ const TAGS_TIPO: Record<TipoBodega, string> = {
   styleUrl: './bodegas.component.scss',
 })
 export class BodegasComponent implements OnInit, OnDestroy {
+  @ViewChild('f') formulario?: NgForm;
+
   columnasBodegas = ['nombre', 'tipo', 'acciones'];
   columnasInventario = ['sku', 'nombre', 'cantidad'];
   tipos: TipoBodega[] = ['PRINCIPAL', 'VENTAS', 'BODEGAJE', 'MIXTA'];
@@ -169,8 +171,7 @@ export class BodegasComponent implements OnInit, OnDestroy {
 
   cancelarEdicion(): void {
     this.editandoId = null;
-    this.nombre = '';
-    this.tipo = 'BODEGAJE';
+    this.limpiarFormulario();
   }
 
   guardar(): void {
@@ -187,8 +188,7 @@ export class BodegasComponent implements OnInit, OnDestroy {
         this.error = '';
         this.guardando = false;
         this.editandoId = null;
-        this.nombre = '';
-        this.tipo = 'BODEGAJE';
+        this.limpiarFormulario();
         this.cargar();
       },
       error: (err) => {
@@ -197,6 +197,14 @@ export class BodegasComponent implements OnInit, OnDestroy {
         this.error = err?.error?.error ?? 'Ocurrió un error. Intenta nuevamente.';
       },
     });
+  }
+
+  // Limpia valores y también el estado touched/dirty del formulario: si solo
+  // se resetean los campos, Angular conserva el "touched" previo y el campo
+  // Nombre vuelve a mostrarse en rojo como si fuera obligatorio, aunque la
+  // bodega ya se haya guardado correctamente.
+  private limpiarFormulario(): void {
+    this.formulario?.resetForm({ nombre: '', tipo: 'BODEGAJE' });
   }
 
   marcarPrincipal(bodega: Bodega): void {

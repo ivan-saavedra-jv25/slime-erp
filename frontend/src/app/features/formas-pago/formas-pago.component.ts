@@ -1,6 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, NgForm } from '@angular/forms';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -30,6 +30,8 @@ const TAGS: Record<CategoriaFormaPago, string> = {
   styleUrl: './formas-pago.component.scss',
 })
 export class FormasPagoComponent implements OnInit {
+  @ViewChild('f') formulario?: NgForm;
+
   categorias: CategoriaFormaPago[] = ['CONTADO', 'CREDITO', 'GRATIS'];
   columnas = ['nombre', 'categoria', 'acciones'];
   formasPago: FormaPago[] = [];
@@ -108,7 +110,6 @@ export class FormasPagoComponent implements OnInit {
   }
 
   private limpiarFormulario(): void {
-    this.nombre = '';
-    this.categoria = 'CONTADO';
+    this.formulario?.resetForm({ nombre: '', categoria: 'CONTADO' });
   }
 }

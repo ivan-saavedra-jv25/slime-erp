@@ -1,6 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, NgForm } from '@angular/forms';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -20,6 +20,8 @@ const ROLES_ASIGNABLES: Rol[] = ['ADMIN', 'VENDEDOR', 'COMPRADOR', 'VISUALIZADOR
   styleUrl: './usuarios.component.scss',
 })
 export class UsuariosComponent implements OnInit {
+  @ViewChild('f') formulario?: NgForm;
+
   roles = ROLES_ASIGNABLES;
   columnas = ['nombre', 'email', 'rol', 'activo', 'acciones'];
   usuarios: Usuario[] = [];
@@ -122,10 +124,6 @@ export class UsuariosComponent implements OnInit {
   }
 
   private limpiarFormulario(): void {
-    this.nombre = '';
-    this.rut = '';
-    this.email = '';
-    this.password = '';
-    this.rol = 'VENDEDOR';
+    this.formulario?.resetForm({ nombre: '', rut: '', email: '', password: '', rol: 'VENDEDOR' });
   }
 }

@@ -38,7 +38,8 @@ public class BodegaController {
             @RequestParam(defaultValue = "0") int pagina,
             @RequestParam(defaultValue = "10") int tamano) {
         String busqueda = "%" + (q == null ? "" : q.trim().toLowerCase()) + "%";
-        var pageable = PageRequest.of(pagina, tamano, Sort.by("nombre").ascending());
+        // Más nuevas primero: el id autoincremental refleja el orden real de creación.
+        var pageable = PageRequest.of(pagina, tamano, Sort.by("id").descending());
         return PaginaResponse.de(bodegaRepository.buscar(TenantContext.getTenantId(), busqueda, pageable));
     }
 

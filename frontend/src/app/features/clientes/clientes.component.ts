@@ -1,6 +1,6 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, NgForm } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { MatTableModule } from '@angular/material/table';
@@ -21,6 +21,8 @@ import { cerrarCargando, mostrarCargando } from '../../core/utils/swal-loading';
   styleUrl: './clientes.component.scss',
 })
 export class ClientesComponent implements OnInit, OnDestroy {
+  @ViewChild('f') formulario?: NgForm;
+
   columnas = ['nombre', 'rut', 'email', 'telefono', 'acciones'];
   clientes: Cliente[] = [];
   total = 0;
@@ -148,14 +150,16 @@ export class ClientesComponent implements OnInit, OnDestroy {
   }
 
   private limpiarFormulario(): void {
-    this.nombre = '';
-    this.rut = '';
-    this.email = '';
-    this.telefono = '';
-    this.direccion = '';
-    this.razonSocial = '';
-    this.giro = '';
-    this.comuna = '';
-    this.ciudad = '';
+    this.formulario?.resetForm({
+      nombre: '',
+      rut: '',
+      email: '',
+      telefono: '',
+      direccion: '',
+      razonSocial: '',
+      giro: '',
+      comuna: '',
+      ciudad: '',
+    });
   }
 }

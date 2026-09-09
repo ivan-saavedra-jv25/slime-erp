@@ -1,6 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, NgForm } from '@angular/forms';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -18,6 +18,8 @@ import { cerrarCargando, mostrarCargando } from '../../core/utils/swal-loading';
   styleUrl: './proveedores.component.scss',
 })
 export class ProveedoresComponent implements OnInit {
+  @ViewChild('f') formulario?: NgForm;
+
   columnas = ['nombre', 'rut', 'email', 'telefono', 'acciones'];
   proveedores: Proveedor[] = [];
   error = '';
@@ -99,10 +101,12 @@ export class ProveedoresComponent implements OnInit {
   }
 
   private limpiarFormulario(): void {
-    this.nombre = '';
-    this.rut = '';
-    this.email = '';
-    this.telefono = '';
-    this.direccion = '';
+    this.formulario?.resetForm({
+      nombre: '',
+      rut: '',
+      email: '',
+      telefono: '',
+      direccion: '',
+    });
   }
 }
