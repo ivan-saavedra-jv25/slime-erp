@@ -597,6 +597,38 @@ export interface PagoCobranzaRequest {
   observaciones?: string | null;
 }
 
+export type EstadoPagoPlataforma = 'PAID' | 'CANCELLED';
+
+export interface PagoPlataforma {
+  id: number;
+  cobranzaEmpresaId: number;
+  companyId: number;
+  companyNombre: string;
+  suscripcionId: number | null;
+  monto: number;
+  metodo: MedioPago;
+  estado: EstadoPagoPlataforma;
+  referencia: string | null;
+  fecha: string;
+  adminNombre: string | null;
+}
+
+export interface PagoFiltros {
+  page?: number;
+  limit?: number;
+  empresaId?: number;
+  estado?: EstadoPagoPlataforma;
+}
+
+export interface RegistrarPagoManualRequest {
+  companyId: number;
+  suscripcionId?: number;
+  monto: number;
+  metodo: MedioPago;
+  referencia?: string;
+  fecha?: string;
+}
+
 export interface KpiResumen {
   ventasPeriodo: number;
   ventasPeriodoAnterior: number;

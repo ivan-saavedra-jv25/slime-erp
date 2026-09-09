@@ -150,7 +150,56 @@
         <div class="tab-body empty-state">No existen suscripciones registradas para esta empresa.</div>
       </mat-tab>
       <mat-tab label="Pagos">
-        <div class="tab-body empty-state">No existen pagos registrados para esta empresa.</div>
+        <div class="tab-body">
+          @if (errorPagos) {
+            <div class="alert error">{{ errorPagos }}</div>
+          }
+          @if (cargandoPagos) {
+            <p class="empty-state">Cargando pagos...</p>
+          }
+          @if (!cargandoPagos && !pagos.length) {
+            <div class="empty-state">
+              No existen pagos registrados para esta empresa.
+            </div>
+          }
+          @if (!cargandoPagos && pagos.length) {
+            <div class="table-scroll">
+              <table mat-table [dataSource]="pagos">
+                <ng-container matColumnDef="fecha">
+                  <th mat-header-cell *matHeaderCellDef>Fecha</th>
+                  <td mat-cell *matCellDef="let p">{{ p.fecha | date: 'dd-MM-yyyy HH:mm' }}</td>
+                </ng-container>
+                <ng-container matColumnDef="monto">
+                  <th mat-header-cell *matHeaderCellDef class="right">Monto</th>
+                  <td mat-cell *matCellDef="let p" class="right">{{ p.monto | number }}</td>
+                </ng-container>
+                <ng-container matColumnDef="metodo">
+                  <th mat-header-cell *matHeaderCellDef>Método</th>
+                  <td mat-cell *matCellDef="let p">{{ etiquetaMetodoPago(p.metodo) }}</td>
+                </ng-container>
+                <ng-container matColumnDef="estado">
+                  <th mat-header-cell *matHeaderCellDef>Estado</th>
+                  <td mat-cell *matCellDef="let p">
+                    <span [class]="'tag ' + (p.estado === 'PAID' ? 'tag--success' : 'tag--error')">
+                      {{ p.estado === 'PAID' ? 'Pagado' : 'Cancelado' }}
+                    </span>
+                  </td>
+                </ng-container>
+                <ng-container matColumnDef="referencia">
+                  <th mat-header-cell *matHeaderCellDef>Referencia</th>
+                  <td mat-cell *matCellDef="let p">{{ p.referencia ?? '—' }}</td>
+                </ng-container>
+                <ng-container matColumnDef="admin">
+                  <th mat-header-cell *matHeaderCellDef>Registrado por</th>
+                  <td mat-cell *matCellDef="let p">{{ p.adminNombre ?? 'Sistema' }}</td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="['fecha', 'monto', 'metodo', 'estado', 'referencia', 'admin']"></tr>
+                <tr mat-row *matRowDef="let row; columns: ['fecha', 'monto', 'metodo', 'estado', 'referencia', 'admin']"></tr>
+              </table>
+            </div>
+          }
+        </div>
       </mat-tab>
       <mat-tab label="DTE">
         <div class="tab-body empty-state">El monitoreo de documentos tributarios estará disponible próximamente.</div>

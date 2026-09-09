@@ -1,0 +1,49 @@
+<h2 mat-dialog-title>Registrar pago manual</h2>
+
+<mat-dialog-content>
+  @if (cargandoCatalogo) {
+    <p class="dialog-hint">Cargando empresas...</p>
+  } @else {
+    <div class="form-grid">
+      <div class="form-group">
+        <label for="companyId">Empresa *</label>
+        <select id="companyId" [(ngModel)]="companyId" name="companyId">
+          <option [ngValue]="null">Selecciona una empresa</option>
+          @for (empresa of empresas; track empresa.id) {
+            <option [ngValue]="empresa.id">{{ empresa.nombre }}</option>
+          }
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="monto">Monto (CLP) *</label>
+        <input id="monto" type="number" min="0" [(ngModel)]="monto" name="monto" />
+      </div>
+      <div class="form-group">
+        <label for="metodo">Método de pago *</label>
+        <select id="metodo" [(ngModel)]="metodo" name="metodo">
+          <option value="">Selecciona un método</option>
+          @for (metodo of metodos; track metodo.valor) {
+            <option [value]="metodo.valor">{{ metodo.etiqueta }}</option>
+          }
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="referencia">Referencia</label>
+        <input id="referencia" type="text" [(ngModel)]="referencia" name="referencia" placeholder="Ej: transferencia #123" />
+      </div>
+      <div class="form-group form-group--full">
+        <label for="fecha">Fecha del pago</label>
+        <input id="fecha" type="date" [(ngModel)]="fecha" name="fecha" />
+        <p class="hint">Si no se indica, se usa la fecha actual.</p>
+      </div>
+    </div>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-stroked-button (click)="cancelar()">Cancelar</button>
+  <button mat-flat-button color="primary" [disabled]="!valido" (click)="confirmar()">
+    <mat-icon>add</mat-icon>
+    Registrar pago
+  </button>
+</mat-dialog-actions>

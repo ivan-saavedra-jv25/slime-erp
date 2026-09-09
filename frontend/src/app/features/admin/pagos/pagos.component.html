@@ -1,0 +1,135 @@
+<div class="page-header">
+  <div>
+    <h1>Pagos</h1>
+    <p class="page-subtitle">Pagos registrados por las empresas, consolidados sobre la cobranza de la plataforma.</p>
+  </div>
+  @if (puedeRegistrar()) {
+    <button mat-flat-button color="primary" (click)="registrarPago()" aria-label="Registrar pago manual">
+      <mat-icon>add</mat-icon>
+      Registrar pago
+    </button>
+  }
+</div>
+
+@if (error) {
+  <div class="alert error">{{ error }}</div>
+}
+
+<mat-card class="filtros-panel">
+  <div class="filtros-grid">
+    <div class="form-group">
+      <label for="filtroEmpresaId">Empresa</label>
+      <select id="filtroEmpresaId" [(ngModel)]="filtroEmpresaId" name="filtroEmpresaId">
+        <option [ngValue]="null">Todas</option>
+        @for (empresa of empresas; track empresa.id) {
+          <option [ngValue]="empresa.id">{{ empresa.nombre }}</option>
+        }
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="filtroEstado">Estado</label>
+      <select id="filtroEstado" [(ngModel)]="filtroEstado" name="filtroEstado">
+        <option value="">Todos</option>
+        <option value="PAID">Pagado</option>
+        <option value="CANCELLED">Cancelado</option>
+      </select>
+    </div>
+    <div class="filtros-actions">
+      <button mat-stroked-button (click)="limpiarFiltros()" aria-label="Limpiar filtros">
+        <mat-icon>close</mat-icon>
+        Limpiar
+      </button>
+      <button mat-flat-button color="primary" (click)="aplicarFiltros()" aria-label="Filtrar pagos">
+        <mat-icon>search</mat-icon>
+        Filtrar
+      </button>
+    </div>
+  </div>
+</mat-card>
+
+<mat-card class="table-panel">
+  <div class="table-header">
+    <h2>Historial de pagos</h2>
+    @if (!cargando) {
+      <span class="table-count">{{ totalElements }} pago{{ totalElements === 1 ? '' : 's' }}</span>
+    }
+  </div>
+
+  @if (cargando) {
+    <p class="empty-state">Cargando pagos...</p>
+  }
+
+  @if (!cargando && !pagos.length) {
+    <p class="empty-state">No hay pagos que coincidan con los filtros.</p>
+  }
+
+  @if (!cargando && pagos.length) {
+    <div class="table-scroll">
+      <table mat-table [dataSource]="pagos">
+        <ng-container matColumnDef="fecha">
+          <th mat-header-cell *matHeaderCellDef>Fecha</th>
+          <td mat-cell *matCellDef="let p">
+            <span class="text-strong">{{ p.fecha | date: 'dd-MM-yyyy HH:mm' }}</span>
+          </td>
+        </ng-container>
+        <ng-container matColumnDef="empresa">
+          <th mat-header-cell *matHeaderCellDef>Empresa</th>
+          <td mat-cell *matCellDef="let p">
+            <span class="text-strong">{{ p.companyNombre }}</span>
+            @if (p.suscripcionId != null) {
+              <p class="table-sub">Suscripción #{{ p.suscripcionId }}</p>
+            }
+          </td>
+        </ng-container>
+        <ng-container matColumnDef="monto">
+          <th mat-header-cell *matHeaderCellDef class="right">Monto</th>
+          <td mat-cell *matCellDef="let p" class="right">
+            <span class="text-strong">{{ p.monto | number }}</span>
+          </td>
+        </ng-container>
+        <ng-container matColumnDef="metodo">
+          <th mat-header-cell *matHeaderCellDef>Método</th>
+          <td mat-cell *matCellDef="let p">
+            <span class="chip">{{ etiquetaMetodo(p.metodo) }}</span>
+          </td>
+        </ng-container>
+        <ng-container matColumnDef="estado">
+          <th mat-header-cell *matHeaderCellDef>Estado</th>
+          <td mat-cell *matCellDef="let p">
+            <span class="tag {{ claseEstado(p.estado) }}">{{ etiquetaEstado(p.estado) }}</span>
+          </td>
+        </ng-container>
+        <ng-container matColumnDef="referencia">
+          <th mat-header-cell *matHeaderCellDef>Referencia</th>
+          <td mat-cell *matCellDef="let p">
+            <span>{{ p.referencia ?? '—' }}</span>
+          </td>
+        </ng-container>
+        <ng-container matColumnDef="admin">
+          <th mat-header-cell *matHeaderCellDef>Registrado por</th>
+          <td mat-cell *matCellDef="let p">
+            <span>{{ p.adminNombre ?? 'Sistema' }}</span>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="columnas"></tr>
+        <tr mat-row *matRowDef="let row; columns: columnas"></tr>
+      </table>
+    </div>
+
+    <div class="paginacion">
+      <button mat-stroked-button [disabled]="pagina === 0" (click)="paginaAnterior()" aria-label="Página anterior">
+        <mat-icon>chevron_left</mat-icon>
+      </button>
+      <span>Página {{ pagina + 1 }} de {{ totalPages }}</span>
+      <button
+        mat-stroked-button
+        [disabled]="pagina >= totalPages - 1"
+        (click)="paginaSiguiente()"
+        aria-label="Página siguiente"
+      >
+        <mat-icon>chevron_right</mat-icon>
+      </button>
+    </div>
+  }
+</mat-card>

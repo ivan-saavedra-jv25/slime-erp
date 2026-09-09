@@ -10,11 +10,13 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatTableModule } from '@angular/material/table';
 import { EmpresaAdminService } from '../../../core/services/empresa-admin.service';
 import { UsuarioPlataformaService } from '../../../core/services/usuario-plataforma.service';
+import { PagosService } from '../../../core/services/pagos.service';
 import {
   EmpresaDetalle,
   EstadoEmpresa,
   ESTADOS_EMPRESA,
   ETIQUETAS_ESTADO_EMPRESA,
+  PagoPlataforma,
   Rol,
   UsuarioPlataforma,
 } from '../../../core/models/models';
@@ -55,11 +57,16 @@ export class EmpresasDetalleComponent implements OnInit {
   cargandoUsuarios = false;
   errorUsuarios = '';
 
+  pagos: PagoPlataforma[] = [];
+  cargandoPagos = false;
+  errorPagos = '';
+
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly dialog = inject(MatDialog);
   private readonly empresaService = inject(EmpresaAdminService);
   private readonly usuarioPlataformaService = inject(UsuarioPlataformaService);
+  private readonly pagosService = inject(PagosService);
 
   ngOnInit(): void {
     const id = Number(this.route.snapshot.paramMap.get('id'));
@@ -74,6 +81,7 @@ export class EmpresasDetalleComponent implements OnInit {
         this.empresa = empresa;
         this.cargando = false;
         this.cargarUsuarios(id);
+        this.cargarPagos(id);
       },
       error: (err) => {
         this.cargando = false;
@@ -95,6 +103,36 @@ export class EmpresasDetalleComponent implements OnInit {
         this.errorUsuarios = 'No se pudieron cargar los usuarios de esta empresa.';
       },
     });
+  }
+
+  cargarPagos(id: number): void {
+    this.cargandoPagos = true;
+    this.errorPagos = '';
+    this.pagosService.listar({ page: 0, limit: 30, empresaId: id }).subscribe({
+      next: (resultado) => {
+        this.pagos = resultado.content;
+        this.cargandoPagos = false;
+      },
+      error: () => {
+        this.cargandoPagos = false;
+        this.errorPagos = 'No se pudieron cargar los pagos de esta empresa.';
+      },
+    });
+  }
+
+  etiquetaMetodoPago(metodo: string): string {
+    switch (metodo) {
+      case 'TRANSFERENCIA':
+        return 'Transferencia';
+      case 'TARJETA':
+        return 'Tarjeta';
+      case 'EFECTIVO':
+        return 'Efectivo';
+      case 'CHEQUE':
+        return 'Cheque';
+      default:
+        return metodo;
+    }
   }
 
   labelRol(rol: Rol): string {

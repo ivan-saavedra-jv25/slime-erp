@@ -71,6 +71,11 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/admin/alertas/alertas.component').then((m) => m.AlertasComponent),
       },
+      {
+        path: 'pagos',
+        loadComponent: () =>
+          import('./features/admin/pagos/pagos.component').then((m) => m.PagosComponent),
+      },
     ],
   },
   {
