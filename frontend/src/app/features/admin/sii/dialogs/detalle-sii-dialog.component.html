@@ -1,0 +1,36 @@
+<h2 mat-dialog-title>Estado SII — {{ detalle?.empresaNombre ?? '…' }}</h2>
+
+<mat-dialog-content>
+  @if (cargando) {
+    <div class="loading">Cargando detalle…</div>
+  } @else if (error) {
+    <div class="alert error">{{ error }}</div>
+  } @else if (detalle) {
+    <div class="detalle-grid">
+      <div class="detalle-fila">
+        <span class="detalle-label">Estado</span>
+        <span class="tag" [ngClass]="claseEstado(detalle.estado)">{{ etiquetaEstado(detalle.estado) }}</span>
+      </div>
+      <div class="detalle-fila">
+        <span class="detalle-label">Certificado vence</span>
+        <span>{{ formatearFecha(detalle.certificadoVence) }}</span>
+      </div>
+      <div class="detalle-fila">
+        <span class="detalle-label">Ambiente</span>
+        <span>{{ detalle.ambiente ?? '—' }}</span>
+      </div>
+      <div class="detalle-fila">
+        <span class="detalle-label">Última comunicación</span>
+        <span>{{ formatearFecha(detalle.ultimaComunicacion) }}</span>
+      </div>
+      <div class="detalle-fila">
+        <span class="detalle-label">Último DTE</span>
+        <span>{{ formatearFecha(detalle.ultimoDte) }}</span>
+      </div>
+    </div>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-flat-button color="primary" (click)="cerrar()">Cerrar</button>
+</mat-dialog-actions>

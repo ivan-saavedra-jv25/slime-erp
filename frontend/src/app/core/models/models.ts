@@ -669,6 +669,16 @@ export interface DteFiltros {
   rutReceptor?: string;
 }
 
+export interface SiiEstado {
+  empresaId: number;
+  empresaNombre: string;
+  estado: string;
+  certificadoVence: string | null;
+  ambiente: string | null;
+  ultimaComunicacion: string | null;
+  ultimoDte: string | null;
+}
+
 export interface KpiResumen {
   ventasPeriodo: number;
   ventasPeriodoAnterior: number;

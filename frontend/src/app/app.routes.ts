@@ -88,6 +88,11 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/admin/dte/dte.component').then((m) => m.DteComponent),
       },
+      {
+        path: 'sii',
+        loadComponent: () =>
+          import('./features/admin/sii/sii.component').then((m) => m.SiiComponent),
+      },
     ],
   },
   {
