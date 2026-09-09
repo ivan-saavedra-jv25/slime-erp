@@ -20,6 +20,7 @@ const ITEMS: NavItem[] = [
   { ruta: '/admin/dashboard', label: 'Dashboard', icono: 'dashboard', permiso: 'EMPRESAS_VER' },
   { ruta: '/admin/empresas', label: 'Empresas', icono: 'apartment', permiso: 'EMPRESAS_VER' },
   { ruta: '/admin/suscripciones', label: 'Suscripciones', icono: 'event_repeat', permiso: 'SUSCRIPCIONES_VER' },
+  { ruta: '/admin/vencimientos', label: 'Vencimientos', icono: 'event_busy', permiso: 'SUSCRIPCIONES_VER' },
   { ruta: '/admin/planes', label: 'Planes', icono: 'inventory_2', permiso: 'PLANES_VER' },
   { ruta: '/admin/pagos', label: 'Pagos', icono: 'account_balance_wallet', permiso: 'PAGOS_VER' },
   { ruta: '/admin/dte', label: 'DTE', icono: 'description', permiso: 'DTE_VER' },

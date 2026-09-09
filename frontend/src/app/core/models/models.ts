@@ -629,6 +629,14 @@ export interface RegistrarPagoManualRequest {
   fecha?: string;
 }
 
+export interface Vencimientos {
+  vencenHoy: Suscripcion[];
+  vencenEn3Dias: Suscripcion[];
+  vencenEn7Dias: Suscripcion[];
+  vencenEn30Dias: Suscripcion[];
+  vencidas: Suscripcion[];
+}
+
 export interface KpiResumen {
   ventasPeriodo: number;
   ventasPeriodoAnterior: number;

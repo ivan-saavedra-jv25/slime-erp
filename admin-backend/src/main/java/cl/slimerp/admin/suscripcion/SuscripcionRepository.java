@@ -28,6 +28,12 @@ public interface SuscripcionRepository extends JpaRepository<Suscripcion, Long>,
 
     List<Suscripcion> findByEstadoOrderByFechaVencimientoAsc(String estado);
 
+    List<Suscripcion> findByEstadoNotAndFechaVencimiento(String estado, LocalDate fecha);
+
+    List<Suscripcion> findByEstadoNotAndFechaVencimientoBetween(String estado, LocalDate desde, LocalDate hasta);
+
+    List<Suscripcion> findByEstadoInAndFechaVencimientoBefore(Collection<String> estados, LocalDate fecha);
+
     @Query("select s.plan.nombre as plan, count(s) as cantidad " +
             "from Suscripcion s where s.estado = :estado group by s.plan.nombre order by s.plan.nombre")
     List<Object[]> contarPorPlan(@Param("estado") String estado);

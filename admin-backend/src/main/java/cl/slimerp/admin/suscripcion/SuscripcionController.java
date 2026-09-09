@@ -26,6 +26,11 @@ public class SuscripcionController {
         return suscripcionService.listar(page, limit, estado, planId, empresaId, proximasAVencerDias);
     }
 
+    @GetMapping("/expiring")
+    public VencimientosResponse expiring() {
+        return suscripcionService.vencimientos();
+    }
+
     @GetMapping("/{id}")
     public SuscripcionResponse obtener(@PathVariable Long id) {
         return suscripcionService.obtener(id);

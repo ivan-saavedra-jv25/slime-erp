@@ -9,6 +9,7 @@ import {
   Paginated,
   Suscripcion,
   SuscripcionRequest,
+  Vencimientos,
 } from '../models/models';
 
 export interface SuscripcionFiltros {
@@ -43,6 +44,10 @@ export class SuscripcionService {
 
   obtener(id: number): Observable<Suscripcion> {
     return this.http.get<Suscripcion>(`${this.base}/${id}`);
+  }
+
+  expiring(): Observable<Vencimientos> {
+    return this.http.get<Vencimientos>(`${this.base}/expiring`);
   }
 
   crear(request: SuscripcionRequest): Observable<Suscripcion> {

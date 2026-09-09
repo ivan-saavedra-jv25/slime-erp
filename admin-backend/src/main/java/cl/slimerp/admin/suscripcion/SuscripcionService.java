@@ -96,6 +96,27 @@ public class SuscripcionService {
         return SuscripcionResponse.desde(suscripcion, nombreEmpresa(suscripcion.getCompanyId()));
     }
 
+    @Transactional(readOnly = true)
+    public VencimientosResponse vencimientos() {
+        LocalDate hoy = LocalDate.now();
+        return new VencimientosResponse(
+                respuesta(suscripcionRepository.findByEstadoNotAndFechaVencimiento("CANCELLED", hoy)),
+                respuesta(suscripcionRepository.findByEstadoNotAndFechaVencimientoBetween(
+                        "CANCELLED", hoy.plusDays(1), hoy.plusDays(3))),
+                respuesta(suscripcionRepository.findByEstadoNotAndFechaVencimientoBetween(
+                        "CANCELLED", hoy.plusDays(4), hoy.plusDays(7))),
+                respuesta(suscripcionRepository.findByEstadoNotAndFechaVencimientoBetween(
+                        "CANCELLED", hoy.plusDays(8), hoy.plusDays(30))),
+                respuesta(suscripcionRepository.findByEstadoInAndFechaVencimientoBefore(
+                        List.of("PAST_DUE", "EXPIRED", "ACTIVE"), hoy)));
+    }
+
+    private List<SuscripcionResponse> respuesta(List<Suscripcion> suscripciones) {
+        return suscripciones.stream()
+                .map(s -> SuscripcionResponse.desde(s, nombreEmpresa(s.getCompanyId())))
+                .toList();
+    }
+
     @Transactional
     public SuscripcionResponse crear(SuscripcionRequest request) {
         Tenant tenant = tenantObligatoria(request.companyId());

@@ -1,0 +1,110 @@
+<div class="page-header">
+  <div>
+    <h1>Vencimientos</h1>
+    <p class="page-subtitle">
+      Panel de gestión de suscripciones próximas a vencer y vencidas. Revisa, extiende o cobra cada empresa.
+    </p>
+  </div>
+  <button mat-flat-button color="primary" (click)="cargar()" aria-label="Recargar vencimientos">
+    <mat-icon>refresh</mat-icon>
+    Recargar
+  </button>
+</div>
+
+@if (error) {
+  <div class="alert error">{{ error }}</div>
+}
+
+@if (cargando) {
+  <mat-card class="table-panel">
+    <div class="loading">Cargando vencimientos…</div>
+  </mat-card>
+}
+
+@if (vencimientos) {
+  <div class="ventanas-grid">
+    @for (ventana of ventanas; track ventana.titulo; let i = $index) {
+      <mat-card class="table-panel">
+        <div class="table-header">
+          <div>
+            <h2>{{ ventana.titulo }}</h2>
+            <p class="ventana-descripcion">{{ ventana.descripcion }}</p>
+          </div>
+          <span class="tag" [ngClass]="ventana.clase">{{ listas(i).length }}</span>
+        </div>
+
+        @if (listas(i).length === 0) {
+          <div class="empty">Nada que mostrar en esta ventana.</div>
+        } @else {
+          <div class="table-wrap">
+            <table mat-table [dataSource]="listas(i)">
+              <ng-container matColumnDef="empresa">
+                <th mat-header-cell *matHeaderCellDef>Empresa</th>
+                <td mat-cell *matCellDef="let s">
+                  <button class="link-button" (click)="verEmpresa(s)" title="Ver empresa">
+                    {{ s.empresaNombre }}
+                  </button>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="plan">
+                <th mat-header-cell *matHeaderCellDef>Plan</th>
+                <td mat-cell *matCellDef="let s">{{ s.planNombre }}</td>
+              </ng-container>
+
+              <ng-container matColumnDef="estado">
+                <th mat-header-cell *matHeaderCellDef>Estado</th>
+                <td mat-cell *matCellDef="let s">
+                  <span class="tag" [ngClass]="claseEstado(s.estado)">{{ etiquetaEstado(s.estado) }}</span>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="vencimiento">
+                <th mat-header-cell *matHeaderCellDef>Vencimiento</th>
+                <td mat-cell *matCellDef="let s">
+                  <span>{{ formatearFecha(s.fechaVencimiento) }}</span>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="acciones">
+                <th mat-header-cell *matHeaderCellDef class="right"></th>
+                <td mat-cell *matCellDef="let s" class="right">
+                  <button mat-icon-button (click)="verEmpresa(s)" title="Ver empresa" aria-label="Ver empresa">
+                    <mat-icon>open_in_new</mat-icon>
+                  </button>
+                  @if (auth.tienePermiso('SUSCRIPCIONES_EDITAR')) {
+                    <button mat-icon-button (click)="extender(s)" title="Extender" aria-label="Extender suscripción">
+                      <mat-icon>event_repeat</mat-icon>
+                    </button>
+                  }
+                  @if (auth.tienePermiso('PAGOS_EDITAR')) {
+                    <button mat-icon-button (click)="registrarPago(s)" title="Registrar pago" aria-label="Registrar pago">
+                      <mat-icon>point_of_sale</mat-icon>
+                    </button>
+                  }
+                  @if (esActiva(s.estado) && auth.tienePermiso('SUSCRIPCIONES_EDITAR')) {
+                    <button mat-icon-button (click)="suspender(s)" title="Suspender" aria-label="Suspender suscripción">
+                      <mat-icon>block</mat-icon>
+                    </button>
+                  } @else if (s.estado === 'SUSPENDED' && auth.tienePermiso('SUSCRIPCIONES_EDITAR')) {
+                    <button mat-icon-button (click)="reactivar(s)" title="Reactivar" aria-label="Reactivar suscripción">
+                      <mat-icon>restart_alt</mat-icon>
+                    </button>
+                  }
+                </td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="columnas"></tr>
+              <tr mat-row *matRowDef="let row; columns: columnas"></tr>
+            </table>
+          </div>
+        }
+      </mat-card>
+    }
+  </div>
+
+  <div class="total-vencimientos">
+    Total de suscripciones en seguimiento:
+    {{ listas(0).length + listas(1).length + listas(2).length + listas(3).length + listas(4).length }}
+  </div>
+}

@@ -333,4 +333,57 @@ class SuscripcionServiceTest {
 
         assertEquals("Empresa Demo", response.empresaNombre());
     }
+
+    @Test
+    void vencimientosDistribuyeLasVentanasPorRangos() {
+        Suscripcion hoy = suscripcion(1L, plan(2L, "Profesional", new BigDecimal("29990"), null, "ACTIVE"),
+                "ACTIVE", LocalDate.now(), LocalDate.of(2026, 1, 1), "MONTHLY");
+        Suscripcion en3 = suscripcion(2L, plan(2L, "Profesional", new BigDecimal("29990"), null, "ACTIVE"),
+                "ACTIVE", LocalDate.now().plusDays(2), LocalDate.of(2026, 1, 1), "MONTHLY");
+        Suscripcion en7 = suscripcion(3L, plan(2L, "Profesional", new BigDecimal("29990"), null, "ACTIVE"),
+                "TRIAL", LocalDate.now().plusDays(5), LocalDate.of(2026, 1, 1), "MONTHLY");
+        Suscripcion en30 = suscripcion(4L, plan(2L, "Profesional", new BigDecimal("29990"), null, "ACTIVE"),
+                "ACTIVE", LocalDate.now().plusDays(15), LocalDate.of(2026, 1, 1), "MONTHLY");
+        Suscripcion vencida = suscripcion(5L, plan(2L, "Profesional", new BigDecimal("29990"), null, "ACTIVE"),
+                "PAST_DUE", LocalDate.now().minusDays(3), LocalDate.of(2026, 1, 1), "MONTHLY");
+
+        when(suscripcionRepository.findByEstadoNotAndFechaVencimiento("CANCELLED", LocalDate.now()))
+                .thenReturn(List.of(hoy));
+        when(suscripcionRepository.findByEstadoNotAndFechaVencimientoBetween(
+                "CANCELLED", LocalDate.now().plusDays(1), LocalDate.now().plusDays(3))).thenReturn(List.of(en3));
+        when(suscripcionRepository.findByEstadoNotAndFechaVencimientoBetween(
+                "CANCELLED", LocalDate.now().plusDays(4), LocalDate.now().plusDays(7))).thenReturn(List.of(en7));
+        when(suscripcionRepository.findByEstadoNotAndFechaVencimientoBetween(
+                "CANCELLED", LocalDate.now().plusDays(8), LocalDate.now().plusDays(30))).thenReturn(List.of(en30));
+        when(suscripcionRepository.findByEstadoInAndFechaVencimientoBefore(
+                List.of("PAST_DUE", "EXPIRED", "ACTIVE"), LocalDate.now())).thenReturn(List.of(vencida));
+        when(tenantRepository.findById(1L)).thenReturn(Optional.of(tenant(1L, "Empresa Demo")));
+
+        VencimientosResponse resultado = service.vencimientos();
+
+        assertEquals(1, resultado.vencenHoy().size());
+        assertEquals(1, resultado.vencenEn3Dias().size());
+        assertEquals(1, resultado.vencenEn7Dias().size());
+        assertEquals(1, resultado.vencenEn30Dias().size());
+        assertEquals(1, resultado.vencidas().size());
+        assertEquals("Empresa Demo", resultado.vencenHoy().get(0).empresaNombre());
+    }
+
+    @Test
+    void vencimientosNoIncluyeSuscripcionesCanceladas() {
+        when(suscripcionRepository.findByEstadoNotAndFechaVencimiento("CANCELLED", LocalDate.now())).thenReturn(List.of());
+        when(suscripcionRepository.findByEstadoNotAndFechaVencimientoBetween(
+                "CANCELLED", LocalDate.now().plusDays(1), LocalDate.now().plusDays(3))).thenReturn(List.of());
+        when(suscripcionRepository.findByEstadoNotAndFechaVencimientoBetween(
+                "CANCELLED", LocalDate.now().plusDays(4), LocalDate.now().plusDays(7))).thenReturn(List.of());
+        when(suscripcionRepository.findByEstadoNotAndFechaVencimientoBetween(
+                "CANCELLED", LocalDate.now().plusDays(8), LocalDate.now().plusDays(30))).thenReturn(List.of());
+        when(suscripcionRepository.findByEstadoInAndFechaVencimientoBefore(
+                List.of("PAST_DUE", "EXPIRED", "ACTIVE"), LocalDate.now())).thenReturn(List.of());
+
+        VencimientosResponse resultado = service.vencimientos();
+
+        assertTrue(resultado.vencenHoy().isEmpty());
+        assertTrue(resultado.vencidas().isEmpty());
+    }
 }

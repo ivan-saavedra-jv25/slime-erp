@@ -1,0 +1,76 @@
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+
+  h1 {
+    margin: 0;
+    font-size: 1.6rem;
+    font-weight: 600;
+  }
+
+  .page-subtitle {
+    margin: var(--space-2) 0 0;
+    color: var(--color-text-muted);
+    max-width: 640px;
+  }
+}
+
+.alert.error {
+  background: var(--color-error-bg);
+  color: var(--color-error);
+  border: 1px solid var(--color-error-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.loading {
+  padding: var(--space-8);
+  text-align: center;
+  color: var(--color-text-muted);
+}
+
+.ventanas-grid {
+  display: grid;
+  gap: var(--space-5);
+}
+
+.ventana-descripcion {
+  margin: var(--space-1) 0 0;
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+.empty {
+  padding: var(--space-5);
+  text-align: center;
+  color: var(--color-text-muted);
+}
+
+.link-button {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--color-primary);
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.total-vencimientos {
+  margin-top: var(--space-4);
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+  text-align: center;
+}

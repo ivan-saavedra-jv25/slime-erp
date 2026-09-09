@@ -76,6 +76,13 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/admin/pagos/pagos.component').then((m) => m.PagosComponent),
       },
+      {
+        path: 'vencimientos',
+        loadComponent: () =>
+          import('./features/admin/vencimientos/vencimientos.component').then(
+            (m) => m.VencimientosComponent
+          ),
+      },
     ],
   },
   {

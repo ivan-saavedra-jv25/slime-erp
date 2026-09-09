@@ -1,7 +1,7 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { MatDialogModule, MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { Empresa, MedioPago, RegistrarPagoManualRequest } from '../../../../core/models/models';
@@ -14,6 +14,11 @@ export const METODOS_PAGO: Array<{ valor: MedioPago; etiqueta: string }> = [
   { valor: 'CHEQUE', etiqueta: 'Cheque' },
 ];
 
+export interface RegistrarPagoData {
+  companyId?: number;
+  suscripcionId?: number;
+}
+
 @Component({
   selector: 'app-registrar-pago-dialog',
   standalone: true,
@@ -24,13 +29,15 @@ export const METODOS_PAGO: Array<{ valor: MedioPago; etiqueta: string }> = [
 export class RegistrarPagoDialog implements OnInit {
   private readonly dialogRef = inject<MatDialogRef<RegistrarPagoDialog>>(MatDialogRef);
   private readonly empresaService = inject(EmpresaAdminService);
+  private readonly data = inject<RegistrarPagoData | undefined>(MAT_DIALOG_DATA, { optional: true });
 
   readonly metodos = METODOS_PAGO;
 
   empresas: Empresa[] = [];
   cargandoCatalogo = true;
 
-  companyId: number | null = null;
+  companyId: number | null = this.data?.companyId ?? null;
+  suscripcionId = this.data?.suscripcionId;
   monto: number | null = null;
   metodo: MedioPago | '' = '';
   referencia = '';
@@ -57,6 +64,7 @@ export class RegistrarPagoDialog implements OnInit {
     if (!this.valido || this.companyId === null || this.metodo === '' || this.monto === null) return;
     const request: RegistrarPagoManualRequest = {
       companyId: this.companyId,
+      ...(this.suscripcionId !== undefined ? { suscripcionId: this.suscripcionId } : {}),
       monto: this.monto,
       metodo: this.metodo as MedioPago,
       ...(this.referencia.trim() ? { referencia: this.referencia.trim() } : {}),
