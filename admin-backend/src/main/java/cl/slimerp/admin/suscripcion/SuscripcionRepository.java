@@ -1,6 +1,7 @@
 package cl.slimerp.admin.suscripcion;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -8,13 +9,16 @@ import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
 
-public interface SuscripcionRepository extends JpaRepository<Suscripcion, Long> {
+public interface SuscripcionRepository extends JpaRepository<Suscripcion, Long>,
+        JpaSpecificationExecutor<Suscripcion> {
 
     long countByEstado(String estado);
 
     long countByEstadoIn(Collection<String> estados);
 
     long countByPlanIdAndEstadoIn(Long planId, Collection<String> estados);
+
+    long countByCompanyIdAndEstadoIn(Long companyId, Collection<String> estados);
 
     long countByEstadoAndFechaVencimientoBetween(String estado, LocalDate desde, LocalDate hasta);
 

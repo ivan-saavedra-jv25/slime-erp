@@ -1,0 +1,61 @@
+<h2 mat-dialog-title>Extender suscripción</h2>
+
+<mat-dialog-content>
+  <p class="dialog-hint">
+    Vencimiento actual: <span class="text-strong">{{ vencimientoActualLabel }}</span>
+  </p>
+
+  <div class="form-grid">
+    <div class="radio-row">
+      <label class="checkbox-row">
+        <input type="radio" name="modo" value="dias" [(ngModel)]="modo" />
+        <span>Agregar días</span>
+      </label>
+      <label class="checkbox-row">
+        <input type="radio" name="modo" value="fecha" [(ngModel)]="modo" />
+        <span>Fijar nueva fecha</span>
+      </label>
+    </div>
+    @if (modo === 'dias') {
+      <div class="form-group">
+        <label for="dias">Días a agregar *</label>
+        <input
+          id="dias"
+          type="number"
+          min="1"
+          [(ngModel)]="dias"
+          name="dias"
+          placeholder="Ej: 30"
+        />
+      </div>
+    } @else {
+      <div class="form-group">
+        <label for="nuevoVencimiento">Nuevo vencimiento *</label>
+        <input
+          id="nuevoVencimiento"
+          type="date"
+          [(ngModel)]="nuevoVencimiento"
+          name="nuevoVencimiento"
+        />
+      </div>
+    }
+    <div class="form-group form-group--full">
+      <label for="motivo">Motivo</label>
+      <input
+        id="motivo"
+        type="text"
+        [(ngModel)]="motivo"
+        name="motivo"
+        placeholder="Ej: Cortesía por incidencia"
+      />
+    </div>
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-stroked-button (click)="cancelar()">Cancelar</button>
+  <button mat-flat-button color="primary" [disabled]="!valido" (click)="confirmar()">
+    <mat-icon>event_repeat</mat-icon>
+    Extender
+  </button>
+</mat-dialog-actions>

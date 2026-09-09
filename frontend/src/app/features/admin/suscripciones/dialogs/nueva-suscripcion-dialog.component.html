@@ -1,0 +1,75 @@
+<h2 mat-dialog-title>Nueva suscripción</h2>
+
+<mat-dialog-content>
+  @if (cargandoCatalogo) {
+    <p class="dialog-hint">Cargando catálogos...</p>
+  } @else {
+    <div class="form-grid">
+      <div class="form-group">
+        <label for="companyId">Empresa *</label>
+        <select id="companyId" [(ngModel)]="companyId" name="companyId">
+          <option [ngValue]="null">Selecciona una empresa</option>
+          @for (empresa of empresas; track empresa.id) {
+            <option [ngValue]="empresa.id">{{ empresa.nombre }}</option>
+          }
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="planId">Plan *</label>
+        <select id="planId" [(ngModel)]="planId" name="planId">
+          <option [ngValue]="null">Selecciona un plan</option>
+          @for (plan of planes; track plan.id) {
+            <option [ngValue]="plan.id">{{ plan.nombre }}</option>
+          }
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="fechaInicio">Fecha de inicio *</label>
+        <input id="fechaInicio" type="date" [(ngModel)]="fechaInicio" name="fechaInicio" />
+      </div>
+      <div class="form-group">
+        <label for="fechaVencimiento">Fecha de vencimiento *</label>
+        <input id="fechaVencimiento" type="date" [(ngModel)]="fechaVencimiento" name="fechaVencimiento" />
+      </div>
+      <div class="form-group">
+        <label for="cicloFacturacion">Ciclo de facturación *</label>
+        <select id="cicloFacturacion" [(ngModel)]="cicloFacturacion" name="cicloFacturacion">
+          <option value="MONTHLY">Mensual</option>
+          <option value="ANNUAL">Anual</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="precio">Precio (CLP) *</label>
+        <input id="precio" type="number" min="0" [(ngModel)]="precio" name="precio" />
+      </div>
+      <div class="form-group">
+        <label for="estado">Estado inicial</label>
+        <select id="estado" [(ngModel)]="estado" name="estado">
+          <option value="">Activa</option>
+          <option value="TRIAL">Prueba</option>
+          <option value="PAST_DUE">Vencida</option>
+          <option value="SUSPENDED">Suspendida</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="periodoGraciaDias">Período de gracia (días)</label>
+        <input
+          id="periodoGraciaDias"
+          type="number"
+          min="0"
+          [(ngModel)]="periodoGraciaDias"
+          name="periodoGraciaDias"
+          placeholder="Usa el configurado por default"
+        />
+      </div>
+    </div>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-stroked-button (click)="cancelar()">Cancelar</button>
+  <button mat-flat-button color="primary" [disabled]="!valido" (click)="confirmar()">
+    <mat-icon>add</mat-icon>
+    Crear suscripción
+  </button>
+</mat-dialog-actions>

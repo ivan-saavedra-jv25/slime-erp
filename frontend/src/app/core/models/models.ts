@@ -438,6 +438,44 @@ export interface PlanRequest {
   estado?: 'ACTIVE' | 'INACTIVE';
 }
 
+export type EstadoSuscripcion = 'TRIAL' | 'ACTIVE' | 'PAST_DUE' | 'SUSPENDED' | 'CANCELLED' | 'EXPIRED';
+
+export interface Suscripcion {
+  id: number;
+  companyId: number;
+  empresaNombre: string | null;
+  planId: number;
+  planNombre: string;
+  estado: EstadoSuscripcion;
+  fechaInicio: string;
+  fechaVencimiento: string;
+  cicloFacturacion: 'MONTHLY' | 'ANNUAL';
+  precio: number;
+  periodoGraciaDias: number;
+}
+
+export interface SuscripcionRequest {
+  companyId: number;
+  planId: number;
+  fechaInicio: string;
+  fechaVencimiento: string;
+  cicloFacturacion: 'MONTHLY' | 'ANNUAL';
+  precio: number;
+  estado?: EstadoSuscripcion;
+  periodoGraciaDias?: number;
+}
+
+export interface ExtenderSuscripcionRequest {
+  nuevoVencimiento?: string;
+  dias?: number;
+  motivo?: string;
+}
+
+export interface CambiarPlanRequest {
+  planId: number;
+  motivo?: string;
+}
+
 export type EstadoCobranza = 'DEUDA' | 'PARCIAL' | 'PAGADO' | 'ANULADO';
 export type EstadoPagoCobranza = 'CONFIRMADA' | 'ANULADA';
 

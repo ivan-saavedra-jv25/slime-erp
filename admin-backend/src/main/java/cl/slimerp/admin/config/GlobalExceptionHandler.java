@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import cl.slimerp.admin.empresas.EmpresaConflictException;
 import cl.slimerp.admin.plan.PlanConflictException;
+import cl.slimerp.admin.suscripcion.SuscripcionConflictException;
 import cl.slimerp.admin.usuarios.UsuarioConflictException;
 
 import java.time.Instant;
@@ -54,6 +55,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(PlanConflictException.class)
     public ResponseEntity<Map<String, Object>> handlePlanConflict(PlanConflictException ex) {
+        return error(HttpStatus.CONFLICT, ex.getMessage());
+    }
+
+    @ExceptionHandler(SuscripcionConflictException.class)
+    public ResponseEntity<Map<String, Object>> handleSuscripcionConflict(SuscripcionConflictException ex) {
         return error(HttpStatus.CONFLICT, ex.getMessage());
     }
 

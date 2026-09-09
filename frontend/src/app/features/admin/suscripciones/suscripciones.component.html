@@ -1,0 +1,173 @@
+<div class="page-header">
+  <div>
+    <h1>Suscripciones</h1>
+    <p class="page-subtitle">Gestiona los planes vigentes de cada empresa, sus fechas, ciclos y períodos de gracia.</p>
+  </div>
+  <button mat-flat-button color="primary" (click)="nueva()" aria-label="Nueva suscripción">
+    <mat-icon>add</mat-icon>
+    Nueva suscripción
+  </button>
+</div>
+
+@if (error) {
+  <div class="alert error">{{ error }}</div>
+}
+
+<mat-card class="filtros-panel">
+  <div class="filtros-grid">
+    <div class="form-group">
+      <label for="filtroEstado">Estado</label>
+      <select id="filtroEstado" [(ngModel)]="filtroEstado" name="filtroEstado">
+        <option value="">Todos</option>
+        <option value="TRIAL">Prueba</option>
+        <option value="ACTIVE">Activa</option>
+        <option value="PAST_DUE">Vencida</option>
+        <option value="SUSPENDED">Suspendida</option>
+        <option value="CANCELLED">Cancelada</option>
+        <option value="EXPIRED">Expirada</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="filtroPlanId">Plan</label>
+      <select id="filtroPlanId" [(ngModel)]="filtroPlanId" name="filtroPlanId">
+        <option [ngValue]="null">Todos</option>
+        @for (plan of planes; track plan.id) {
+          <option [ngValue]="plan.id">{{ plan.nombre }}</option>
+        }
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="filtroEmpresaId">Empresa</label>
+      <select id="filtroEmpresaId" [(ngModel)]="filtroEmpresaId" name="filtroEmpresaId">
+        <option [ngValue]="null">Todas</option>
+        @for (empresa of empresas; track empresa.id) {
+          <option [ngValue]="empresa.id">{{ empresa.nombre }}</option>
+        }
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="filtroProximasAVencer">Vencen próximas (días)</label>
+      <input
+        id="filtroProximasAVencer"
+        type="number"
+        min="0"
+        [(ngModel)]="filtroProximasAVencer"
+        name="filtroProximasAVencer"
+        placeholder="Ej: 30"
+      />
+    </div>
+    <div class="filtros-actions">
+      <button mat-stroked-button (click)="limpiarFiltros()" aria-label="Limpiar filtros">
+        <mat-icon>close</mat-icon>
+        Limpiar
+      </button>
+      <button mat-flat-button color="primary" (click)="aplicarFiltros()" aria-label="Filtrar suscripciones">
+        <mat-icon>search</mat-icon>
+        Filtrar
+      </button>
+    </div>
+  </div>
+</mat-card>
+
+<mat-card class="table-panel">
+  <div class="table-header">
+    <h2>Suscripciones de la plataforma</h2>
+    @if (!cargando) {
+      <span class="table-count">{{ totalElements }} resultado{{ totalElements === 1 ? '' : 's' }}</span>
+    }
+  </div>
+
+  @if (cargando) {
+    <p class="empty-state">Cargando suscripciones...</p>
+  }
+
+  @if (!cargando && !suscripciones.length) {
+    <p class="empty-state">No hay suscripciones que coincidan con los filtros.</p>
+  }
+
+  @if (!cargando && suscripciones.length) {
+    <div class="table-scroll">
+      <table mat-table [dataSource]="suscripciones">
+        <ng-container matColumnDef="empresa">
+          <th mat-header-cell *matHeaderCellDef>Empresa</th>
+          <td mat-cell *matCellDef="let s">
+            <span class="text-strong">{{ s.empresaNombre ?? '—' }}</span>
+          </td>
+        </ng-container>
+        <ng-container matColumnDef="plan">
+          <th mat-header-cell *matHeaderCellDef>Plan</th>
+          <td mat-cell *matCellDef="let s">
+            <span class="chip">{{ s.planNombre }}</span>
+          </td>
+        </ng-container>
+        <ng-container matColumnDef="estado">
+          <th mat-header-cell *matHeaderCellDef>Estado</th>
+          <td mat-cell *matCellDef="let s">
+            <span [class]="'tag ' + claseEstado(s.estado)">{{ etiquetaEstado(s.estado) }}</span>
+          </td>
+        </ng-container>
+        <ng-container matColumnDef="fechas">
+          <th mat-header-cell *matHeaderCellDef>Inicio · Vencimiento</th>
+          <td mat-cell *matCellDef="let s">
+            <span>{{ s.fechaInicio | date: 'dd-MM-yyyy' }}</span>
+            <p class="table-sub">{{ s.fechaVencimiento | date: 'dd-MM-yyyy' }}</p>
+          </td>
+        </ng-container>
+        <ng-container matColumnDef="ciclo">
+          <th mat-header-cell *matHeaderCellDef>Ciclo</th>
+          <td mat-cell *matCellDef="let s">{{ etiquetaCiclo(s.cicloFacturacion) }}</td>
+        </ng-container>
+        <ng-container matColumnDef="precio">
+          <th mat-header-cell *matHeaderCellDef>Precio</th>
+          <td mat-cell *matCellDef="let s">
+            <span class="money">{{ s.precio | currency: 'CLP' : 'symbol-narrow' : '1.0-0' }}</span>
+          </td>
+        </ng-container>
+        <ng-container matColumnDef="gracia">
+          <th mat-header-cell *matHeaderCellDef>Gracia</th>
+          <td mat-cell *matCellDef="let s">
+            <span>{{ s.periodoGraciaDias }} días</span>
+          </td>
+        </ng-container>
+        <ng-container matColumnDef="acciones">
+          <th mat-header-cell *matHeaderCellDef class="right"></th>
+          <td mat-cell *matCellDef="let s" class="right">
+            <button mat-icon-button (click)="extender(s)" title="Extender" aria-label="Extender suscripción">
+              <mat-icon>event_repeat</mat-icon>
+            </button>
+            <button mat-icon-button (click)="cambiarPlan(s)" title="Cambiar plan" aria-label="Cambiar plan">
+              <mat-icon>swap_horiz</mat-icon>
+            </button>
+            @if (esActiva(s.estado)) {
+              <button mat-icon-button (click)="suspender(s)" title="Suspender" aria-label="Suspender suscripción">
+                <mat-icon>block</mat-icon>
+              </button>
+            } @else if (s.estado === 'SUSPENDED') {
+              <button mat-icon-button (click)="reactivar(s)" title="Reactivar" aria-label="Reactivar suscripción">
+                <mat-icon>restart_alt</mat-icon>
+              </button>
+            }
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="columnas"></tr>
+        <tr mat-row *matRowDef="let row; columns: columnas"></tr>
+      </table>
+    </div>
+
+    <div class="paginacion">
+      <button mat-stroked-button [disabled]="pagina === 0" (click)="paginaAnterior()" aria-label="Página anterior">
+        <mat-icon>chevron_left</mat-icon>
+      </button>
+      <span>Página {{ pagina + 1 }} de {{ totalPages }}</span>
+      <button
+        mat-stroked-button
+        [disabled]="pagina >= totalPages - 1"
+        (click)="paginaSiguiente()"
+        aria-label="Página siguiente"
+      >
+        <mat-icon>chevron_right</mat-icon>
+      </button>
+    </div>
+  }
+</mat-card>

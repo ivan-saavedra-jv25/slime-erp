@@ -556,10 +556,10 @@ cd frontend && npx ng build --configuration development
 **Interfaces:**
 - Produce: `GET /api/admin/suscripciones?page&limit&estado&planId&empresaId&proximasAVencerDias`, `GET /{id}`, `POST /api/admin/suscripciones`, `POST /{id}/extend` (body `nuevoVencimiento` o `dias`), `POST /{id}/cambiar-plan`, `POST /{id}/suspend`, `POST /{id}/reactivate`. Estados del spec §10 (TRIAL…EXPIRED). `gracePeriodDays` se lee de `admin.configuracion` (Task 18), nunca hardcodeado — la transición PAST_DUE→SUSPENDED la ejecuta el job del Task 21.
 
-- [ ] **Step 1: Tests** — crear suscripción valida overlap de empresa activa (una suscripción activa por empresa); `extend` modifica `fecha_vencimiento` y audita `SUBSCRIPTION_EXTENDED` con old/new; `cambiar-plan` valida precio del plan y audita `PLAN_CHANGE`; `suspend`/`reactivate` auditan y actualizan `tenant.status` (Task 6); `gracePeriodDays` viene de configuración.
-- [ ] **Step 2: Implementar** service/controller + repositorio con paginación y filtros combinables.
-- [ ] **Step 3: Frontend** — listado con columnas del spec §10, filtros, y acciones con confirmación (§32).
-- [ ] **Step 4: `ng build`** + suite backend. Commit — "Gestion de suscripciones con extension, cambio de plan y periodo de gracia"
+- [x] **Step 1: Tests** — crear suscripción valida overlap de empresa activa (una suscripción activa por empresa); `extend` modifica `fecha_vencimiento` y audita `SUBSCRIPTION_EXTENDED` con old/new; `cambiar-plan` valida precio del plan y audita `PLAN_CHANGE`; `suspend`/`reactivate` auditan y actualizan `tenant.status` (Task 6); `gracePeriodDays` viene de configuración.
+- [x] **Step 2: Implementar** service/controller + repositorio con paginación y filtros combinables.
+- [x] **Step 3: Frontend** — listado con columnas del spec §10, filtros, y acciones con confirmación (§32).
+- [x] **Step 4: `ng build`** + suite backend. Commit — "Gestion de suscripciones con extension, cambio de plan y periodo de gracia"
 
 ---
 
