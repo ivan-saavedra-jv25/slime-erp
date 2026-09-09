@@ -35,6 +35,9 @@
           >
             <mat-icon>{{ item.icono }}</mat-icon>
             <span class="label">{{ item.label }}</span>
+            @if (item.ruta === '/admin/alertas' && alertasCriticas() !== null && alertasCriticas()! > 0) {
+              <span class="nav-badge nav-badge--critical">{{ alertasCriticas() }}</span>
+            }
           </a>
         }
       </nav>

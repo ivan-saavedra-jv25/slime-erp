@@ -1,4 +1,4 @@
-import { Component, signal } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -6,6 +6,7 @@ import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { AdminAuthService } from '../../core/services/admin-auth.service';
+import { AlertasService } from '../../core/services/alertas.service';
 
 interface NavItem {
   ruta: string;
@@ -46,10 +47,26 @@ const ITEMS: NavItem[] = [
   templateUrl: './admin-layout.component.html',
   styleUrl: './admin-layout.component.scss',
 })
-export class AdminLayoutComponent {
+export class AdminLayoutComponent implements OnInit {
   sidenavAbierto = signal(true);
+  alertasCriticas = signal<number | null>(null);
 
-  constructor(public auth: AdminAuthService, private router: Router) {}
+  constructor(
+    public auth: AdminAuthService,
+    private router: Router,
+    private alertasService: AlertasService
+  ) {}
+
+  ngOnInit(): void {
+    this.cargarContadorAlertas();
+  }
+
+  private cargarContadorAlertas(): void {
+    this.alertasService.summary().subscribe({
+      next: (resumen) => this.alertasCriticas.set(resumen.critical),
+      error: () => this.alertasCriticas.set(null),
+    });
+  }
 
   get items(): NavItem[] {
     return ITEMS.filter((item) => this.auth.tienePermiso(item.permiso));

@@ -119,6 +119,25 @@
   color: var(--sidebar-icon);
 }
 
+.nav-badge {
+  margin-left: auto;
+  min-width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 0 6px;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.nav-badge--critical {
+  background: var(--error-base);
+  color: var(--white);
+}
+
 .admin-sidebar nav a:hover {
   background: var(--sidebar-hover);
 }

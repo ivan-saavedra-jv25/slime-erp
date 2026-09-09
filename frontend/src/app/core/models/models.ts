@@ -505,6 +505,38 @@ export interface AuditLogFiltros {
   hasta?: string;
 }
 
+export type SeveridadAlertaPlataforma = 'CRITICAL' | 'WARNING' | 'INFO';
+export type EstadoAlertaPlataforma = 'OPEN' | 'READ' | 'RESOLVED';
+
+export interface Alerta {
+  id: number;
+  companyId: number | null;
+  companyNombre: string | null;
+  type: string;
+  severity: SeveridadAlertaPlataforma;
+  title: string;
+  description: string | null;
+  createdAt: string;
+  readAt: string | null;
+  resolvedAt: string | null;
+  status: EstadoAlertaPlataforma;
+}
+
+export interface AlertaFiltros {
+  page?: number;
+  limit?: number;
+  severity?: SeveridadAlertaPlataforma;
+  status?: EstadoAlertaPlataforma;
+  companyId?: number;
+  tipo?: string;
+}
+
+export interface AlertaResumen {
+  critical: number;
+  warning: number;
+  info: number;
+}
+
 export type EstadoCobranza = 'DEUDA' | 'PARCIAL' | 'PAGADO' | 'ANULADO';
 export type EstadoPagoCobranza = 'CONFIRMADA' | 'ANULADA';
 

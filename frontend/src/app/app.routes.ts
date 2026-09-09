@@ -66,6 +66,11 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/admin/auditoria/auditoria.component').then((m) => m.AuditoriaComponent),
       },
+      {
+        path: 'alertas',
+        loadComponent: () =>
+          import('./features/admin/alertas/alertas.component').then((m) => m.AlertasComponent),
+      },
     ],
   },
   {
