@@ -47,10 +47,13 @@ const ITEMS: NavItem[] = [
   styleUrl: './admin-layout.component.scss',
 })
 export class AdminLayoutComponent {
-  items = ITEMS.filter((item) => this.auth.tienePermiso(item.permiso));
   sidenavAbierto = signal(true);
 
   constructor(public auth: AdminAuthService, private router: Router) {}
+
+  get items(): NavItem[] {
+    return ITEMS.filter((item) => this.auth.tienePermiso(item.permiso));
+  }
 
   get iniciales(): string {
     const nombre = this.auth.session()?.nombre ?? '';
