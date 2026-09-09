@@ -1,6 +1,6 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, NgForm } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { MatTableModule } from '@angular/material/table';
@@ -14,6 +14,7 @@ import { SubcategoriaService } from '../../core/services/subcategoria.service';
 import { AuthService } from '../../core/services/auth.service';
 import { Categoria, Producto, Subcategoria } from '../../core/models/models';
 import { MonedaPipe } from '../../core/pipes/moneda.pipe';
+import { cerrarCargando, mostrarCargando } from '../../core/utils/swal-loading';
 
 @Component({
   selector: 'app-productos',
@@ -23,6 +24,8 @@ import { MonedaPipe } from '../../core/pipes/moneda.pipe';
   styleUrl: './productos.component.scss',
 })
 export class ProductosComponent implements OnInit, OnDestroy {
+  @ViewChild('f') formulario?: NgForm;
+
   columnas = ['sku', 'codigoBarra', 'nombre', 'categoria', 'precioVenta', 'acciones'];
   productos: Producto[] = [];
   total = 0;
@@ -142,11 +145,13 @@ export class ProductosComponent implements OnInit, OnDestroy {
       stockMinimo: this.stockMinimo,
     };
     this.guardando = true;
+    mostrarCargando(this.editandoId ? 'Guardando cambios' : 'Creando producto');
     const obs = this.editandoId
       ? this.productoService.actualizar(this.editandoId, request)
       : this.productoService.crear(request);
     obs.subscribe({
       next: () => {
+        cerrarCargando();
         this.error = '';
         this.guardando = false;
         this.editandoId = null;
@@ -154,10 +159,21 @@ export class ProductosComponent implements OnInit, OnDestroy {
         this.cargar();
       },
       error: (err) => {
+        cerrarCargando();
         this.guardando = false;
-        this.error = err?.error?.error ?? 'Ocurrió un error. Intenta nuevamente.';
+        this.error = this.mensajeError(err);
       },
     });
+  }
+
+  // Traduce errores del backend a un mensaje entendible para el usuario.
+  // Los códigos 409 (SKU/código de barra duplicado) ya vienen con un mensaje
+  // claro; cualquier otro caso usa un mensaje genérico en vez del detalle técnico.
+  private mensajeError(err: any): string {
+    if (err?.status === 409 && err?.error?.error) {
+      return err.error.error;
+    }
+    return 'No se pudo guardar el producto. Verifica los datos e intenta nuevamente.';
   }
 
   eliminar(producto: Producto): void {
@@ -173,16 +189,22 @@ export class ProductosComponent implements OnInit, OnDestroy {
     });
   }
 
+  // Limpia valores y también el estado touched/dirty del formulario: si solo
+  // se resetean los campos, Angular conserva el "touched" previo y el campo
+  // Nombre vuelve a mostrarse en rojo como si fuera obligatorio, aunque el
+  // producto ya se haya guardado correctamente.
   private limpiarFormulario(): void {
-    this.sku = '';
-    this.codigoBarra = '';
-    this.nombre = '';
-    this.descripcion = '';
-    this.categoriaId = null;
-    this.subcategoriaId = null;
     this.subcategoriasDisponibles = [];
-    this.precioVenta = 0;
-    this.precioCompra = 0;
-    this.stockMinimo = 0;
+    this.formulario?.resetForm({
+      sku: '',
+      codigoBarra: '',
+      nombre: '',
+      descripcion: '',
+      categoriaId: null,
+      subcategoriaId: null,
+      precioVenta: 0,
+      precioCompra: 0,
+      stockMinimo: 0,
+    });
   }
 }

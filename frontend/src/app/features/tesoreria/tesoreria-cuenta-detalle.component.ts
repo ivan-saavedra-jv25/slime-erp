@@ -11,6 +11,7 @@ import { TransaccionPagoRequest, TransaccionPagoService } from '../../core/servi
 import { ClienteService } from '../../core/services/cliente.service';
 import { AuthService } from '../../core/services/auth.service';
 import { MonedaPipe } from '../../core/pipes/moneda.pipe';
+import { cerrarCargando, mostrarCargando } from '../../core/utils/swal-loading';
 
 const ETIQUETAS: Record<EstadoCuentaPorCobrar, string> = {
   DEUDA: 'En deuda',
@@ -116,15 +117,18 @@ export class TesoreriaCuentaDetalleComponent implements OnInit {
     if (!this.cuenta || this.montoInvalido) return;
     this.guardandoPago = true;
     this.errorPago = '';
+    mostrarCargando('Registrando pago');
 
     this.transaccionPagoService.registrarPago(this.cuenta.id, this.pagoForm).subscribe({
       next: () => {
+        cerrarCargando();
         this.guardandoPago = false;
         this.formularioPagoAbierto = false;
         this.pagoForm = pagoVacio();
         this.cargar(this.cuenta!.id);
       },
       error: (err) => {
+        cerrarCargando();
         this.errorPago = err?.error?.error ?? 'Ocurrió un error al registrar el pago.';
         this.guardandoPago = false;
       },

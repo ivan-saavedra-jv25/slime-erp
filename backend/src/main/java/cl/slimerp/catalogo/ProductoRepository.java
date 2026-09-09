@@ -24,6 +24,10 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
 
     boolean existsByTenantIdAndCodigoBarraAndIdNot(Long tenantId, String codigoBarra, Long id);
 
+    boolean existsByTenantIdAndSku(Long tenantId, String sku);
+
+    boolean existsByTenantIdAndSkuAndIdNot(Long tenantId, String sku, Long id);
+
     // "busqueda" siempre viene con el patrón LIKE ya armado (p.ej. "%mouse%",
     // o "%%" si no hay término) para no comparar contra un parámetro nulo:
     // Postgres no logra inferir el tipo de un parámetro que solo se usa en

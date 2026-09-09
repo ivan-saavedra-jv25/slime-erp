@@ -8,6 +8,7 @@ import { MatCardModule } from '@angular/material/card';
 import { UsuarioService, UsuarioRequest } from '../../core/services/usuario.service';
 import { AuthService } from '../../core/services/auth.service';
 import { Rol, Usuario } from '../../core/models/models';
+import { cerrarCargando, mostrarCargando } from '../../core/utils/swal-loading';
 
 const ROLES_ASIGNABLES: Rol[] = ['ADMIN', 'VENDEDOR', 'COMPRADOR', 'VISUALIZADOR'];
 
@@ -66,11 +67,13 @@ export class UsuariosComponent implements OnInit {
       ...(this.password ? { password: this.password } : {}),
     };
     this.guardando = true;
+    mostrarCargando(this.editandoId ? 'Guardando cambios' : 'Creando usuario');
     const obs = this.editandoId
       ? this.usuarioService.actualizar(this.editandoId, request)
       : this.usuarioService.crear(request);
     obs.subscribe({
       next: () => {
+        cerrarCargando();
         this.error = '';
         this.guardando = false;
         this.editandoId = null;
@@ -78,6 +81,7 @@ export class UsuariosComponent implements OnInit {
         this.cargar();
       },
       error: (err) => {
+        cerrarCargando();
         this.guardando = false;
         this.error = err?.error?.error ?? 'Ocurrió un error. Intenta nuevamente.';
       },

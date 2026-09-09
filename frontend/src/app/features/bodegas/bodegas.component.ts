@@ -12,6 +12,7 @@ import { BodegaService, BodegaRequest } from '../../core/services/bodega.service
 import { StockService } from '../../core/services/stock.service';
 import { AuthService } from '../../core/services/auth.service';
 import { Bodega, InventarioItem, TipoBodega } from '../../core/models/models';
+import { cerrarCargando, mostrarCargando } from '../../core/utils/swal-loading';
 
 const ETIQUETAS_TIPO: Record<TipoBodega, string> = {
   PRINCIPAL: 'Principal',
@@ -176,11 +177,13 @@ export class BodegasComponent implements OnInit, OnDestroy {
     if (!this.nombre.trim()) return;
     const request: BodegaRequest = { nombre: this.nombre.trim(), tipo: this.tipo };
     this.guardando = true;
+    mostrarCargando(this.editandoId ? 'Guardando cambios' : 'Creando bodega');
     const obs = this.editandoId
       ? this.bodegaService.actualizar(this.editandoId, request)
       : this.bodegaService.crear(request);
     obs.subscribe({
       next: () => {
+        cerrarCargando();
         this.error = '';
         this.guardando = false;
         this.editandoId = null;
@@ -189,6 +192,7 @@ export class BodegasComponent implements OnInit, OnDestroy {
         this.cargar();
       },
       error: (err) => {
+        cerrarCargando();
         this.guardando = false;
         this.error = err?.error?.error ?? 'Ocurrió un error. Intenta nuevamente.';
       },

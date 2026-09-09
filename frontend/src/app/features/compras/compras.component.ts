@@ -12,6 +12,7 @@ import { BodegaService } from '../../core/services/bodega.service';
 import { CompraService } from '../../core/services/compra.service';
 import { AuthService } from '../../core/services/auth.service';
 import { MonedaPipe, formatearCLP } from '../../core/pipes/moneda.pipe';
+import { cerrarCargando, mostrarCargando } from '../../core/utils/swal-loading';
 
 interface ItemStaged {
   productoId: number | null;
@@ -166,6 +167,7 @@ export class ComprasComponent implements OnInit {
     this.guardando = true;
     this.error = '';
     this.mensaje = '';
+    mostrarCargando('Registrando compra');
 
     this.compraService
       .crear({
@@ -176,6 +178,7 @@ export class ComprasComponent implements OnInit {
       })
       .subscribe({
         next: (compra) => {
+          cerrarCargando();
           this.mensaje = `Compra #${compra.id} registrada correctamente. Total: ${formatearCLP(compra.total)}.`;
           this.proveedorId = null;
           this.observacion = '';
@@ -184,6 +187,7 @@ export class ComprasComponent implements OnInit {
           this.guardando = false;
         },
         error: (err) => {
+          cerrarCargando();
           this.error = err?.error?.error ?? 'Ocurrió un error al registrar la compra.';
           this.guardando = false;
         },

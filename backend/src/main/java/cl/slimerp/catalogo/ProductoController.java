@@ -38,7 +38,8 @@ public class ProductoController {
             @RequestParam(defaultValue = "0") int pagina,
             @RequestParam(defaultValue = "10") int tamano) {
         String busqueda = "%" + (q == null ? "" : q.trim().toLowerCase()) + "%";
-        var pageable = PageRequest.of(pagina, tamano, Sort.by("nombre").ascending());
+        // Más nuevos primero: el id autoincremental refleja el orden real de creación.
+        var pageable = PageRequest.of(pagina, tamano, Sort.by("id").descending());
         return PaginaResponse.de(productoRepository.buscar(TenantContext.getTenantId(), busqueda, pageable));
     }
 
@@ -54,6 +55,7 @@ public class ProductoController {
     @PreAuthorize("hasAuthority('PRODUCTOS_EDITAR')")
     public ResponseEntity<Producto> crear(@Valid @RequestBody ProductoRequest request) {
         Long tenantId = TenantContext.getTenantId();
+        validarSkuUnico(tenantId, request.sku(), null);
         validarCodigoBarraUnico(tenantId, request.codigoBarra(), null);
 
         Producto producto = Producto.builder()
@@ -77,6 +79,7 @@ public class ProductoController {
         Long tenantId = TenantContext.getTenantId();
         return productoRepository.findByIdAndTenantIdAndActivoTrue(id, tenantId)
                 .map(producto -> {
+                    validarSkuUnico(tenantId, request.sku(), id);
                     validarCodigoBarraUnico(tenantId, request.codigoBarra(), id);
                     producto.setSku(request.sku());
                     producto.setCodigoBarra(normalizarCodigoBarra(request.codigoBarra()));
@@ -119,6 +122,20 @@ public class ProductoController {
                 : productoRepository.existsByTenantIdAndCodigoBarraAndIdNot(tenantId, normalizado, idExcluido);
         if (existe) {
             throw new ProductoConflictException("Ya existe un producto con el código de barra " + normalizado);
+        }
+    }
+
+    // El SKU es opcional; la tabla tiene un índice único por tenant, así que hay
+    // que validarlo antes del insert/update para no dejar que la excepción cruda
+    // de la base de datos llegue al usuario.
+    private void validarSkuUnico(Long tenantId, String sku, Long idExcluido) {
+        String normalizado = sku == null ? null : sku.trim();
+        if (normalizado == null || normalizado.isEmpty()) return;
+        boolean existe = idExcluido == null
+                ? productoRepository.existsByTenantIdAndSku(tenantId, normalizado)
+                : productoRepository.existsByTenantIdAndSkuAndIdNot(tenantId, normalizado, idExcluido);
+        if (existe) {
+            throw new ProductoConflictException("Ya existe un producto con el SKU " + normalizado);
         }
     }
 }

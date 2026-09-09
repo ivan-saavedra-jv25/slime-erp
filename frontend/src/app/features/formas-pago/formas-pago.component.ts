@@ -8,6 +8,7 @@ import { MatCardModule } from '@angular/material/card';
 import { FormaPagoService, FormaPagoRequest } from '../../core/services/forma-pago.service';
 import { AuthService } from '../../core/services/auth.service';
 import { CategoriaFormaPago, FormaPago } from '../../core/models/models';
+import { cerrarCargando, mostrarCargando } from '../../core/utils/swal-loading';
 
 const ETIQUETAS: Record<CategoriaFormaPago, string> = {
   GRATIS: 'Gratis',
@@ -72,11 +73,13 @@ export class FormasPagoComponent implements OnInit {
     if (!this.nombre.trim()) return;
     const request: FormaPagoRequest = { nombre: this.nombre.trim(), categoria: this.categoria };
     this.guardando = true;
+    mostrarCargando(this.editandoId ? 'Guardando cambios' : 'Creando forma de pago');
     const obs = this.editandoId
       ? this.formaPagoService.actualizar(this.editandoId, request)
       : this.formaPagoService.crear(request);
     obs.subscribe({
       next: () => {
+        cerrarCargando();
         this.error = '';
         this.guardando = false;
         this.editandoId = null;
@@ -84,6 +87,7 @@ export class FormasPagoComponent implements OnInit {
         this.cargar();
       },
       error: (err) => {
+        cerrarCargando();
         this.guardando = false;
         this.error = err?.error?.error ?? 'Ocurrió un error. Intenta nuevamente.';
       },

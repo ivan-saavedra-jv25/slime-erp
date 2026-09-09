@@ -9,6 +9,7 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { PlanService } from '../../../core/services/plan.service';
 import { Plan, PlanRequest } from '../../../core/models/models';
 import { ConfirmActionDialog } from '../../../core/components/confirm-action-dialog/confirm-action-dialog.component';
+import { cerrarCargando, mostrarCargando } from '../../../core/utils/swal-loading';
 
 export const MODULOS_DISPONIBLES = [
   'ventas',
@@ -152,17 +153,20 @@ export class PlanesComponent implements OnInit {
 
     this.guardando = true;
     this.error = '';
+    mostrarCargando(this.editandoId ? 'Guardando cambios' : 'Creando plan');
     const obs = this.editandoId
       ? this.planService.actualizar(this.editandoId, request)
       : this.planService.crear(request);
     obs.subscribe({
       next: () => {
+        cerrarCargando();
         this.guardando = false;
         this.editandoId = null;
         this.limpiar();
         this.cargar();
       },
       error: (err: unknown) => {
+        cerrarCargando();
         this.guardando = false;
         this.error = (err as { error?: { error?: string } })?.error?.error ?? 'Ocurrió un error. Intenta nuevamente.';
       },

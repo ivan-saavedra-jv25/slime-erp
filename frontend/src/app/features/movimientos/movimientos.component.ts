@@ -15,6 +15,7 @@ import { ImportItemResuelto, ImportResultado, MovimientoService } from '../../co
 import { AuthService } from '../../core/services/auth.service';
 import { UsuarioService } from '../../core/services/usuario.service';
 import { ProductoRapidoDialogComponent, ProductoRapidoDialogData } from './producto-rapido-dialog.component';
+import { cerrarCargando, mostrarCargando } from '../../core/utils/swal-loading';
 
 @Component({
   selector: 'app-movimientos',
@@ -196,6 +197,7 @@ export class MovimientosComponent implements OnInit, OnDestroy {
     this.guardando = true;
     this.error = '';
     this.mensaje = '';
+    mostrarCargando('Registrando movimiento');
 
     this.movimientoService
       .crear({
@@ -208,6 +210,7 @@ export class MovimientosComponent implements OnInit, OnDestroy {
       })
       .subscribe({
         next: () => {
+          cerrarCargando();
           this.mensaje = 'Movimiento registrado correctamente.';
           this.items = [];
           this.observacion = '';
@@ -216,6 +219,7 @@ export class MovimientosComponent implements OnInit, OnDestroy {
           this.guardando = false;
         },
         error: (err) => {
+          cerrarCargando();
           this.error = err?.error?.error ?? 'Error al registrar el movimiento.';
           this.guardando = false;
         },
@@ -229,13 +233,16 @@ export class MovimientosComponent implements OnInit, OnDestroy {
     if (!archivo) return;
     this.importando = true;
     this.resultadoImportacion = null;
+    mostrarCargando('Importando archivo');
     this.movimientoService.importarExcel(archivo).subscribe({
       next: (resultado) => {
+        cerrarCargando();
         this.resultadoImportacion = resultado;
         this.importando = false;
         this.agregarItemsImportados(resultado.items);
       },
       error: (err) => {
+        cerrarCargando();
         this.error = err?.error?.error ?? 'No se pudo importar el archivo.';
         this.importando = false;
       },

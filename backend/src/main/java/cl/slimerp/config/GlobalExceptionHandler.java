@@ -1,5 +1,6 @@
 package cl.slimerp.config;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -49,6 +50,14 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ProductoConflictException.class)
     public ResponseEntity<Map<String, Object>> handleProductoConflict(ProductoConflictException ex) {
         return error(HttpStatus.CONFLICT, ex.getMessage());
+    }
+
+    // Red de seguridad: si una restricción única de la base de datos se viola sin
+    // haber sido validada antes en el controller (p.ej. condición de carrera), no
+    // debe llegar al cliente el detalle crudo de la excepción SQL.
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<Map<String, Object>> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
+        return error(HttpStatus.CONFLICT, "El registro no se pudo guardar porque entra en conflicto con datos existentes.");
     }
 
     @ExceptionHandler(Exception.class)

@@ -10,6 +10,7 @@ import { EmpresaAdminService } from '../../core/services/empresa-admin.service';
 import { UsuarioPlataformaService, UsuarioAdminRequest } from '../../core/services/usuario-plataforma.service';
 import { Empresa, Rol, UsuarioPlataforma } from '../../core/models/models';
 import { ConfirmActionDialog } from '../../core/components/confirm-action-dialog/confirm-action-dialog.component';
+import { cerrarCargando, mostrarCargando } from '../../core/utils/swal-loading';
 
 const ROLES_ASIGNABLES: Rol[] = ['ADMIN', 'VENDEDOR', 'COMPRADOR', 'VISUALIZADOR'];
 
@@ -169,11 +170,13 @@ export class AdminUsuariosComponent implements OnInit {
       ...(this.password ? { password: this.password } : {}),
     };
     this.guardando = true;
+    mostrarCargando(this.editandoId ? 'Guardando cambios' : 'Creando usuario');
     const obs = this.editandoId
       ? this.usuarioPlataformaService.actualizar(this.editandoId, request)
       : this.usuarioPlataformaService.crear(request);
     obs.subscribe({
       next: () => {
+        cerrarCargando();
         this.error = '';
         this.guardando = false;
         this.editandoId = null;
@@ -181,6 +184,7 @@ export class AdminUsuariosComponent implements OnInit {
         this.cargar();
       },
       error: (err) => {
+        cerrarCargando();
         this.guardando = false;
         this.error = err?.error?.error ?? 'OcurriÃ³ un error. Intenta nuevamente.';
       },

@@ -9,6 +9,7 @@ import { CobranzaService } from '../../core/services/cobranza.service';
 import { EmpresaAdminService } from '../../core/services/empresa-admin.service';
 import { CobranzaEmpresa, CobranzaPago, EstadoCobranza, MedioPago, PagoCobranzaRequest } from '../../core/models/models';
 import { MonedaPipe } from '../../core/pipes/moneda.pipe';
+import { cerrarCargando, mostrarCargando } from '../../core/utils/swal-loading';
 
 const ETIQUETAS: Record<EstadoCobranza, string> = {
   DEUDA: 'En deuda',
@@ -117,15 +118,18 @@ export class AdminCobranzaDetalleComponent implements OnInit {
     if (!this.cargo || this.montoInvalido) return;
     this.guardandoPago = true;
     this.errorPago = '';
+    mostrarCargando('Registrando pago');
 
     this.cobranzaService.registrarPago(this.cargo.id, this.pagoForm).subscribe({
       next: () => {
+        cerrarCargando();
         this.guardandoPago = false;
         this.formularioPagoAbierto = false;
         this.pagoForm = pagoVacio();
         this.cargar(this.cargo!.id);
       },
       error: (err) => {
+        cerrarCargando();
         this.errorPago = err?.error?.error ?? 'OcurriÃ³ un error al registrar el pago.';
         this.guardandoPago = false;
       },

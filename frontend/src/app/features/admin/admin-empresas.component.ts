@@ -20,6 +20,7 @@ import {
 } from '../../core/models/models';
 import { ConfirmActionDialog } from '../../core/components/confirm-action-dialog/confirm-action-dialog.component';
 import { MonedaPipe } from '../../core/pipes/moneda.pipe';
+import { cerrarCargando, mostrarCargando } from '../../core/utils/swal-loading';
 
 @Component({
   selector: 'app-admin-empresas',
@@ -208,14 +209,17 @@ export class AdminEmpresasComponent implements OnInit, OnDestroy {
       adminPassword: this.adminPassword,
     };
     this.guardando = true;
+    mostrarCargando('Creando empresa');
     this.empresaService.crear(request).subscribe({
       next: () => {
+        cerrarCargando();
         this.error = '';
         this.guardando = false;
         this.limpiarFormulario();
         this.cargar();
       },
       error: (err) => {
+        cerrarCargando();
         this.guardando = false;
         this.error = err?.error?.error ?? 'Ocurrió un error. Intenta nuevamente.';
       },

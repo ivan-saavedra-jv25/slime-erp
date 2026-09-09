@@ -18,6 +18,7 @@ import { StockService } from '../../core/services/stock.service';
 import { VentaService } from '../../core/services/venta.service';
 import { AuthService } from '../../core/services/auth.service';
 import { VentaPdfDialogComponent } from './venta-pdf-dialog.component';
+import { cerrarCargando, mostrarCargando } from '../../core/utils/swal-loading';
 import { MonedaPipe } from '../../core/pipes/moneda.pipe';
 
 interface ItemStaged {
@@ -298,6 +299,7 @@ export class VentasComponent implements OnInit, OnDestroy {
     if (!this.puedeConfirmar) return;
     this.guardando = true;
     this.error = '';
+    mostrarCargando('Registrando venta');
 
     this.ventaService
       .crear({
@@ -312,6 +314,7 @@ export class VentasComponent implements OnInit, OnDestroy {
       })
       .subscribe({
         next: (venta) => {
+          cerrarCargando();
           this.clienteId = null;
           this.formaPagoId = null;
           this.observacion = '';
@@ -324,6 +327,7 @@ export class VentasComponent implements OnInit, OnDestroy {
           this.mostrarComprobante(venta.id);
         },
         error: (err) => {
+          cerrarCargando();
           this.error = err?.error?.error ?? 'Ocurrió un error al registrar la venta.';
           this.guardando = false;
         },

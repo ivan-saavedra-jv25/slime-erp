@@ -12,6 +12,7 @@ import { CategoriaService, CategoriaRequest } from '../../core/services/categori
 import { SubcategoriaService, SubcategoriaRequest } from '../../core/services/subcategoria.service';
 import { AuthService } from '../../core/services/auth.service';
 import { Categoria, Subcategoria } from '../../core/models/models';
+import { cerrarCargando, mostrarCargando } from '../../core/utils/swal-loading';
 
 @Component({
   selector: 'app-categorias',
@@ -158,11 +159,13 @@ export class CategoriasComponent implements OnInit, OnDestroy {
     if (!this.nombreCategoria.trim()) return;
     const request: CategoriaRequest = { nombre: this.nombreCategoria.trim() };
     this.guardandoCategoria = true;
+    mostrarCargando(this.editandoCategoriaId ? 'Guardando cambios' : 'Creando categoría');
     const obs = this.editandoCategoriaId
       ? this.categoriaService.actualizar(this.editandoCategoriaId, request)
       : this.categoriaService.crear(request);
     obs.subscribe({
       next: () => {
+        cerrarCargando();
         this.error = '';
         this.guardandoCategoria = false;
         this.editandoCategoriaId = null;
@@ -170,6 +173,7 @@ export class CategoriasComponent implements OnInit, OnDestroy {
         this.cargarCategorias();
       },
       error: (err) => {
+        cerrarCargando();
         this.guardandoCategoria = false;
         this.error = err?.error?.error ?? 'Ocurrió un error. Intenta nuevamente.';
       },
@@ -211,11 +215,13 @@ export class CategoriasComponent implements OnInit, OnDestroy {
       nombre: this.nombreSubcategoria.trim(),
     };
     this.guardandoSubcategoria = true;
+    mostrarCargando(this.editandoSubcategoriaId ? 'Guardando cambios' : 'Creando subcategoría');
     const obs = this.editandoSubcategoriaId
       ? this.subcategoriaService.actualizar(this.editandoSubcategoriaId, request)
       : this.subcategoriaService.crear(request);
     obs.subscribe({
       next: () => {
+        cerrarCargando();
         this.error = '';
         this.guardandoSubcategoria = false;
         this.editandoSubcategoriaId = null;
@@ -223,6 +229,7 @@ export class CategoriasComponent implements OnInit, OnDestroy {
         this.cargarSubcategorias();
       },
       error: (err) => {
+        cerrarCargando();
         this.guardandoSubcategoria = false;
         this.error = err?.error?.error ?? 'Ocurrió un error. Intenta nuevamente.';
       },

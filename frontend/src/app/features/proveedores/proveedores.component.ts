@@ -8,6 +8,7 @@ import { MatCardModule } from '@angular/material/card';
 import { ProveedorService, ProveedorRequest } from '../../core/services/proveedor.service';
 import { AuthService } from '../../core/services/auth.service';
 import { Proveedor } from '../../core/models/models';
+import { cerrarCargando, mostrarCargando } from '../../core/utils/swal-loading';
 
 @Component({
   selector: 'app-proveedores',
@@ -63,11 +64,13 @@ export class ProveedoresComponent implements OnInit {
       direccion: this.direccion,
     };
     this.guardando = true;
+    mostrarCargando(this.editandoId ? 'Guardando cambios' : 'Creando proveedor');
     const obs = this.editandoId
       ? this.proveedorService.actualizar(this.editandoId, request)
       : this.proveedorService.crear(request);
     obs.subscribe({
       next: () => {
+        cerrarCargando();
         this.error = '';
         this.guardando = false;
         this.editandoId = null;
@@ -75,6 +78,7 @@ export class ProveedoresComponent implements OnInit {
         this.cargar();
       },
       error: (err) => {
+        cerrarCargando();
         this.guardando = false;
         this.error = err?.error?.error ?? 'Ocurrió un error. Intenta nuevamente.';
       },

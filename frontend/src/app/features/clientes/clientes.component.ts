@@ -11,6 +11,7 @@ import { MatCardModule } from '@angular/material/card';
 import { ClienteService, ClienteRequest } from '../../core/services/cliente.service';
 import { AuthService } from '../../core/services/auth.service';
 import { Cliente } from '../../core/models/models';
+import { cerrarCargando, mostrarCargando } from '../../core/utils/swal-loading';
 
 @Component({
   selector: 'app-clientes',
@@ -112,11 +113,13 @@ export class ClientesComponent implements OnInit, OnDestroy {
       ciudad: this.ciudad,
     };
     this.guardando = true;
+    mostrarCargando(this.editandoId ? 'Guardando cambios' : 'Creando cliente');
     const obs = this.editandoId
       ? this.clienteService.actualizar(this.editandoId, request)
       : this.clienteService.crear(request);
     obs.subscribe({
       next: () => {
+        cerrarCargando();
         this.error = '';
         this.guardando = false;
         this.editandoId = null;
@@ -124,6 +127,7 @@ export class ClientesComponent implements OnInit, OnDestroy {
         this.cargar();
       },
       error: (err) => {
+        cerrarCargando();
         this.guardando = false;
         this.error = err?.error?.error ?? 'Ocurrió un error. Intenta nuevamente.';
       },

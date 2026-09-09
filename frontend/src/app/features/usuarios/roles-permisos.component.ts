@@ -7,6 +7,7 @@ import { MatCardModule } from '@angular/material/card';
 import { UsuarioService } from '../../core/services/usuario.service';
 import { AuthService } from '../../core/services/auth.service';
 import { Permiso, Rol, Usuario } from '../../core/models/models';
+import { cerrarCargando, mostrarCargando } from '../../core/utils/swal-loading';
 
 interface GrupoPermiso {
   titulo: string;
@@ -133,12 +134,15 @@ export class RolesPermisosComponent implements OnInit {
     this.guardando = true;
     this.error = '';
     this.mensajeExito = '';
+    mostrarCargando('Guardando permisos');
     this.usuarioService.guardarPermisosExtra(this.usuarioSeleccionadoId, permisosExtra).subscribe({
       next: () => {
+        cerrarCargando();
         this.guardando = false;
         this.mensajeExito = 'Permisos actualizados.';
       },
       error: (err) => {
+        cerrarCargando();
         this.guardando = false;
         this.error = err?.error?.error ?? 'Ocurrió un error al guardar los permisos.';
       },

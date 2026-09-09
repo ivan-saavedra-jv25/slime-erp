@@ -9,6 +9,7 @@ import { CobranzaService } from '../../core/services/cobranza.service';
 import { EmpresaAdminService } from '../../core/services/empresa-admin.service';
 import { CobranzaEmpresa, EstadoCobranza, Empresa, ResumenCobranza } from '../../core/models/models';
 import { MonedaPipe } from '../../core/pipes/moneda.pipe';
+import { cerrarCargando, mostrarCargando } from '../../core/utils/swal-loading';
 
 const ETIQUETAS: Record<EstadoCobranza, string> = {
   DEUDA: 'En deuda',
@@ -110,6 +111,7 @@ export class AdminCobranzaComponent implements OnInit {
     }
     this.guardando = true;
     this.error = '';
+    mostrarCargando('Emitiendo cobranza');
     this.cobranzaService
       .emitir({
         tenantId: this.nuevaTenantId,
@@ -121,12 +123,14 @@ export class AdminCobranzaComponent implements OnInit {
       })
       .subscribe({
         next: () => {
+          cerrarCargando();
           this.guardando = false;
           this.limpiarFormulario();
           this.cobranzaService.resumen().subscribe((data) => (this.resumen = data));
           this.cargar();
         },
         error: (err) => {
+          cerrarCargando();
           this.guardando = false;
           this.error = err?.error?.error ?? 'OcurriÃ³ un error al emitir la cobranza.';
         },
