@@ -1,7 +1,9 @@
 import { fakeAsync, tick } from '@angular/core/testing';
+import { MatDialog } from '@angular/material/dialog';
 import { of, throwError } from 'rxjs';
 import { LibroVentasComponent } from './libro-ventas.component';
 import { ReporteService } from '../../core/services/reporte.service';
+import { VentaService } from '../../core/services/venta.service';
 import { LibroVentasResponse } from '../../core/models/models';
 
 function libroDeEjemplo(overrides: Partial<LibroVentasResponse> = {}): LibroVentasResponse {
@@ -33,7 +35,16 @@ describe('LibroVentasComponent', () => {
       libroVentas: jasmine.createSpy('libroVentas').and.returnValue(of(libroDeEjemplo())),
       libroVentasExcel: jasmine.createSpy('libroVentasExcel').and.returnValue(of(new Blob())),
     } as unknown as ReporteService;
-    return { component: new LibroVentasComponent(reporteServiceStub), reporteServiceStub };
+    const ventaServiceStub = {
+      obtenerPdf: jasmine.createSpy('obtenerPdf').and.returnValue(of(new Blob())),
+    } as unknown as VentaService;
+    const dialogStub = {
+      open: jasmine.createSpy('open'),
+    } as unknown as MatDialog;
+    return {
+      component: new LibroVentasComponent(reporteServiceStub, ventaServiceStub, dialogStub),
+      reporteServiceStub,
+    };
   }
 
   it('no consulta si "desde" es posterior a "hasta"', () => {
