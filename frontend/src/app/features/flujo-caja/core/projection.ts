@@ -8,12 +8,13 @@ import {
   RecurringItem,
   Variability,
 } from './models';
-import { MONTHS_PER_YEAR } from './seed';
+import { CATEGORIA_VENTAS_ID, MONTHS_PER_YEAR } from './seed';
+import { SyncedIncome } from './synced-income';
 
 export interface Line {
-  /** Id del `RecurringItem` u `OneOffItem` que origina la línea. */
+  /** Id del `RecurringItem` u `OneOffItem` que origina la línea; para `source: 'synced'`, el id sintético `pago-<id>`. */
   id: string;
-  source: 'recurring' | 'oneoff';
+  source: 'recurring' | 'oneoff' | 'synced';
   description: string;
   categoryId: string;
   amount: number;
@@ -23,6 +24,8 @@ export interface Line {
   variability: Variability;
   /** Parte de `amount` que es interés; el resto amortiza capital. */
   interestAmount: number | null;
+  /** Solo en líneas `source: 'synced'`: la cuenta por cobrar de origen, para enlazar a Tesorería. */
+  cuentaPorCobrarId?: number;
 }
 
 export interface MonthProjection {
@@ -119,6 +122,7 @@ export function projectMonth(
   month: MonthKey,
   openingBalance: number,
   accumulatedTaxProvision = 0,
+  syncedIncomes: readonly SyncedIncome[] = [],
 ): MonthProjection {
   const categories = classify(state);
   const incomes: Line[] = [];
@@ -133,6 +137,7 @@ export function projectMonth(
     amount: number,
     overridden: boolean,
     interestAmount: number | null,
+    cuentaPorCobrarId?: number,
   ) => {
     const category = categories.get(categoryId) ?? ORPHAN_CATEGORY;
     const line: Line = {
@@ -145,6 +150,7 @@ export function projectMonth(
       nature: category.nature,
       variability: category.variability,
       interestAmount,
+      cuentaPorCobrarId,
     };
     (kind === 'income' ? incomes : expenses).push(line);
   };
@@ -181,6 +187,21 @@ export function projectMonth(
       item.amount,
       false,
       item.interestAmount,
+    );
+  }
+
+  for (const income of syncedIncomes) {
+    if (income.month !== month) continue;
+    push(
+      income.id,
+      'synced',
+      'income',
+      CATEGORIA_VENTAS_ID,
+      income.description,
+      income.amount,
+      false,
+      null,
+      income.cuentaPorCobrarId,
     );
   }
 
@@ -247,12 +268,13 @@ export function projectMonths(
   state: CashflowState,
   months: readonly MonthKey[],
   openingBalance: number,
+  syncedIncomes: readonly SyncedIncome[] = [],
 ): MonthProjection[] {
   const result: MonthProjection[] = [];
   let balance = openingBalance;
   let taxProvision = 0;
   for (const month of months) {
-    const projection = projectMonth(state, month, balance, taxProvision);
+    const projection = projectMonth(state, month, balance, taxProvision, syncedIncomes);
     result.push(projection);
     balance = projection.closingBalance;
     taxProvision = projection.accumulatedTaxProvision;
@@ -265,14 +287,22 @@ export function projectMonths(
  * se encadenan igual que los meses: enero de un año parte con el cierre de
  * diciembre del anterior.
  */
-export function projectThrough(state: CashflowState, throughYear: number): MonthProjection[] {
+export function projectThrough(
+  state: CashflowState,
+  throughYear: number,
+  syncedIncomes: readonly SyncedIncome[] = [],
+): MonthProjection[] {
   const { baseYear, openingBalance } = state.settings;
   const years = Math.max(1, throughYear - baseYear + 1);
   const months = monthKeysFrom(januaryOf(baseYear), years * MONTHS_PER_YEAR);
-  return projectMonths(state, months, openingBalance);
+  return projectMonths(state, months, openingBalance, syncedIncomes);
 }
 
 /** Los 12 meses de `year`, con el saldo ya encadenado desde el año base. */
-export function projectYear(state: CashflowState, year: number): MonthProjection[] {
-  return projectThrough(state, year).slice(-MONTHS_PER_YEAR);
+export function projectYear(
+  state: CashflowState,
+  year: number,
+  syncedIncomes: readonly SyncedIncome[] = [],
+): MonthProjection[] {
+  return projectThrough(state, year, syncedIncomes).slice(-MONTHS_PER_YEAR);
 }

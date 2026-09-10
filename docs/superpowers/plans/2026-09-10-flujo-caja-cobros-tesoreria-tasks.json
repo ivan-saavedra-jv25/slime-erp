@@ -1,0 +1,57 @@
+{
+  "plan": "docs/superpowers/plans/2026-09-10-flujo-caja-cobros-tesoreria.md",
+  "spec": "docs/superpowers/specs/2026-09-10-flujo-caja-cobros-tesoreria-design.md",
+  "actualizado": "2026-09-10",
+  "tareas": [
+    {
+      "id": 1,
+      "nombre": "SyncedIncome y la función de mapeo",
+      "archivos": [
+        "frontend/src/app/features/flujo-caja/core/synced-income.ts",
+        "frontend/src/app/features/flujo-caja/core/synced-income.spec.ts"
+      ],
+      "seccion_spec": "SyncedIncome vive fuera de core/models.ts",
+      "estado": "terminada"
+    },
+    {
+      "id": 2,
+      "nombre": "CobrosSyncService",
+      "archivos": [
+        "frontend/src/app/features/flujo-caja/core/cobros-sync.service.ts"
+      ],
+      "seccion_spec": "1. Nuevo servicio: CobrosSyncService",
+      "estado": "terminada"
+    },
+    {
+      "id": 3,
+      "nombre": "projection.ts recibe los cobros sincronizados",
+      "archivos": [
+        "frontend/src/app/features/flujo-caja/core/seed.ts",
+        "frontend/src/app/features/flujo-caja/core/projection.ts",
+        "frontend/src/app/features/flujo-caja/core/projection.spec.ts"
+      ],
+      "seccion_spec": "3. Cambios en core/projection.ts",
+      "estado": "terminada"
+    },
+    {
+      "id": 4,
+      "nombre": "CashflowStore sincroniza al abrir el módulo",
+      "archivos": [
+        "frontend/src/app/features/flujo-caja/core/cashflow.store.ts"
+      ],
+      "seccion_spec": "4. Cambios en core/cashflow.store.ts",
+      "estado": "terminada"
+    },
+    {
+      "id": 5,
+      "nombre": "Mostrar los cobros sincronizados en el detalle del mes",
+      "archivos": [
+        "frontend/src/app/features/flujo-caja/month/month-detail.ts",
+        "frontend/src/app/features/flujo-caja/month/month-detail.html",
+        "frontend/src/app/features/flujo-caja/month/month-detail.css"
+      ],
+      "seccion_spec": "5. UI",
+      "estado": "terminada"
+    }
+  ]
+}

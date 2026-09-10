@@ -35,6 +35,16 @@
   </div>
 
   <div class="month-actions">
+    <button
+      type="button"
+      mat-stroked-button
+      [disabled]="syncing()"
+      (click)="actualizarCobros()"
+      matTooltip="Vuelve a traer los cobros confirmados desde Tesorería"
+    >
+      <mat-icon>sync</mat-icon>
+      {{ syncing() ? 'Sincronizando...' : 'Actualizar cobros' }}
+    </button>
     <button type="button" mat-stroked-button (click)="addItem('income')">
       <mat-icon>trending_up</mat-icon>
       Ingreso
@@ -45,6 +55,10 @@
     </button>
   </div>
 </header>
+
+@if (syncError()) {
+  <p class="sync-error">{{ syncError() }}</p>
+}
 
 @if (status().health !== 'ok') {
   <div class="status-banner" [class]="'banner-' + status().health" role="status">
@@ -150,6 +164,9 @@
           @if (line.source === 'recurring') {
             <mat-icon class="line-badge" matTooltip="Se repite todos los meses">repeat</mat-icon>
           }
+          @if (line.source === 'synced') {
+            <mat-icon class="line-badge" matTooltip="Cobro sincronizado desde Tesorería">sync</mat-icon>
+          }
           @if (line.overridden) {
             <span class="line-chip" matTooltip="Monto ajustado sólo para este mes">ajustado</span>
           }
@@ -157,45 +174,56 @@
 
         <span class="line-amount">{{ line.amount | clp }}</span>
 
-        <button type="button" mat-icon-button [matMenuTriggerFor]="menu" aria-label="Acciones del movimiento">
-          <mat-icon>more_vert</mat-icon>
-        </button>
+        @if (line.source === 'synced') {
+          <a
+            mat-icon-button
+            [routerLink]="['/tesoreria/cuentas', line.cuentaPorCobrarId]"
+            aria-label="Ver cuenta en Tesorería"
+            matTooltip="Ver cuenta en Tesorería"
+          >
+            <mat-icon>open_in_new</mat-icon>
+          </a>
+        } @else {
+          <button type="button" mat-icon-button [matMenuTriggerFor]="menu" aria-label="Acciones del movimiento">
+            <mat-icon>more_vert</mat-icon>
+          </button>
 
-        <mat-menu #menu="matMenu">
-          @if (line.source === 'recurring') {
-            <button mat-menu-item (click)="editThisMonthOnly(line)">
-              <mat-icon>edit_calendar</mat-icon>
-              <span>Editar sólo este mes</span>
-            </button>
-            <button mat-menu-item (click)="editLine(line)">
-              <mat-icon>edit</mat-icon>
-              <span>Editar la serie</span>
-            </button>
-            @if (line.overridden) {
-              <button mat-menu-item (click)="restoreTemplate(line)">
-                <mat-icon>restart_alt</mat-icon>
-                <span>Restaurar valor de la serie</span>
+          <mat-menu #menu="matMenu">
+            @if (line.source === 'recurring') {
+              <button mat-menu-item (click)="editThisMonthOnly(line)">
+                <mat-icon>edit_calendar</mat-icon>
+                <span>Editar sólo este mes</span>
+              </button>
+              <button mat-menu-item (click)="editLine(line)">
+                <mat-icon>edit</mat-icon>
+                <span>Editar la serie</span>
+              </button>
+              @if (line.overridden) {
+                <button mat-menu-item (click)="restoreTemplate(line)">
+                  <mat-icon>restart_alt</mat-icon>
+                  <span>Restaurar valor de la serie</span>
+                </button>
+              }
+              <button mat-menu-item (click)="skipThisMonth(line)">
+                <mat-icon>event_busy</mat-icon>
+                <span>Omitir este mes</span>
+              </button>
+              <button mat-menu-item (click)="removeLine(line)">
+                <mat-icon>delete</mat-icon>
+                <span>Eliminar la serie</span>
+              </button>
+            } @else {
+              <button mat-menu-item (click)="editLine(line)">
+                <mat-icon>edit</mat-icon>
+                <span>Editar</span>
+              </button>
+              <button mat-menu-item (click)="removeLine(line)">
+                <mat-icon>delete</mat-icon>
+                <span>Eliminar</span>
               </button>
             }
-            <button mat-menu-item (click)="skipThisMonth(line)">
-              <mat-icon>event_busy</mat-icon>
-              <span>Omitir este mes</span>
-            </button>
-            <button mat-menu-item (click)="removeLine(line)">
-              <mat-icon>delete</mat-icon>
-              <span>Eliminar la serie</span>
-            </button>
-          } @else {
-            <button mat-menu-item (click)="editLine(line)">
-              <mat-icon>edit</mat-icon>
-              <span>Editar</span>
-            </button>
-            <button mat-menu-item (click)="removeLine(line)">
-              <mat-icon>delete</mat-icon>
-              <span>Eliminar</span>
-            </button>
-          }
-        </mat-menu>
+          </mat-menu>
+        }
       </div>
     }
   </div>

@@ -1,5 +1,6 @@
 import { NgTemplateOutlet } from '@angular/common';
 import { Component, computed, inject } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatDialog } from '@angular/material/dialog';
@@ -32,6 +33,7 @@ interface CategoryGroup {
   imports: [
     FormsModule,
     NgTemplateOutlet,
+    RouterLink,
     MatButtonModule,
     MatCardModule,
     MatIconModule,
@@ -53,6 +55,8 @@ export class MonthDetail {
   readonly canGoToPreviousYear = this.store.canGoToPreviousYear;
   readonly selectedMonth = this.store.selectedMonth;
   readonly projection = this.store.currentProjection;
+  readonly syncing = this.store.syncing;
+  readonly syncError = this.store.syncError;
 
   readonly status = computed(() => monthStatus(this.projection()));
 
@@ -110,6 +114,10 @@ export class MonthDetail {
 
   stepYear(delta: number): void {
     this.store.stepYear(delta);
+  }
+
+  actualizarCobros(): void {
+    this.store.syncCobros();
   }
 
   addItem(initialKind: ItemKind): void {

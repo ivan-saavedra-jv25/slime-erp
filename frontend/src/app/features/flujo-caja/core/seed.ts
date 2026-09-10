@@ -6,9 +6,12 @@ export const MONTHS_PER_YEAR = 12;
 
 export const DEFAULT_PROVISIONS: Provisions = { taxRatePercent: 0, contingencyMonths: 0 };
 
+/** Categoría a la que caen los cobros sincronizados desde Tesorería (ver `core/projection.ts`). */
+export const CATEGORIA_VENTAS_ID = 'cat-ventas';
+
 export const DEFAULT_CATEGORIES: Category[] = [
   {
-    id: 'cat-ventas',
+    id: CATEGORIA_VENTAS_ID,
     name: 'Ventas',
     kind: 'income',
     nature: 'operational',

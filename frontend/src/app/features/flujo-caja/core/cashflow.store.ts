@@ -15,6 +15,8 @@ import { projectYear } from './projection';
 import { sampleState } from './sample';
 import { MONTHS_PER_YEAR, seedState } from './seed';
 import { StorageService } from './storage.service';
+import { CobrosSyncService } from './cobros-sync.service';
+import { SyncedIncome } from './synced-income';
 
 export type RecurringInput = Omit<RecurringItem, 'id'>;
 export type OneOffInput = Omit<OneOffItem, 'id'>;
@@ -22,12 +24,21 @@ export type OneOffInput = Omit<OneOffItem, 'id'>;
 @Injectable({ providedIn: 'root' })
 export class CashflowStore {
   private readonly storage = inject(StorageService);
+  private readonly cobrosSyncService = inject(CobrosSyncService);
 
   private readonly loaded = this.storage.load();
 
   private readonly _state = signal<CashflowState>(this.loaded.state);
   /** `true` si al iniciar había datos guardados ilegibles. */
   readonly loadCorrupted = signal(this.loaded.corrupted);
+
+  private readonly _syncedIncomes = signal<SyncedIncome[]>([]);
+  /** `true` mientras se está pidiendo el detalle de cobros a Tesorería. */
+  readonly syncing = signal(false);
+  /** Mensaje a mostrar si la última sincronización falló; `null` si no hay error. */
+  readonly syncError = signal<string | null>(null);
+  /** Momento de la última sincronización exitosa; `null` si nunca se hizo. */
+  readonly lastSyncedAt = signal<Date | null>(null);
 
   readonly state = this._state.asReadonly();
   readonly settings = computed(() => this._state().settings);
@@ -49,7 +60,9 @@ export class CashflowStore {
   readonly canGoToPreviousYear = computed(() => this._year() > this.baseYear());
 
   readonly months = computed(() => monthKeysFrom(januaryOf(this._year()), MONTHS_PER_YEAR));
-  readonly projection = computed(() => projectYear(this._state(), this._year()));
+  readonly projection = computed(() =>
+    projectYear(this._state(), this._year(), this._syncedIncomes()),
+  );
 
   /** Saldo con el que abre el año visible; en años posteriores viene arrastrado. */
   readonly yearOpeningBalance = computed(() => this.projection()[0].openingBalance);
@@ -65,6 +78,28 @@ export class CashflowStore {
 
   constructor() {
     effect(() => this.storage.save(this._state()));
+    this.syncCobros();
+  }
+
+  /** Vuelve a pedir los cobros confirmados a Tesorería y los mezcla en la proyección. */
+  syncCobros(): void {
+    this.syncing.set(true);
+    this.syncError.set(null);
+    this.cobrosSyncService.sincronizar().subscribe({
+      next: (incomes) => {
+        this._syncedIncomes.set(incomes);
+        this.lastSyncedAt.set(new Date());
+        this.syncing.set(false);
+      },
+      error: (err) => {
+        this.syncError.set(
+          err?.status === 403
+            ? 'No tienes permiso para ver los cobros de Tesorería.'
+            : 'No se pudo sincronizar con Tesorería.',
+        );
+        this.syncing.set(false);
+      },
+    });
   }
 
   /** Al abrir, se muestra el año en curso; nunca uno anterior al año base. */
