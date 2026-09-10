@@ -1,8 +1,15 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { MovimientoHistorial, MovimientoItem, TipoMovimiento } from '../models/models';
+
+export interface MovimientoHistorialFiltro {
+  fechaDesde: string | null;
+  fechaHasta: string | null;
+  usuarioId: number | null;
+  bodegaId: number | null;
+}
 
 export interface MovimientoRequest {
   tipo: TipoMovimiento;
@@ -41,12 +48,25 @@ export class MovimientoService {
     return this.http.post<{ id: number; mensaje: string }>(this.base, request);
   }
 
-  historial(): Observable<MovimientoHistorial[]> {
-    return this.http.get<MovimientoHistorial[]>(this.base);
+  historial(filtro?: MovimientoHistorialFiltro): Observable<MovimientoHistorial[]> {
+    let params = new HttpParams();
+    if (filtro?.fechaDesde) params = params.set('fechaDesde', filtro.fechaDesde);
+    if (filtro?.fechaHasta) params = params.set('fechaHasta', filtro.fechaHasta);
+    if (filtro?.usuarioId != null) params = params.set('usuarioId', filtro.usuarioId);
+    if (filtro?.bodegaId != null) params = params.set('bodegaId', filtro.bodegaId);
+    return this.http.get<MovimientoHistorial[]>(this.base, { params });
   }
 
   detalle(id: number): Observable<MovimientoHistorial> {
     return this.http.get<MovimientoHistorial>(`${this.base}/${id}`);
+  }
+
+  exportarXlsx(id: number): Observable<Blob> {
+    return this.http.get(`${this.base}/${id}/exportar.xlsx`, { responseType: 'blob' });
+  }
+
+  exportarPdf(id: number): Observable<Blob> {
+    return this.http.get(`${this.base}/${id}/exportar.pdf`, { responseType: 'blob' });
   }
 
   importarExcel(archivo: File): Observable<ImportResultado> {

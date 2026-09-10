@@ -5,6 +5,9 @@ import cl.slimerp.config.TenantContext;
 import cl.slimerp.tenant.Usuario;
 import cl.slimerp.tenant.UsuarioRepository;
 import jakarta.validation.Valid;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -13,6 +16,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
@@ -26,17 +31,20 @@ public class MovimientoInventarioController {
     private final BodegaRepository bodegaRepository;
     private final UsuarioRepository usuarioRepository;
     private final MovimientoImportService importService;
+    private final MovimientoDetalleExportService exportService;
 
     public MovimientoInventarioController(MovimientoInventarioService service,
                                            ProductoRepository productoRepository,
                                            BodegaRepository bodegaRepository,
                                            UsuarioRepository usuarioRepository,
-                                           MovimientoImportService importService) {
+                                           MovimientoImportService importService,
+                                           MovimientoDetalleExportService exportService) {
         this.service = service;
         this.productoRepository = productoRepository;
         this.bodegaRepository = bodegaRepository;
         this.usuarioRepository = usuarioRepository;
         this.importService = importService;
+        this.exportService = exportService;
     }
 
     public record MovimientoHistorialResponse(Long id, String tipo,
@@ -71,9 +79,16 @@ public class MovimientoInventarioController {
 
     @GetMapping
     @PreAuthorize("hasAuthority('MOVIMIENTOS_VER')")
-    public List<MovimientoHistorialResponse> historial() {
+    public List<MovimientoHistorialResponse> historial(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaDesde,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaHasta,
+            @RequestParam(required = false) Long usuarioId,
+            @RequestParam(required = false) Long bodegaId) {
         Long tenantId = TenantContext.getTenantId();
-        List<MovimientoInventarioHeader> headers = service.historial(tenantId);
+        List<MovimientoInventarioHeader> headers = service.historial(tenantId,
+                fechaDesde != null ? fechaDesde.atStartOfDay() : null,
+                fechaHasta != null ? fechaHasta.atTime(LocalTime.MAX) : null,
+                usuarioId, bodegaId);
 
         return headers.stream().map(h -> armarRespuesta(tenantId, h)).toList();
     }
@@ -84,6 +99,30 @@ public class MovimientoInventarioController {
         Long tenantId = TenantContext.getTenantId();
         MovimientoInventarioHeader h = service.detalle(tenantId, id);
         return armarRespuesta(tenantId, h);
+    }
+
+    @GetMapping("/{id}/exportar.xlsx")
+    @PreAuthorize("hasAuthority('MOVIMIENTOS_VER')")
+    public ResponseEntity<byte[]> exportarXlsx(@PathVariable Long id) {
+        Long tenantId = TenantContext.getTenantId();
+        MovimientoHistorialResponse movimiento = armarRespuesta(tenantId, service.detalle(tenantId, id));
+        byte[] xlsx = exportService.generarXlsx(movimiento);
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=movimiento-" + id + ".xlsx")
+                .body(xlsx);
+    }
+
+    @GetMapping("/{id}/exportar.pdf")
+    @PreAuthorize("hasAuthority('MOVIMIENTOS_VER')")
+    public ResponseEntity<byte[]> exportarPdf(@PathVariable Long id) {
+        Long tenantId = TenantContext.getTenantId();
+        MovimientoHistorialResponse movimiento = armarRespuesta(tenantId, service.detalle(tenantId, id));
+        byte[] pdf = exportService.generarPdf(movimiento);
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=movimiento-" + id + ".pdf")
+                .body(pdf);
     }
 
     private MovimientoHistorialResponse armarRespuesta(Long tenantId, MovimientoInventarioHeader h) {

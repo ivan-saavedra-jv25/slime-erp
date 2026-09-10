@@ -7,6 +7,45 @@
 </div>
 
 <mat-card class="form-panel">
+  <h2>Filtros</h2>
+  <div class="form-grid">
+    <div class="form-group">
+      <label for="fechaDesde">Desde</label>
+      <input id="fechaDesde" type="date" [(ngModel)]="fechaDesde" name="fechaDesde" />
+    </div>
+    <div class="form-group">
+      <label for="fechaHasta">Hasta</label>
+      <input id="fechaHasta" type="date" [(ngModel)]="fechaHasta" name="fechaHasta" />
+    </div>
+    <div class="form-group">
+      <label for="usuarioId">Responsable</label>
+      <select id="usuarioId" name="usuarioId" [(ngModel)]="usuarioId">
+        <option [ngValue]="null">Todos</option>
+        @for (u of usuarios; track u.id) {
+          <option [ngValue]="u.id">{{ u.nombre }}</option>
+        }
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="bodegaId">Bodega</label>
+      <select id="bodegaId" name="bodegaId" [(ngModel)]="bodegaId">
+        <option [ngValue]="null">Todas</option>
+        @for (b of bodegas; track b.id) {
+          <option [ngValue]="b.id">{{ b.nombre }}</option>
+        }
+      </select>
+    </div>
+  </div>
+  <div class="form-actions form-actions--start">
+    <button type="button" mat-flat-button color="primary" (click)="cargar()">
+      <mat-icon>search</mat-icon>
+      Buscar
+    </button>
+    <button type="button" mat-button (click)="limpiarFiltros()">Limpiar filtros</button>
+  </div>
+</mat-card>
+
+<mat-card class="form-panel">
   @if (cargando) {
     <p class="empty-state">Cargando movimientos...</p>
   }
@@ -30,7 +69,7 @@
       </thead>
       <tbody>
         @for (m of movimientos; track m.id) {
-          <tr [class.row-expanded]="detalleAbierto === m.id">
+          <tr>
             <td>{{ m.fecha }}</td>
             <td>
               <span [class]="claseTag(m.tipo)">
@@ -43,40 +82,11 @@
             <td>{{ m.usuarioNombre }}</td>
             <td class="right">{{ m.items.length }}</td>
             <td class="right">
-              <button type="button" mat-icon-button (click)="toggleDetalle(m.id)">
-                <mat-icon>{{ detalleAbierto === m.id ? 'expand_less' : 'expand_more' }}</mat-icon>
+              <button type="button" mat-icon-button (click)="verDetalle(m)" title="Ver detalle">
+                <mat-icon>visibility</mat-icon>
               </button>
             </td>
           </tr>
-          @if (detalleAbierto === m.id) {
-            <tr class="detail-row">
-              <td colspan="7">
-                <div class="detail-panel">
-                  @if (m.observacion) {
-                    <p class="detail-obs"><strong>Observación:</strong> {{ m.observacion }}</p>
-                  }
-                  <table class="detail-table">
-                    <thead>
-                      <tr>
-                        <th>SKU</th>
-                        <th>Producto</th>
-                        <th class="right">Cantidad</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      @for (item of m.items; track item.productoId) {
-                        <tr>
-                          <td>{{ item.productoSku || '—' }}</td>
-                          <td>{{ item.productoNombre }}</td>
-                          <td class="right">{{ item.cantidad }}</td>
-                        </tr>
-                      }
-                    </tbody>
-                  </table>
-                </div>
-              </td>
-            </tr>
-          }
         }
       </tbody>
     </table>

@@ -6,10 +6,13 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -83,6 +86,30 @@ public class MovimientoInventarioService {
 
     public List<MovimientoInventarioHeader> historial(Long tenantId) {
         return headerRepository.findByTenantIdOrderByFechaDesc(tenantId);
+    }
+
+    // Se arma dinámicamente en vez de usar "(:param IS NULL OR ...)" en JPQL:
+    // el driver de Postgres no logra inferir el tipo de un parámetro que solo
+    // se compara contra IS NULL, y falla con "could not determine data type".
+    public List<MovimientoInventarioHeader> historial(Long tenantId, LocalDateTime fechaDesde, LocalDateTime fechaHasta,
+                                                        Long usuarioId, Long bodegaId) {
+        Specification<MovimientoInventarioHeader> spec = (root, query, cb) -> cb.equal(root.get("tenantId"), tenantId);
+        if (fechaDesde != null) {
+            spec = spec.and((root, query, cb) -> cb.greaterThanOrEqualTo(root.get("fecha"), fechaDesde));
+        }
+        if (fechaHasta != null) {
+            spec = spec.and((root, query, cb) -> cb.lessThanOrEqualTo(root.get("fecha"), fechaHasta));
+        }
+        if (usuarioId != null) {
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("usuarioId"), usuarioId));
+        }
+        if (bodegaId != null) {
+            spec = spec.and((root, query, cb) -> cb.or(
+                    cb.equal(root.get("bodegaOrigenId"), bodegaId),
+                    cb.equal(root.get("bodegaDestinoId"), bodegaId)));
+        }
+
+        return headerRepository.findAll(spec, Sort.by(Sort.Direction.DESC, "fecha"));
     }
 
     public MovimientoInventarioHeader detalle(Long tenantId, Long headerId) {
