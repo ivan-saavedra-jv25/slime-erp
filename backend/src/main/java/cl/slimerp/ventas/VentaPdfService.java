@@ -77,9 +77,19 @@ public class VentaPdfService {
             }
             document.add(new Paragraph(" "));
 
-            PdfPTable tabla = new PdfPTable(new float[] {2f, 5f, 1.5f, 2f, 2f});
+            boolean tieneDescuentoDetalle = venta.getDetalle().stream()
+                    .anyMatch(d -> d.getDescuento() != null && d.getDescuento().signum() > 0);
+
+            float[] anchos = tieneDescuentoDetalle
+                    ? new float[] {2f, 4f, 1.5f, 2f, 1.5f, 2f}
+                    : new float[] {2f, 5f, 1.5f, 2f, 2f};
+            String[] encabezados = tieneDescuentoDetalle
+                    ? new String[] {"SKU", "Producto", "Cantidad", "Precio unit.", "Descuento", "Subtotal"}
+                    : new String[] {"SKU", "Producto", "Cantidad", "Precio unit.", "Subtotal"};
+
+            PdfPTable tabla = new PdfPTable(anchos);
             tabla.setWidthPercentage(100);
-            for (String encabezado : new String[] {"SKU", "Producto", "Cantidad", "Precio unit.", "Subtotal"}) {
+            for (String encabezado : encabezados) {
                 PdfPCell celda = new PdfPCell(new Paragraph(encabezado, fuenteNegrita));
                 celda.setPadding(5);
                 tabla.addCell(celda);
@@ -92,6 +102,9 @@ public class VentaPdfService {
                 agregarCelda(tabla, producto != null ? producto.getNombre() : "Producto #" + item.getProductoId());
                 agregarCelda(tabla, item.getCantidad().stripTrailingZeros().toPlainString(), Element.ALIGN_RIGHT);
                 agregarCelda(tabla, formatoMonto(item.getPrecioUnitario()), Element.ALIGN_RIGHT);
+                if (tieneDescuentoDetalle) {
+                    agregarCelda(tabla, formatoMonto(item.getDescuento()), Element.ALIGN_RIGHT);
+                }
                 agregarCelda(tabla, formatoMonto(item.getSubtotal()), Element.ALIGN_RIGHT);
             }
             document.add(tabla);

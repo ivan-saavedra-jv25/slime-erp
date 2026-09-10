@@ -24,9 +24,8 @@ export interface VentaPdfDialogData {
   styles: [
     `
       .pdf-dialog-content {
-        width: 80vw;
+        width: 100%;
         height: 80vh;
-        max-width: 1100px;
         padding: 0;
       }
 
@@ -46,6 +45,6 @@ export class VentaPdfDialogComponent {
     public dialogRef: MatDialogRef<VentaPdfDialogComponent>,
     sanitizer: DomSanitizer
   ) {
-    this.urlSegura = sanitizer.bypassSecurityTrustResourceUrl(data.url);
+    this.urlSegura = sanitizer.bypassSecurityTrustResourceUrl(`${data.url}#zoom=page-width`);
   }
 }

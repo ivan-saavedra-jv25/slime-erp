@@ -110,11 +110,6 @@ export const routes: Routes = [
         loadComponent: () => import('./features/ventas/ventas.component').then((m) => m.VentasComponent),
       },
       {
-        path: 'ventas/historial',
-        loadComponent: () =>
-          import('./features/ventas/ventas-historial.component').then((m) => m.VentasHistorialComponent),
-      },
-      {
         path: 'tesoreria/cuentas',
         loadComponent: () =>
           import('./features/tesoreria/tesoreria-cuentas.component').then((m) => m.TesoreriaCuentasComponent),

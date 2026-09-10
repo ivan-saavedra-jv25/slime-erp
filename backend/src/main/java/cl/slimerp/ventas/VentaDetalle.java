@@ -35,6 +35,11 @@ public class VentaDetalle {
     @Column(name = "precio_unitario", nullable = false, precision = 14, scale = 2)
     private BigDecimal precioUnitario;
 
+    // Descuento en pesos aplicado solo a esta línea, además del descuento
+    // global de la venta. Ya está restado del subtotal.
+    @Column(nullable = false, precision = 14, scale = 2)
+    private BigDecimal descuento;
+
     @Column(nullable = false, precision = 14, scale = 2)
     private BigDecimal subtotal;
 }

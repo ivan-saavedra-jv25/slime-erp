@@ -20,7 +20,8 @@ public record VentaRequest(
     public record Item(
             @NotNull Long productoId,
             @NotNull BigDecimal cantidad,
-            @NotNull BigDecimal precioUnitario
+            @NotNull BigDecimal precioUnitario,
+            BigDecimal descuento
     ) {
     }
 }

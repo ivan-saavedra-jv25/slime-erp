@@ -223,12 +223,14 @@ export interface VentaItem {
   productoId: number;
   cantidad: number;
   precioUnitario: number;
+  descuento: number;
 }
 
 export interface VentaDetalle {
   productoId: number;
   cantidad: number;
   precioUnitario: number;
+  descuento: number;
   subtotal: number;
 }
 

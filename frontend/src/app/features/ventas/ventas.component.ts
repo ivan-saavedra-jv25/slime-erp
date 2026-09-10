@@ -1,7 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { MatButtonModule } from '@angular/material/button';
@@ -18,6 +17,7 @@ import { StockService } from '../../core/services/stock.service';
 import { VentaService } from '../../core/services/venta.service';
 import { AuthService } from '../../core/services/auth.service';
 import { VentaPdfDialogComponent } from './venta-pdf-dialog.component';
+import { ProductoBuscadorDialogComponent } from './producto-buscador-dialog.component';
 import { cerrarCargando, mostrarCargando } from '../../core/utils/swal-loading';
 import { MonedaPipe } from '../../core/pipes/moneda.pipe';
 
@@ -26,16 +26,17 @@ interface ItemStaged {
   descripcion: string;
   precio: number;
   cantidad: number;
+  descuento: number;
 }
 
 function itemVacio(): ItemStaged {
-  return { productoId: null, descripcion: '', precio: 0, cantidad: 1 };
+  return { productoId: null, descripcion: '', precio: 0, cantidad: 1, descuento: 0 };
 }
 
 @Component({
   selector: 'app-ventas',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, MatButtonModule, MatIconModule, MatCardModule, MatDialogModule, MonedaPipe],
+  imports: [CommonModule, FormsModule, MatButtonModule, MatIconModule, MatCardModule, MatDialogModule, MonedaPipe],
   templateUrl: './ventas.component.html',
   styleUrl: './ventas.component.scss',
 })
@@ -202,6 +203,7 @@ export class VentasComponent implements OnInit, OnDestroy {
       descripcion: producto.nombre,
       precio: producto.precioVenta,
       cantidad: 1,
+      descuento: 0,
     };
     this.itemError = null;
     this.filtroProducto = '';
@@ -219,28 +221,60 @@ export class VentasComponent implements OnInit, OnDestroy {
 
   confirmarStaged(): void {
     if (!this.itemStaged.productoId || this.itemStaged.cantidad <= 0) return;
-    this.itemError = null;
 
-    const producto = this.productosConocidos.get(this.itemStaged.productoId)!;
-    const existente = this.items.find((it) => it.productoId === this.itemStaged.productoId);
+    const error = this.agregarAlCarrito(
+      this.itemStaged.productoId,
+      this.itemStaged.cantidad,
+      this.itemStaged.precio,
+      this.itemStaged.descuento
+    );
+    this.itemError = error;
+    if (!error) {
+      this.itemStaged = itemVacio();
+    }
+  }
+
+  // Compartido entre el staging del buscador rápido y el modal de búsqueda de productos.
+  private agregarAlCarrito(productoId: number, cantidad: number, precioUnitario: number, descuento: number): string | null {
+    const producto = this.productosConocidos.get(productoId);
+    const subtotalBruto = cantidad * precioUnitario;
+    const descuentoAplicado = descuento || 0;
+    if (descuentoAplicado < 0 || descuentoAplicado > subtotalBruto) {
+      return `El descuento de "${producto?.nombre ?? productoId}" no puede ser negativo ni superar su subtotal (${subtotalBruto}).`;
+    }
+
+    const existente = this.items.find((it) => it.productoId === productoId);
     const yaEnCarrito = existente?.cantidad ?? 0;
-    const stockDisponible = this.stockEnBodega(producto.id);
-    if (yaEnCarrito + this.itemStaged.cantidad > stockDisponible) {
-      this.itemError = `No se puede agregar esa cantidad: el stock disponible de "${producto.nombre}" en esta bodega es ${stockDisponible}.`;
-      return;
+    const stockDisponible = this.stockEnBodega(productoId);
+    if (yaEnCarrito + cantidad > stockDisponible) {
+      return `No se puede agregar esa cantidad: el stock disponible de "${producto?.nombre ?? productoId}" en esta bodega es ${stockDisponible}.`;
     }
 
     if (existente) {
-      existente.cantidad += this.itemStaged.cantidad;
-      existente.precioUnitario = this.itemStaged.precio;
+      existente.cantidad += cantidad;
+      existente.precioUnitario = precioUnitario;
+      existente.descuento = descuentoAplicado;
     } else {
-      this.items.push({
-        productoId: this.itemStaged.productoId,
-        cantidad: this.itemStaged.cantidad,
-        precioUnitario: this.itemStaged.precio,
-      });
+      this.items.push({ productoId, cantidad, precioUnitario, descuento: descuentoAplicado });
     }
-    this.itemStaged = itemVacio();
+    return null;
+  }
+
+  totalLinea(it: VentaItem): number {
+    return it.cantidad * it.precioUnitario - (it.descuento || 0);
+  }
+
+  abrirBuscadorProductos(): void {
+    const ref = this.dialog.open(ProductoBuscadorDialogComponent, {
+      data: { bodegaId: this.bodegaId },
+      width: '720px',
+      maxWidth: '90vw',
+    });
+    ref.componentInstance.agregar.subscribe((producto: Producto) => {
+      this.productosConocidos.set(producto.id, producto);
+      const error = this.agregarAlCarrito(producto.id, 1, producto.precioVenta, 0);
+      ref.componentInstance.mostrarResultado(producto.id, error);
+    });
   }
 
   editarItem(index: number): void {
@@ -250,6 +284,7 @@ export class VentasComponent implements OnInit, OnDestroy {
       descripcion: this.nombreProducto(it.productoId),
       precio: it.precioUnitario,
       cantidad: it.cantidad,
+      descuento: it.descuento || 0,
     };
     this.items.splice(index, 1);
   }
@@ -267,7 +302,7 @@ export class VentasComponent implements OnInit, OnDestroy {
   }
 
   get subtotalActual(): number {
-    return this.items.reduce((acc, it) => acc + it.cantidad * it.precioUnitario, 0);
+    return this.items.reduce((acc, it) => acc + this.totalLinea(it), 0);
   }
 
   get montoConDescuento(): number {
@@ -314,8 +349,9 @@ export class VentasComponent implements OnInit, OnDestroy {
       })
       .subscribe({
         next: (venta) => {
-          cerrarCargando();
           this.clienteId = null;
+          this.clienteSeleccionadoObj = null;
+          this.filtroCliente = '';
           this.formaPagoId = null;
           this.observacion = '';
           this.descuento = 0;
@@ -324,7 +360,10 @@ export class VentasComponent implements OnInit, OnDestroy {
           this.itemError = null;
           this.guardando = false;
           this.onBodegaChange();
-          this.mostrarComprobante(venta.id);
+          // Espera a que el overlay de carga termine de cerrarse antes de abrir
+          // el Swal de éxito: si se abre mientras el close() del overlay sigue
+          // pendiente, ese close() cierra el nuevo Swal sin que el usuario alcance a verlo.
+          cerrarCargando().then(() => this.mostrarComprobante(venta.id));
         },
         error: (err) => {
           cerrarCargando();

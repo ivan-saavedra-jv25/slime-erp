@@ -149,9 +149,29 @@
   position: relative;
 }
 
+.item-entry__col--search {
+  flex: 1 1 220px;
+  max-width: 320px;
+}
+
+.item-entry__col--desc {
+  flex: 1 1 280px;
+  max-width: 560px;
+}
+
+.item-entry__search-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.item-entry__search-row input {
+  flex: 1;
+}
+
 .item-entry__col--qty {
-  flex: 0 0 110px;
-  min-width: 110px;
+  flex: 0 0 140px;
+  min-width: 140px;
 }
 
 .item-entry__add-btn {

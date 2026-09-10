@@ -1,0 +1,96 @@
+<h2 mat-dialog-title>Buscar productos</h2>
+
+<mat-dialog-content class="buscador-content">
+  <div class="form-group">
+    <label for="buscadorProducto">Buscar por nombre o SKU</label>
+    <input
+      id="buscadorProducto"
+      type="text"
+      placeholder="Escribe para buscar..."
+      [(ngModel)]="busqueda"
+      name="buscadorProducto"
+      (ngModelChange)="onBusquedaChange()"
+      autofocus
+    />
+  </div>
+
+  <div class="table-wrap">
+    <table class="buscador-table">
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Categoría</th>
+          <th class="right">Precio</th>
+          <th class="right">Stock</th>
+          <th class="right"></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (p of productos; track p.id) {
+          <tr>
+            <td>
+              <span class="buscador-table__nombre">{{ p.nombre }}</span>
+              <span class="buscador-table__sku">SKU: {{ p.sku || '—' }}</span>
+            </td>
+            <td>{{ categoriaDe(p) }}</td>
+            <td class="right">{{ p.precioVenta | moneda }}</td>
+            <td class="right">
+              @if (stockDe(p) === null) {
+                <span class="buscador-table__stock buscador-table__stock--na">—</span>
+              } @else {
+                <span
+                  class="buscador-table__stock"
+                  [class.buscador-table__stock--zero]="stockDe(p)! <= 0"
+                >
+                  {{ stockDe(p) }}
+                </span>
+              }
+            </td>
+            <td class="right">
+              @if (filaConFeedback?.productoId === p.id) {
+                <span
+                  class="buscador-table__feedback"
+                  [class.buscador-table__feedback--error]="filaConFeedback?.error"
+                >
+                  {{ filaConFeedback?.error || 'Agregado' }}
+                </span>
+              } @else {
+                <button type="button" mat-icon-button title="Agregar a la venta" (click)="agregarProducto(p)">
+                  <mat-icon>add_circle</mat-icon>
+                </button>
+              }
+            </td>
+          </tr>
+        }
+        @if (!cargando && !productos.length) {
+          <tr>
+            <td colspan="5" class="empty-state">No se encontraron productos.</td>
+          </tr>
+        }
+        @if (cargando) {
+          <tr>
+            <td colspan="5" class="empty-state">Cargando…</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  @if (total) {
+    <div class="buscador-pagination">
+      <span>Mostrando {{ desde }}–{{ hasta }} de {{ total }}</span>
+      <div class="buscador-pagination__acciones">
+        <button type="button" mat-stroked-button [disabled]="!tienePaginaAnterior" (click)="paginaAnterior()">
+          Anterior
+        </button>
+        <button type="button" mat-stroked-button [disabled]="!tienePaginaSiguiente" (click)="paginaSiguiente()">
+          Siguiente
+        </button>
+      </div>
+    </div>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button type="button" mat-flat-button color="primary" mat-dialog-close>Cerrar</button>
+</mat-dialog-actions>

@@ -52,6 +52,10 @@ class VentaPdfServiceTest {
     }
 
     private Venta ventaDeEjemplo() {
+        return ventaDeEjemplo(BigDecimal.ZERO);
+    }
+
+    private Venta ventaDeEjemplo(BigDecimal descuentoLinea) {
         Venta venta = Venta.builder()
                 .id(99L)
                 .tenantId(tenantId)
@@ -70,7 +74,8 @@ class VentaPdfServiceTest {
                 .productoId(10L)
                 .cantidad(new BigDecimal("1"))
                 .precioUnitario(new BigDecimal("1190"))
-                .subtotal(new BigDecimal("1190"))
+                .descuento(descuentoLinea)
+                .subtotal(new BigDecimal("1190").subtract(descuentoLinea))
                 .build();
         venta.setDetalle(List.of(detalle));
         return venta;
@@ -79,6 +84,17 @@ class VentaPdfServiceTest {
     @Test
     void generaUnPdfNoVacioConCabeceraPdf() {
         byte[] pdf = service.generar(ventaDeEjemplo());
+
+        assertTrue(pdf.length > 0);
+        assertEquals('%', (char) pdf[0]);
+        assertEquals('P', (char) pdf[1]);
+        assertEquals('D', (char) pdf[2]);
+        assertEquals('F', (char) pdf[3]);
+    }
+
+    @Test
+    void generaUnPdfNoVacioConDescuentoPorLinea() {
+        byte[] pdf = service.generar(ventaDeEjemplo(new BigDecimal("100")));
 
         assertTrue(pdf.length > 0);
         assertEquals('%', (char) pdf[0]);

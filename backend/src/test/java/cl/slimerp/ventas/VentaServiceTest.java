@@ -113,7 +113,7 @@ class VentaServiceTest {
     private VentaRequest request(Long formaPagoId, TipoDocumentoVenta tipo, boolean exento, BigDecimal descuento,
                                   BigDecimal precioUnitario, BigDecimal cantidad) {
         return new VentaRequest(1L, formaPagoId, 1L, tipo, exento, null, descuento,
-                List.of(new VentaRequest.Item(10L, cantidad, precioUnitario)));
+                List.of(new VentaRequest.Item(10L, cantidad, precioUnitario, null)));
     }
 
     @Test
@@ -171,6 +171,26 @@ class VentaServiceTest {
     }
 
     @Test
+    void elDescuentoPorLineaSeRestaDelSubtotalDeEsaLinea() {
+        var req = new VentaRequest(1L, 1L, 1L, TipoDocumentoVenta.FACTURA, false, null, null,
+                List.of(new VentaRequest.Item(10L, new BigDecimal("2"), new BigDecimal("1000"), new BigDecimal("300"))));
+
+        Venta venta = service.crear(req);
+
+        assertEquals(new BigDecimal("300"), venta.getDetalle().get(0).getDescuento());
+        assertEquals(0, new BigDecimal("1700").compareTo(venta.getDetalle().get(0).getSubtotal()));
+        assertEquals(new BigDecimal("1700.00"), venta.getMontoNeto());
+    }
+
+    @Test
+    void rechazaUnDescuentoPorLineaMayorQueElSubtotalDeEsaLinea() {
+        var req = new VentaRequest(1L, 1L, 1L, TipoDocumentoVenta.FACTURA, false, null, null,
+                List.of(new VentaRequest.Item(10L, BigDecimal.ONE, new BigDecimal("1000"), new BigDecimal("1001"))));
+
+        assertThrows(IllegalArgumentException.class, () -> service.crear(req));
+    }
+
+    @Test
     void descuentaElStockDeLaBodegaAlConfirmar() {
         service.crear(request(TipoDocumentoVenta.FACTURA, false, null, new BigDecimal("1000"), new BigDecimal("5")));
 
@@ -201,7 +221,7 @@ class VentaServiceTest {
     @Test
     void usaLaBodegaPrincipalCuandoNoSeIndicaUna() {
         var req = new VentaRequest(1L, 1L, null, TipoDocumentoVenta.FACTURA, false, null, null,
-                List.of(new VentaRequest.Item(10L, BigDecimal.ONE, new BigDecimal("1000"))));
+                List.of(new VentaRequest.Item(10L, BigDecimal.ONE, new BigDecimal("1000"), null)));
 
         Venta venta = service.crear(req);
 

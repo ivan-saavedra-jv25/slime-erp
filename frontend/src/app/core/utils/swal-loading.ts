@@ -29,12 +29,23 @@ export function mostrarCargando(mensaje = 'Guardando'): void {
   });
 }
 
-export function cerrarCargando(): void {
+// Devuelve una promesa que se resuelve una vez que el overlay realmente se
+// cerró: si se abre un Swal.fire() nuevo antes de eso (p. ej. un mensaje de
+// éxito), este close() pendiente lo cerraría de inmediato sin que el usuario
+// alcance a interactuar. Los llamadores que no encadenan otro Swal después
+// pueden seguir invocándola sin await, como antes.
+export function cerrarCargando(): Promise<void> {
   const transcurrido = Date.now() - inicioCarga;
   const espera = DURACION_MINIMA_MS - transcurrido;
-  if (espera > 0) {
-    setTimeout(() => Swal.close(), espera);
-  } else {
-    Swal.close();
-  }
+  return new Promise((resolve) => {
+    if (espera > 0) {
+      setTimeout(() => {
+        Swal.close();
+        resolve();
+      }, espera);
+    } else {
+      Swal.close();
+      resolve();
+    }
+  });
 }

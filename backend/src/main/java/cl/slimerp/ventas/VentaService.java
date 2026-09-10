@@ -83,10 +83,17 @@ public class VentaService {
         BigDecimal sumaDetalle = BigDecimal.ZERO;
 
         for (VentaRequest.Item item : request.items()) {
-            productoRepository.findByIdAndTenantIdAndActivoTrue(item.productoId(), tenantId)
+            Producto producto = productoRepository.findByIdAndTenantIdAndActivoTrue(item.productoId(), tenantId)
                     .orElseThrow(() -> new IllegalArgumentException("Producto no encontrado: " + item.productoId()));
 
-            BigDecimal subtotal = item.precioUnitario().multiply(item.cantidad());
+            BigDecimal descuentoItem = item.descuento() != null ? item.descuento() : BigDecimal.ZERO;
+            BigDecimal subtotalBruto = item.precioUnitario().multiply(item.cantidad());
+            if (descuentoItem.signum() < 0 || descuentoItem.compareTo(subtotalBruto) > 0) {
+                throw new IllegalArgumentException(
+                        "Descuento inválido para \"" + producto.getNombre() + "\": no puede ser negativo ni superar "
+                                + "el subtotal de la línea (" + subtotalBruto + ")");
+            }
+            BigDecimal subtotal = subtotalBruto.subtract(descuentoItem);
             sumaDetalle = sumaDetalle.add(subtotal);
 
             detalle.add(VentaDetalle.builder()
@@ -94,6 +101,7 @@ public class VentaService {
                     .productoId(item.productoId())
                     .cantidad(item.cantidad())
                     .precioUnitario(item.precioUnitario())
+                    .descuento(descuentoItem)
                     .subtotal(subtotal)
                     .build());
         }
