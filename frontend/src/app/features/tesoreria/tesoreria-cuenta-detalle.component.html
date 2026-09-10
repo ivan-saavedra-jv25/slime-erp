@@ -131,11 +131,49 @@
           @if (pagoForm.medioPago === 'TRANSFERENCIA') {
             <div class="form-group">
               <label for="bancoOrigen">Banco de origen<span class="required-mark">*</span></label>
-              <input id="bancoOrigen" type="text" [(ngModel)]="pagoForm.transferenciaBancoOrigen" name="bancoOrigen" />
+              <select
+                id="bancoOrigen"
+                name="bancoOrigen"
+                [(ngModel)]="bancoOrigenSeleccion"
+                (ngModelChange)="seleccionarBanco('transferenciaBancoOrigen', $event)"
+              >
+                <option value="" disabled>Selecciona un banco</option>
+                @for (b of bancosChile; track b) {
+                  <option [value]="b">{{ b }}</option>
+                }
+                <option [value]="OTRO_BANCO">Otro...</option>
+              </select>
+              @if (bancoOrigenSeleccion === OTRO_BANCO) {
+                <input
+                  type="text"
+                  placeholder="Nombre del banco"
+                  [(ngModel)]="pagoForm.transferenciaBancoOrigen"
+                  name="bancoOrigenOtro"
+                />
+              }
             </div>
             <div class="form-group">
               <label for="bancoDestino">Banco de destino<span class="required-mark">*</span></label>
-              <input id="bancoDestino" type="text" [(ngModel)]="pagoForm.transferenciaBancoDestino" name="bancoDestino" />
+              <select
+                id="bancoDestino"
+                name="bancoDestino"
+                [(ngModel)]="bancoDestinoSeleccion"
+                (ngModelChange)="seleccionarBanco('transferenciaBancoDestino', $event)"
+              >
+                <option value="" disabled>Selecciona un banco</option>
+                @for (b of bancosChile; track b) {
+                  <option [value]="b">{{ b }}</option>
+                }
+                <option [value]="OTRO_BANCO">Otro...</option>
+              </select>
+              @if (bancoDestinoSeleccion === OTRO_BANCO) {
+                <input
+                  type="text"
+                  placeholder="Nombre del banco"
+                  [(ngModel)]="pagoForm.transferenciaBancoDestino"
+                  name="bancoDestinoOtro"
+                />
+              }
             </div>
             <div class="form-group">
               <label for="numOpTransferencia">N° de operación</label>
@@ -161,7 +199,26 @@
           @if (pagoForm.medioPago === 'CHEQUE') {
             <div class="form-group">
               <label for="chequeBanco">Banco<span class="required-mark">*</span></label>
-              <input id="chequeBanco" type="text" [(ngModel)]="pagoForm.chequeBanco" name="chequeBanco" />
+              <select
+                id="chequeBanco"
+                name="chequeBanco"
+                [(ngModel)]="chequeBancoSeleccion"
+                (ngModelChange)="seleccionarBanco('chequeBanco', $event)"
+              >
+                <option value="" disabled>Selecciona un banco</option>
+                @for (b of bancosChile; track b) {
+                  <option [value]="b">{{ b }}</option>
+                }
+                <option [value]="OTRO_BANCO">Otro...</option>
+              </select>
+              @if (chequeBancoSeleccion === OTRO_BANCO) {
+                <input
+                  type="text"
+                  placeholder="Nombre del banco"
+                  [(ngModel)]="pagoForm.chequeBanco"
+                  name="chequeBancoOtro"
+                />
+              }
             </div>
             <div class="form-group">
               <label for="chequeNumero">N° de cheque<span class="required-mark">*</span></label>

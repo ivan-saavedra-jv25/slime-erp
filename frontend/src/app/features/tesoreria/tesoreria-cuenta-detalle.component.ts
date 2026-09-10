@@ -12,6 +12,9 @@ import { ClienteService } from '../../core/services/cliente.service';
 import { AuthService } from '../../core/services/auth.service';
 import { MonedaPipe } from '../../core/pipes/moneda.pipe';
 import { cerrarCargando, mostrarCargando } from '../../core/utils/swal-loading';
+import { BANCOS_CHILE } from '../../core/constants/bancos-chile';
+
+const OTRO_BANCO = '__OTRO__';
 
 const ETIQUETAS: Record<EstadoCuentaPorCobrar, string> = {
   DEUDA: 'En deuda',
@@ -57,6 +60,12 @@ export class TesoreriaCuentaDetalleComponent implements OnInit {
     { value: 'TARJETA', label: 'Tarjeta' },
     { value: 'CHEQUE', label: 'Cheque' },
   ];
+  readonly bancosChile = BANCOS_CHILE;
+  readonly OTRO_BANCO = OTRO_BANCO;
+
+  bancoOrigenSeleccion = '';
+  bancoDestinoSeleccion = '';
+  chequeBancoSeleccion = '';
 
   constructor(
     private route: ActivatedRoute,
@@ -102,11 +111,23 @@ export class TesoreriaCuentaDetalleComponent implements OnInit {
   toggleFormularioPago(): void {
     this.formularioPagoAbierto = !this.formularioPagoAbierto;
     this.pagoForm = pagoVacio();
+    this.bancoOrigenSeleccion = '';
+    this.bancoDestinoSeleccion = '';
+    this.chequeBancoSeleccion = '';
     this.errorPago = '';
   }
 
   seleccionarMedio(medio: MedioPago): void {
     this.pagoForm.medioPago = medio;
+  }
+
+  // Los <select> de banco usan una selección aparte del valor final: al
+  // elegir "Otro" se limpia el campo para que el usuario lo escriba a mano.
+  seleccionarBanco(
+    campo: 'transferenciaBancoOrigen' | 'transferenciaBancoDestino' | 'chequeBanco',
+    valor: string
+  ): void {
+    this.pagoForm[campo] = valor === OTRO_BANCO ? '' : valor;
   }
 
   get montoInvalido(): boolean {
@@ -125,6 +146,9 @@ export class TesoreriaCuentaDetalleComponent implements OnInit {
         this.guardandoPago = false;
         this.formularioPagoAbierto = false;
         this.pagoForm = pagoVacio();
+        this.bancoOrigenSeleccion = '';
+        this.bancoDestinoSeleccion = '';
+        this.chequeBancoSeleccion = '';
         this.cargar(this.cuenta!.id);
       },
       error: (err) => {

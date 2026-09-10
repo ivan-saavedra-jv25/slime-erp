@@ -1,9 +1,14 @@
 package cl.slimerp.tesoreria;
 
+import cl.slimerp.catalogo.Cliente;
+import cl.slimerp.catalogo.ClienteRepository;
+import cl.slimerp.common.PaginaResponse;
 import cl.slimerp.config.TenantContext;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -11,12 +16,14 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 class TransaccionPagoServiceTest {
 
     private TransaccionPagoRepository transaccionPagoRepository;
     private CuentaPorCobrarRepository cuentaPorCobrarRepository;
+    private ClienteRepository clienteRepository;
     private TransaccionPagoService service;
 
     private final Long tenantId = 1L;
@@ -26,7 +33,8 @@ class TransaccionPagoServiceTest {
     void setUp() {
         transaccionPagoRepository = mock(TransaccionPagoRepository.class);
         cuentaPorCobrarRepository = mock(CuentaPorCobrarRepository.class);
-        service = new TransaccionPagoService(transaccionPagoRepository, cuentaPorCobrarRepository);
+        clienteRepository = mock(ClienteRepository.class);
+        service = new TransaccionPagoService(transaccionPagoRepository, cuentaPorCobrarRepository, clienteRepository);
         TenantContext.setTenantId(tenantId);
 
         cuenta = CuentaPorCobrar.builder()
@@ -122,5 +130,45 @@ class TransaccionPagoServiceTest {
         assertEquals(BigDecimal.ZERO, cuenta.getMontoPagado());
         assertEquals(new BigDecimal("1000"), cuenta.getSaldoPendiente());
         assertEquals(EstadoCuentaPorCobrar.DEUDA, cuenta.getEstado());
+    }
+
+    private TransaccionPago pagoDe(Long id, Long clienteId) {
+        return TransaccionPago.builder()
+                .id(id).tenantId(tenantId).cuentaPorCobrarId(1L).ventaId(10L + id).clienteId(clienteId)
+                .monto(new BigDecimal("100")).medioPago(MedioPago.EFECTIVO).estado(EstadoTransaccion.CONFIRMADA)
+                .build();
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void buscarFiltraPorNombreDeClienteResolviendolosEnMemoria() {
+        Cliente clienteCinco = Cliente.builder().id(5L).tenantId(tenantId).nombre("Cliente Cinco").rut("11.111.111-1").build();
+        Cliente clienteSeis = Cliente.builder().id(6L).tenantId(tenantId).nombre("Otro Cliente").rut("22.222.222-2").build();
+        TransaccionPago pago1 = pagoDe(1L, 5L);
+        TransaccionPago pago2 = pagoDe(2L, 6L);
+
+        when(transaccionPagoRepository.findAll(any(Specification.class), any(Sort.class)))
+                .thenReturn(List.of(pago1, pago2));
+        when(clienteRepository.findByTenantIdAndIdIn(tenantId, List.of(5L, 6L)))
+                .thenReturn(List.of(clienteCinco, clienteSeis));
+
+        PaginaResponse<TransaccionPago> resultado = service.buscar("cinco", null, null, null, null, 0, 10);
+
+        assertEquals(1, resultado.total());
+        assertEquals(1L, resultado.contenido().get(0).getId());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void buscarDevuelveSoloLaPaginaPedida() {
+        List<TransaccionPago> pagos = List.of(pagoDe(1L, 5L), pagoDe(2L, 5L), pagoDe(3L, 5L));
+        when(transaccionPagoRepository.findAll(any(Specification.class), any(Sort.class))).thenReturn(pagos);
+        when(clienteRepository.findByTenantIdAndIdIn(eq(tenantId), any())).thenReturn(List.of());
+
+        PaginaResponse<TransaccionPago> resultado = service.buscar(null, null, null, null, null, 1, 2);
+
+        assertEquals(3, resultado.total());
+        assertEquals(1, resultado.contenido().size());
+        assertEquals(3L, resultado.contenido().get(0).getId());
     }
 }

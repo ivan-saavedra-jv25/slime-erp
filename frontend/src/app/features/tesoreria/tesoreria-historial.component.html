@@ -9,17 +9,19 @@
 <mat-card class="form-panel">
   <div class="filtros-grid">
     <div class="form-group">
-      <label for="filtroCliente">Cliente</label>
-      <select id="filtroCliente" name="filtroCliente" [(ngModel)]="filtroClienteId" (ngModelChange)="buscar()">
-        <option [ngValue]="null">Todos</option>
-        @for (c of clientes; track c.id) {
-          <option [ngValue]="c.id">{{ c.nombre }}</option>
-        }
-      </select>
+      <label for="busqueda">Cliente</label>
+      <input
+        id="busqueda"
+        type="text"
+        placeholder="Buscar por nombre o RUT..."
+        [(ngModel)]="busqueda"
+        name="busqueda"
+        (ngModelChange)="onBusquedaChange()"
+      />
     </div>
     <div class="form-group">
       <label for="filtroEstado">Estado</label>
-      <select id="filtroEstado" name="filtroEstado" [(ngModel)]="filtroEstado" (ngModelChange)="buscar()">
+      <select id="filtroEstado" name="filtroEstado" [(ngModel)]="filtroEstado" (ngModelChange)="onFiltroChange()">
         <option [ngValue]="null">Todos</option>
         <option value="CONFIRMADA">Confirmada</option>
         <option value="ANULADA">Anulada</option>
@@ -27,7 +29,7 @@
     </div>
     <div class="form-group">
       <label for="filtroMedio">Medio de pago</label>
-      <select id="filtroMedio" name="filtroMedio" [(ngModel)]="filtroMedioPago" (ngModelChange)="buscar()">
+      <select id="filtroMedio" name="filtroMedio" [(ngModel)]="filtroMedioPago" (ngModelChange)="onFiltroChange()">
         <option [ngValue]="null">Todos</option>
         <option value="EFECTIVO">Efectivo</option>
         <option value="TRANSFERENCIA">Transferencia</option>
@@ -37,11 +39,11 @@
     </div>
     <div class="form-group">
       <label for="fechaDesde">Desde</label>
-      <input id="fechaDesde" type="date" [(ngModel)]="filtroFechaDesde" name="fechaDesde" (ngModelChange)="buscar()" />
+      <input id="fechaDesde" type="date" [(ngModel)]="filtroFechaDesde" name="fechaDesde" (ngModelChange)="onFiltroChange()" />
     </div>
     <div class="form-group">
       <label for="fechaHasta">Hasta</label>
-      <input id="fechaHasta" type="date" [(ngModel)]="filtroFechaHasta" name="fechaHasta" (ngModelChange)="buscar()" />
+      <input id="fechaHasta" type="date" [(ngModel)]="filtroFechaHasta" name="fechaHasta" (ngModelChange)="onFiltroChange()" />
     </div>
     <div class="form-group filtros-grid__limpiar">
       <button type="button" mat-stroked-button (click)="limpiarFiltros()">Limpiar filtros</button>
@@ -89,5 +91,14 @@
         }
       </tbody>
     </table>
+    <mat-paginator
+      [length]="total"
+      [pageIndex]="pagina"
+      [pageSize]="tamano"
+      [pageSizeOptions]="opcionesTamano"
+      [disabled]="cargando"
+      (page)="onPageChange($event)"
+      showFirstLastButtons
+    ></mat-paginator>
   }
 </mat-card>

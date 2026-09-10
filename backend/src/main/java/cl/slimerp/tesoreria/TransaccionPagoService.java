@@ -1,5 +1,8 @@
 package cl.slimerp.tesoreria;
 
+import cl.slimerp.catalogo.Cliente;
+import cl.slimerp.catalogo.ClienteRepository;
+import cl.slimerp.common.PaginaResponse;
 import cl.slimerp.config.TenantContext;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
@@ -9,17 +12,22 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class TransaccionPagoService {
 
     private final TransaccionPagoRepository transaccionPagoRepository;
     private final CuentaPorCobrarRepository cuentaPorCobrarRepository;
+    private final ClienteRepository clienteRepository;
 
     public TransaccionPagoService(TransaccionPagoRepository transaccionPagoRepository,
-                                   CuentaPorCobrarRepository cuentaPorCobrarRepository) {
+                                   CuentaPorCobrarRepository cuentaPorCobrarRepository,
+                                   ClienteRepository clienteRepository) {
         this.transaccionPagoRepository = transaccionPagoRepository;
         this.cuentaPorCobrarRepository = cuentaPorCobrarRepository;
+        this.clienteRepository = clienteRepository;
     }
 
     @Transactional
@@ -104,17 +112,24 @@ public class TransaccionPagoService {
                 TenantContext.getTenantId(), cuentaId);
     }
 
-    public List<TransaccionPago> buscar(Long clienteId, EstadoTransaccion estado, MedioPago medioPago,
-                                         LocalDateTime fechaDesde, LocalDateTime fechaHasta) {
+    // Igual que LibroVentasService: la búsqueda por cliente no tiene una
+    // relación JPA directa desde TransaccionPago (solo clienteId denormalizado),
+    // así que se resuelve en memoria en vez de armar un join en la Specification.
+    public PaginaResponse<TransaccionPago> buscar(String busqueda, EstadoTransaccion estado, MedioPago medioPago,
+                                                    LocalDateTime fechaDesde, LocalDateTime fechaHasta,
+                                                    int pagina, int tamano) {
+        if (pagina < 0) {
+            throw new IllegalArgumentException("La página debe ser 0 o mayor");
+        }
+        if (tamano < 1) {
+            throw new IllegalArgumentException("El tamaño de página debe ser mayor que 0");
+        }
         Long tenantId = TenantContext.getTenantId();
 
         // Se arma dinámicamente en vez de usar "(:param IS NULL OR ...)" en JPQL:
         // el driver de Postgres no logra inferir el tipo de un parámetro que solo
         // se compara contra IS NULL, y falla con "could not determine data type".
         Specification<TransaccionPago> spec = (root, query, cb) -> cb.equal(root.get("tenantId"), tenantId);
-        if (clienteId != null) {
-            spec = spec.and((root, query, cb) -> cb.equal(root.get("clienteId"), clienteId));
-        }
         if (estado != null) {
             spec = spec.and((root, query, cb) -> cb.equal(root.get("estado"), estado));
         }
@@ -128,7 +143,41 @@ public class TransaccionPagoService {
             spec = spec.and((root, query, cb) -> cb.lessThanOrEqualTo(root.get("fecha"), fechaHasta));
         }
 
-        return transaccionPagoRepository.findAll(spec, Sort.by(Sort.Direction.DESC, "fecha"));
+        List<TransaccionPago> todos = transaccionPagoRepository.findAll(spec, Sort.by(Sort.Direction.DESC, "fecha"));
+        List<TransaccionPago> filtrados = filtrarPorBusqueda(tenantId, todos, busqueda);
+
+        int desdeIdx = pagina * tamano;
+        List<TransaccionPago> contenido = desdeIdx >= filtrados.size()
+                ? List.of()
+                : filtrados.subList(desdeIdx, Math.min(desdeIdx + tamano, filtrados.size()));
+
+        return new PaginaResponse<>(contenido, filtrados.size());
+    }
+
+    // Busca por nombre o RUT del cliente, o por N° de venta — todo como
+    // substring, igual que el resto de los buscadores del proyecto.
+    private List<TransaccionPago> filtrarPorBusqueda(Long tenantId, List<TransaccionPago> pagos, String busqueda) {
+        if (busqueda == null || busqueda.isBlank()) {
+            return pagos;
+        }
+        String texto = busqueda.trim().toLowerCase();
+
+        List<Long> clienteIds = pagos.stream().map(TransaccionPago::getClienteId).distinct().toList();
+        Map<Long, Cliente> clientesPorId = clienteIds.isEmpty()
+                ? Map.of()
+                : clienteRepository.findByTenantIdAndIdIn(tenantId, clienteIds).stream()
+                        .collect(Collectors.toMap(Cliente::getId, c -> c));
+
+        return pagos.stream()
+                .filter(p -> {
+                    Cliente cliente = clientesPorId.get(p.getClienteId());
+                    boolean coincideCliente = cliente != null
+                            && (cliente.getNombre().toLowerCase().contains(texto)
+                                    || (cliente.getRut() != null && cliente.getRut().toLowerCase().contains(texto)));
+                    boolean coincideVenta = String.valueOf(p.getVentaId()).contains(texto);
+                    return coincideCliente || coincideVenta;
+                })
+                .toList();
     }
 
     public TransaccionPago obtener(Long id) {

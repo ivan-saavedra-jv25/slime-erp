@@ -1,5 +1,6 @@
 package cl.slimerp.tesoreria;
 
+import cl.slimerp.common.PaginaResponse;
 import cl.slimerp.config.TenantContext;
 import cl.slimerp.tenant.Usuario;
 import cl.slimerp.tenant.UsuarioRepository;
@@ -39,13 +40,15 @@ public class TransaccionPagoController {
 
     @GetMapping("/api/tesoreria/pagos")
     @PreAuthorize("hasAuthority('TESORERIA_VER')")
-    public List<TransaccionPago> buscar(
-            @RequestParam(required = false) Long clienteId,
+    public PaginaResponse<TransaccionPago> buscar(
+            @RequestParam(required = false) String busqueda,
             @RequestParam(required = false) EstadoTransaccion estado,
             @RequestParam(required = false) MedioPago medioPago,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fechaDesde,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fechaHasta) {
-        return transaccionPagoService.buscar(clienteId, estado, medioPago, fechaDesde, fechaHasta);
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fechaHasta,
+            @RequestParam(defaultValue = "0") int pagina,
+            @RequestParam(defaultValue = "10") int tamano) {
+        return transaccionPagoService.buscar(busqueda, estado, medioPago, fechaDesde, fechaHasta, pagina, tamano);
     }
 
     @GetMapping("/api/tesoreria/pagos/{id}")
