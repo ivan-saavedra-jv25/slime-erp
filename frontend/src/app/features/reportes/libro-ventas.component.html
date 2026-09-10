@@ -8,7 +8,7 @@
 
 <mat-card class="form-panel">
   <h2>Período</h2>
-  <div class="form-grid">
+  <div class="form-row form-row--filtros">
     <div class="form-group">
       <label for="desde">Desde<span class="required-mark">*</span></label>
       <input id="desde" type="date" [(ngModel)]="desde" name="desde" />
@@ -26,8 +26,6 @@
         }
       </select>
     </div>
-  </div>
-  <div class="form-actions form-actions--start">
     <button type="button" mat-flat-button color="primary" [disabled]="cargando" (click)="consultar()">
       <mat-icon>search</mat-icon>
       {{ cargando ? 'Consultando...' : 'Consultar' }}
@@ -122,6 +120,7 @@
             <th class="right">Neto Exento</th>
             <th class="right">IVA</th>
             <th class="right">Total</th>
+            <th class="right"></th>
           </tr>
         </thead>
         <tbody>
@@ -138,6 +137,17 @@
               <td class="right">{{ f.montoNetoExento | moneda }}</td>
               <td class="right">{{ f.montoIva | moneda }}</td>
               <td class="right">{{ f.montoTotal | moneda }}</td>
+              <td class="right">
+                <button
+                  type="button"
+                  mat-icon-button
+                  title="Ver PDF de la venta"
+                  [disabled]="pdfCargandoId === f.ventaId"
+                  (click)="verPdf(f.ventaId)"
+                >
+                  <mat-icon>picture_as_pdf</mat-icon>
+                </button>
+              </td>
             </tr>
           }
         </tbody>

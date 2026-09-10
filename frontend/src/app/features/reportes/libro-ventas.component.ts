@@ -5,10 +5,13 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { LibroVentasResponse } from '../../core/models/models';
 import { ReporteService } from '../../core/services/reporte.service';
+import { VentaService } from '../../core/services/venta.service';
+import { VentaPdfDialogComponent } from '../ventas/venta-pdf-dialog.component';
 import { MonedaPipe } from '../../core/pipes/moneda.pipe';
 
 function formatoFecha(fecha: Date): string {
@@ -35,7 +38,16 @@ function descargarBlob(blob: Blob, nombreArchivo: string): void {
 @Component({
   selector: 'app-libro-ventas',
   standalone: true,
-  imports: [CommonModule, FormsModule, MatButtonModule, MatIconModule, MatCardModule, MatPaginatorModule, MonedaPipe],
+  imports: [
+    CommonModule,
+    FormsModule,
+    MatButtonModule,
+    MatIconModule,
+    MatCardModule,
+    MatPaginatorModule,
+    MatDialogModule,
+    MonedaPipe,
+  ],
   templateUrl: './libro-ventas.component.html',
   styleUrl: './libro-ventas.component.scss',
 })
@@ -53,10 +65,15 @@ export class LibroVentasComponent implements OnInit, OnDestroy {
   cargando = false;
   exportando = false;
   error = '';
+  pdfCargandoId: number | null = null;
 
   private readonly busqueda$ = new Subject<string>();
 
-  constructor(private reporteService: ReporteService) {}
+  constructor(
+    private reporteService: ReporteService,
+    private ventaService: VentaService,
+    private dialog: MatDialog
+  ) {}
 
   ngOnInit(): void {
     this.busqueda$.pipe(debounceTime(300), distinctUntilChanged()).subscribe(() => {
@@ -106,6 +123,27 @@ export class LibroVentasComponent implements OnInit, OnDestroy {
           this.cargando = false;
         },
       });
+  }
+
+  verPdf(ventaId: number): void {
+    if (this.pdfCargandoId) return;
+    this.pdfCargandoId = ventaId;
+    this.ventaService.obtenerPdf(ventaId).subscribe({
+      next: (blob) => {
+        this.pdfCargandoId = null;
+        const url = URL.createObjectURL(blob);
+        const dialogRef = this.dialog.open(VentaPdfDialogComponent, {
+          data: { ventaId, url },
+          width: '90vw',
+          maxWidth: '1200px',
+        });
+        dialogRef.afterClosed().subscribe(() => URL.revokeObjectURL(url));
+      },
+      error: () => {
+        this.pdfCargandoId = null;
+        this.error = 'No se pudo cargar el comprobante de la venta.';
+      },
+    });
   }
 
   exportarExcel(): void {
