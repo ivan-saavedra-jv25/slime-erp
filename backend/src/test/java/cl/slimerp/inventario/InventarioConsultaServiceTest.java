@@ -130,6 +130,18 @@ class InventarioConsultaServiceTest {
     }
 
     @Test
+    void unaPaginaNegativaDevuelveListaVaciaSinLanzarExcepcion() {
+        when(productoRepository.findAll(any(Specification.class))).thenReturn(List.of());
+        when(stockRepository.findByTenantId(1L)).thenReturn(List.of());
+
+        var resultado = service.consultar(1L, null, null, null, false, TipoBusquedaInventario.NOMBRE, "",
+                "nombre", "asc", -1, 10);
+
+        assertTrue(resultado.contenido().isEmpty());
+        assertEquals(0, resultado.total());
+    }
+
+    @Test
     void consultarTodoIgnoraPaginacionYOrdenaPorNombre() {
         Producto p1 = producto(1L, "Zapato", null, null);
         Producto p2 = producto(2L, "Alambre", null, null);

@@ -44,9 +44,12 @@ public class InventarioConsultaService {
                 verDeshabilitados, tipoBusqueda, busqueda);
         items.sort(comparador(sort, dir));
 
+        int paginaSegura = Math.max(0, pagina);
+        int tamanoSeguro = Math.max(0, tamano);
+
         int total = items.size();
-        int desde = Math.min(pagina * tamano, total);
-        int hasta = Math.min(desde + tamano, total);
+        int desde = Math.min(paginaSegura * tamanoSeguro, total);
+        int hasta = Math.min(desde + tamanoSeguro, total);
         return new PaginaResponse<>(items.subList(desde, hasta), total);
     }
 

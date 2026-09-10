@@ -1,11 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatTableModule } from '@angular/material/table';
 import { MatSortModule, Sort } from '@angular/material/sort';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
@@ -35,14 +34,13 @@ function descargarBlob(blob: Blob, nombreArchivo: string): void {
     MatSortModule,
     MatPaginatorModule,
     MatButtonModule,
-    MatIconModule,
     MatCardModule,
   ],
   templateUrl: './inventario.component.html',
   styleUrl: './inventario.component.scss',
 })
-export class InventarioComponent implements OnInit {
-  columnas = ['nombre', 'sku', 'codigoBarra', 'stock'];
+export class InventarioComponent implements OnInit, OnDestroy {
+  columnas = ['indice', 'nombre', 'sku', 'codigoBarra', 'stock'];
   readonly opcionesTamano = [10, 25, 50, 100];
   readonly tiposBusqueda: { value: TipoBusquedaInventario; label: string }[] = [
     { value: 'NOMBRE', label: 'Nombre' },
@@ -73,7 +71,7 @@ export class InventarioComponent implements OnInit {
   cargando = false;
   error = '';
 
-  private readonly busqueda$ = new Subject<void>();
+  private readonly busqueda$ = new Subject<string>();
 
   constructor(
     private inventarioService: InventarioService,
@@ -87,6 +85,10 @@ export class InventarioComponent implements OnInit {
     this.categoriaService.listar().subscribe((data) => (this.familias = data));
     this.busqueda$.pipe(debounceTime(300), distinctUntilChanged()).subscribe(() => this.onFiltroChange());
     this.cargar();
+  }
+
+  ngOnDestroy(): void {
+    this.busqueda$.complete();
   }
 
   get desde(): number {
@@ -107,7 +109,7 @@ export class InventarioComponent implements OnInit {
   }
 
   onBusquedaChange(): void {
-    this.busqueda$.next();
+    this.busqueda$.next(this.busqueda);
   }
 
   onFiltroChange(): void {
