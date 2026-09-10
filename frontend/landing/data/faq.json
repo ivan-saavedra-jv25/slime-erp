@@ -2,7 +2,7 @@
   {
     "categoria": "Decisión",
     "q": "¿Por qué cambiar si mis herramientas actuales ya funcionan?",
-    "a": "Cada herramienta por separado suele funcionar bien. El costo aparece en los bordes: el mismo dato escrito tres veces, un stock que no calza con lo vendido, una cobranza que vive en una planilla aparte. NEXO no reemplaza herramientas que funcionan, reemplaza el trabajo de mantenerlas coordinadas a mano."
+    "a": "Cada herramienta por separado suele funcionar bien. El costo aparece en los bordes: el mismo dato escrito tres veces, un stock que no calza con lo vendido, una cobranza que vive en una planilla aparte. SAAVIA ERP no reemplaza herramientas que funcionan, reemplaza el trabajo de mantenerlas coordinadas a mano."
   },
   {
     "categoria": "Decisión",
@@ -16,8 +16,8 @@
   },
   {
     "categoria": "Decisión",
-    "q": "Mi empresa es pequeña, ¿NEXO no me queda grande?",
-    "a": "NEXO está pensado también para empresas pequeñas: el valor de centralizar aparece antes de lo que se cree, justo cuando la operación deja de caber en la cabeza de una persona. Se parte por los módulos que necesitas y el resto queda disponible cuando haga falta."
+    "q": "Mi empresa es pequeña, ¿SAAVIA ERP no me queda grande?",
+    "a": "SAAVIA ERP está pensado también para empresas pequeñas: el valor de centralizar aparece antes de lo que se cree, justo cuando la operación deja de caber en la cabeza de una persona. Se parte por los módulos que necesitas y el resto queda disponible cuando haga falta."
   },
   {
     "categoria": "Crecimiento",
@@ -27,7 +27,7 @@
   {
     "categoria": "Tecnología",
     "q": "¿Puedo seguir usando los sistemas que ya tengo?",
-    "a": "Sí. NEXO cuenta con APIs e integraciones para conectarse con otros sistemas y servicios, de modo que puedes centralizar la operación sin desarmar lo que ya te funciona."
+    "a": "Sí. SAAVIA ERP cuenta con APIs e integraciones para conectarse con otros sistemas y servicios, de modo que puedes centralizar la operación sin desarmar lo que ya te funciona."
   },
   {
     "categoria": "Operación",
@@ -41,7 +41,7 @@
   },
   {
     "categoria": "Operación",
-    "q": "¿NEXO emite documentos tributarios electrónicos?",
+    "q": "¿SAAVIA ERP emite documentos tributarios electrónicos?",
     "a": "Sí. La gestión de DTE es parte del flujo del negocio, no un proceso aparte: el documento se genera dentro de la misma operación de venta que ya registraste."
   },
   {
@@ -61,12 +61,12 @@
   },
   {
     "categoria": "Crecimiento",
-    "q": "¿NEXO está terminado o va a seguir cambiando?",
+    "q": "¿SAAVIA ERP está terminado o va a seguir cambiando?",
     "a": "Sigue evolucionando. Ventas, inventario, tesorería y DTE están disponibles hoy; integraciones y automatización están en evolución. Lo que se construya después llega a la misma plataforma, sin migraciones."
   },
   {
     "categoria": "Empezar",
     "q": "¿Cómo empiezo?",
-    "a": "Con una demostración. Vemos tu operación concreta, qué áreas conviene centralizar primero y cómo se vería tu flujo dentro de NEXO."
+    "a": "Con una demostración. Vemos tu operación concreta, qué áreas conviene centralizar primero y cómo se vería tu flujo dentro de SAAVIA ERP."
   }
 ]

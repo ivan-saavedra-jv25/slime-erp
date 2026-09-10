@@ -1,5 +1,5 @@
 /* ==========================================================================
-   SAAVIA NEXO — Tema claro / oscuro
+   SAAVIA ERP — Tema claro / oscuro
    Este archivo se carga de forma bloqueante en el <head>: aplica el tema
    antes del primer render para evitar el destello de tema incorrecto.
    ========================================================================== */

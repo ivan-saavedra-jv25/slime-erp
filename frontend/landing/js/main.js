@@ -1,5 +1,5 @@
 /* ==========================================================================
-   SAAVIA NEXO — Interacciones
+   SAAVIA ERP — Interacciones
    WhatsApp, navbar sticky, menu movil y reveal on scroll.
    Sin dependencias externas.
    ========================================================================== */

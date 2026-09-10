@@ -104,6 +104,20 @@
   border-collapse: collapse;
 }
 
+.items-table-scroll {
+  max-height: 320px;
+  overflow-y: auto;
+  border: var(--border-width-default) solid var(--border-default);
+  border-radius: var(--radius-2);
+}
+
+.items-table-scroll .items-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--surface-card);
+}
+
 .items-table th,
 .items-table td {
   text-align: left;
@@ -137,6 +151,18 @@
   outline: none;
   border-width: var(--border-width-medium);
   border-color: var(--border-interactive);
+}
+
+.items-table__row--error {
+  background: var(--error-background);
+
+  td:first-child {
+    box-shadow: inset 3px 0 0 var(--error-base);
+  }
+
+  .items-table__qty {
+    border-color: var(--error-base);
+  }
 }
 
 .summary-panel {
@@ -177,6 +203,34 @@
 
 .form-actions--start {
   justify-content: flex-start;
+}
+
+.alert {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  margin: 0 0 var(--space-3);
+  border-radius: var(--radius-2);
+  border: var(--border-width-default) solid;
+  font: var(--font-body-sm);
+}
+
+.alert--error {
+  color: var(--error-base);
+  border-color: var(--error-base);
+  background: var(--error-background);
+}
+
+.alert__close {
+  margin-left: auto;
+  padding: 0 var(--space-1);
+  border: none;
+  background: transparent;
+  color: inherit;
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
 }
 
 .excel-import {

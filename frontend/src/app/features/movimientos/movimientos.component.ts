@@ -44,11 +44,21 @@ export class MovimientosComponent implements OnInit, OnDestroy {
   guardando = false;
   mensaje = '';
   error = '';
+  // Productos (por productoId) no encontrados al confirmar, devueltos por el
+  // backend. Se guarda el id (no la posición) para que el resaltado siga
+  // siendo correcto aunque elimines filas de la lista.
+  itemsInvalidosIds = new Set<number>();
 
   filtroProducto = '';
 
   resultadoImportacion: ImportResultado | null = null;
   importando = false;
+
+  get erroresImportacionTexto(): string {
+    return (this.resultadoImportacion?.errores ?? [])
+      .map((e) => `Fila ${e.numeroFila}: ${e.mensaje}`)
+      .join(' · ');
+  }
 
   readonly tipos: { value: TipoMovimiento; label: string; icon: string; desc: string }[] = [
     { value: 'ENTRADA', label: 'Entrada', icon: 'input', desc: 'Agregar stock a una bodega' },
@@ -173,6 +183,10 @@ export class MovimientosComponent implements OnInit, OnDestroy {
     this.items.splice(index, 1);
   }
 
+  cerrarError(): void {
+    this.error = '';
+  }
+
   nombreProducto(id: number): string {
     return this.productosConocidos.get(id)?.nombre ?? String(id);
   }
@@ -197,6 +211,7 @@ export class MovimientosComponent implements OnInit, OnDestroy {
     this.guardando = true;
     this.error = '';
     this.mensaje = '';
+    this.itemsInvalidosIds.clear();
     mostrarCargando('Registrando movimiento');
 
     this.movimientoService
@@ -220,7 +235,15 @@ export class MovimientosComponent implements OnInit, OnDestroy {
         },
         error: (err) => {
           cerrarCargando();
-          this.error = err?.error?.error ?? 'Error al registrar el movimiento.';
+          const detalle = err?.error;
+          this.itemsInvalidosIds.clear();
+          if (Array.isArray(detalle?.posicionesInvalidas)) {
+            for (const pos of detalle.posicionesInvalidas) {
+              const item = this.items[pos - 1];
+              if (item) this.itemsInvalidosIds.add(item.productoId);
+            }
+          }
+          this.error = detalle?.error ?? 'Error al registrar el movimiento.';
           this.guardando = false;
         },
       });

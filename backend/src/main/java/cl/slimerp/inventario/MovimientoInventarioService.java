@@ -10,7 +10,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class MovimientoInventarioService {
@@ -130,11 +133,28 @@ public class MovimientoInventarioService {
     }
 
     private void validateProductos(Long tenantId, MovimientoRequest request) {
-        for (MovimientoItemRequest item : request.items()) {
-            Producto producto = productoRepository.findByIdAndTenantIdAndActivoTrue(item.productoId(), tenantId)
-                    .orElseThrow(() -> new IllegalArgumentException("Producto no encontrado: " + item.productoId()));
+        Map<Long, Producto> encontrados = new HashMap<>();
+        List<Integer> posicionesInvalidas = new ArrayList<>();
 
-            if (request.tipo() == TipoMovimiento.TRASLADO || request.tipo() == TipoMovimiento.SALIDA) {
+        for (int i = 0; i < request.items().size(); i++) {
+            MovimientoItemRequest item = request.items().get(i);
+            Producto producto = productoRepository.findByIdAndTenantIdAndActivoTrue(item.productoId(), tenantId)
+                    .orElse(null);
+            if (producto == null) {
+                posicionesInvalidas.add(i + 1);
+            } else {
+                encontrados.put(item.productoId(), producto);
+            }
+        }
+
+        // Reporta TODOS los productos no encontrados de una vez, no solo el primero.
+        if (!posicionesInvalidas.isEmpty()) {
+            throw new ProductosNoEncontradosException(posicionesInvalidas);
+        }
+
+        if (request.tipo() == TipoMovimiento.TRASLADO || request.tipo() == TipoMovimiento.SALIDA) {
+            for (MovimientoItemRequest item : request.items()) {
+                Producto producto = encontrados.get(item.productoId());
                 BigDecimal disponible = stockService.stockDisponible(tenantId, item.productoId(), request.bodegaOrigenId());
                 if (disponible.compareTo(item.cantidad()) < 0) {
                     throw new IllegalArgumentException(

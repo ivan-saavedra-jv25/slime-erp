@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import cl.slimerp.usuarios.UsuarioConflictException;
 import cl.slimerp.catalogo.ProductoConflictException;
+import cl.slimerp.inventario.ProductosNoEncontradosException;
 
 import java.time.Instant;
 import java.util.Map;
@@ -40,6 +41,18 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, Object>> handleIllegalArgument(IllegalArgumentException ex) {
         return error(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
+    // Productos no encontrados al registrar un movimiento: además del mensaje se
+    // envían las posiciones 1-based dentro del detalle para marcarlas en la lista.
+    @ExceptionHandler(ProductosNoEncontradosException.class)
+    public ResponseEntity<Map<String, Object>> handleProductosNoEncontrados(ProductosNoEncontradosException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
+                "timestamp", Instant.now().toString(),
+                "status", 400,
+                "error", ex.getMessage(),
+                "posicionesInvalidas", ex.getPosicionesInvalidas()
+        ));
     }
 
     @ExceptionHandler(UsuarioConflictException.class)

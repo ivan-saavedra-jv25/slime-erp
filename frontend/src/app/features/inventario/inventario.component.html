@@ -6,7 +6,7 @@
 
 <mat-card class="form-panel">
   <h2>Filtro de inventario específico</h2>
-  <div class="form-grid">
+  <div class="form-grid form-grid--triple">
     <div class="form-group">
       <label for="bodegaId">Bodega</label>
       <select id="bodegaId" name="bodegaId" [(ngModel)]="bodegaId" (ngModelChange)="onFiltroChange()">
@@ -18,7 +18,7 @@
     </div>
 
     <div class="form-group">
-      <label for="familiaId">Familia</label>
+      <label for="familiaId">Categoría</label>
       <select id="familiaId" name="familiaId" [(ngModel)]="familiaId" (ngModelChange)="onFamiliaChange()">
         <option [ngValue]="null">Todos</option>
         @for (f of familias; track f.id) {
@@ -28,7 +28,7 @@
     </div>
 
     <div class="form-group">
-      <label for="subfamiliaId">Sub Familia</label>
+      <label for="subfamiliaId">Sub Categoría</label>
       <select
         id="subfamiliaId"
         name="subfamiliaId"
@@ -41,13 +41,6 @@
           <option [ngValue]="s.id">{{ s.nombre }}</option>
         }
       </select>
-    </div>
-
-    <div class="form-group form-group--checkbox">
-      <label>
-        <input type="checkbox" name="verDeshabilitados" [(ngModel)]="verDeshabilitados" (ngModelChange)="onFiltroChange()" />
-        Ver Deshabilitados
-      </label>
     </div>
   </div>
 
@@ -69,7 +62,7 @@
       </select>
     </div>
 
-    <div class="form-group span-2">
+    <div class="form-group">
       <label for="busqueda">Buscador de Productos</label>
       <input id="busqueda" name="busqueda" [(ngModel)]="busqueda" (ngModelChange)="onBusquedaChange()" />
     </div>
@@ -92,12 +85,17 @@
     </select>
   </div>
 
-  @if (cargando) {
+  @if (cargando && !items.length) {
     <p class="empty-state">Cargando…</p>
   } @else if (!items.length) {
     <p class="empty-state">No se encontraron productos para los filtros seleccionados.</p>
   } @else {
-    <div class="table-scroll">
+    <div class="table-wrap">
+      @if (cargando) {
+        <div class="loading-overlay"><span>Cargando…</span></div>
+      }
+
+      <div class="table-scroll">
       <table mat-table [dataSource]="items" matSort (matSortChange)="onSortChange($event)" class="mat-elevation-z1">
         <ng-container matColumnDef="indice">
           <th mat-header-cell *matHeaderCellDef>#</th>
@@ -126,19 +124,20 @@
 
         <tr mat-header-row *matHeaderRowDef="columnas"></tr>
         <tr mat-row *matRowDef="let row; columns: columnas"></tr>
-      </table>
-    </div>
+        </table>
+      </div>
 
-    <div class="pagination-info">
-      <p>Registros del {{ desde }} al {{ hasta }} de un total de {{ total }} Registros</p>
-      <mat-paginator
-        [length]="total"
-        [pageIndex]="pagina"
-        [pageSize]="tamano"
-        [pageSizeOptions]="opcionesTamano"
-        [hidePageSize]="true"
-        (page)="onPageChange($event)"
-      ></mat-paginator>
+      <div class="pagination-info">
+        <p>Registros del {{ desde }} al {{ hasta }} de un total de {{ total }} Registros</p>
+        <mat-paginator
+          [length]="total"
+          [pageIndex]="pagina"
+          [pageSize]="tamano"
+          [pageSizeOptions]="opcionesTamano"
+          [hidePageSize]="true"
+          (page)="onPageChange($event)"
+        ></mat-paginator>
+      </div>
     </div>
   }
 </mat-card>

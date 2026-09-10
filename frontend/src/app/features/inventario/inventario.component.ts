@@ -55,7 +55,6 @@ export class InventarioComponent implements OnInit, OnDestroy {
   bodegaId: number | null = null;
   familiaId: number | null = null;
   subfamiliaId: number | null = null;
-  verDeshabilitados = false;
 
   tipoBusqueda: TipoBusquedaInventario = 'NOMBRE';
   busqueda = '';
@@ -181,7 +180,7 @@ export class InventarioComponent implements OnInit, OnDestroy {
       bodegaId: this.bodegaId,
       familiaId: this.familiaId,
       subfamiliaId: this.subfamiliaId,
-      verDeshabilitados: this.verDeshabilitados,
+      verDeshabilitados: false,
       tipoBusqueda: this.tipoBusqueda,
       busqueda: this.busqueda.trim(),
     };

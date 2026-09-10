@@ -1,5 +1,5 @@
 /* ==========================================================================
-   SAAVIA NEXO — Componentes reutilizables
+   SAAVIA ERP — Componentes reutilizables
    ========================================================================== */
 
 /* --- Marca: wordmark y lockups ------------------------------------------ */
@@ -50,7 +50,7 @@
   width: auto;
 }
 
-/* Lockup vertical: NEXO / by SAAVIA */
+/* Lockup vertical: SAAVIA ERP */
 .lockup {
   display: inline-flex;
   flex-direction: column;

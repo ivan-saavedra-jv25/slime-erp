@@ -7,7 +7,10 @@
 </div>
 
 @if (error) {
-  <p class="page-error">{{ error }}</p>
+  <div class="alert alert--error" role="alert">
+    <span>{{ error }}</span>
+    <button type="button" class="alert__close" (click)="cerrarError()" aria-label="Cerrar aviso">&times;</button>
+  </div>
 }
 @if (mensaje) {
   <p class="page-mensaje">{{ mensaje }}</p>
@@ -133,10 +136,10 @@
     </div>
 
     @if (resultadoImportacion; as r) {
-      <p class="page-mensaje">
+      <p class="page-mensaje" [class.page-mensaje--error]="r.errores.length > 0">
         {{ r.items.length }} producto(s) agregado(s) al detalle ({{ r.totalFilas }} fila(s) leídas).
         @if (r.errores.length) {
-          {{ r.errores.length }} fila(s) con error.
+          {{ r.errores.length }} fila(s) con error: {{ erroresImportacionTexto }}.
         }
       </p>
       @if (r.errores.length) {
@@ -160,44 +163,46 @@
     }
   </div>
 
-  <table class="items-table">
-    <thead>
-      <tr>
-        <th>#</th>
-        <th>SKU</th>
-        <th>Producto</th>
-        <th class="right">Cantidad</th>
-        <th class="right"></th>
-      </tr>
-    </thead>
-    <tbody>
-      @for (it of items; track it.productoId; let i = $index) {
+  <div class="items-table-scroll">
+    <table class="items-table">
+      <thead>
         <tr>
-          <td>{{ i + 1 }}</td>
-          <td>{{ skuProducto(it.productoId) }}</td>
-          <td>{{ nombreProducto(it.productoId) }}</td>
-          <td class="right">
-            <input
-              type="number"
-              min="1"
-              class="items-table__qty"
-              [ngModel]="it.cantidad"
-              (ngModelChange)="actualizarCantidad(i, $event)"
-              [name]="'cantidad-' + i"
-            />
-          </td>
-          <td class="right">
-            <button type="button" mat-icon-button (click)="quitarItem(i)"><mat-icon>delete</mat-icon></button>
-          </td>
+          <th>#</th>
+          <th>SKU</th>
+          <th>Producto</th>
+          <th class="right">Cantidad</th>
+          <th class="right"></th>
         </tr>
-      }
-      @if (!items.length) {
-        <tr>
-          <td colspan="5" class="empty-state">Agrega productos desde el buscador de arriba.</td>
-        </tr>
-      }
-    </tbody>
-  </table>
+      </thead>
+      <tbody>
+        @for (it of items; track it.productoId; let i = $index) {
+          <tr [class.items-table__row--error]="itemsInvalidosIds.has(it.productoId)">
+            <td>{{ i + 1 }}</td>
+            <td>{{ skuProducto(it.productoId) }}</td>
+            <td>{{ nombreProducto(it.productoId) }}</td>
+            <td class="right">
+              <input
+                type="number"
+                min="1"
+                class="items-table__qty"
+                [ngModel]="it.cantidad"
+                (ngModelChange)="actualizarCantidad(i, $event)"
+                [name]="'cantidad-' + i"
+              />
+            </td>
+            <td class="right">
+              <button type="button" mat-icon-button (click)="quitarItem(i)"><mat-icon>delete</mat-icon></button>
+            </td>
+          </tr>
+        }
+        @if (!items.length) {
+          <tr>
+            <td colspan="5" class="empty-state">Agrega productos desde el buscador de arriba.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
 </mat-card>
 
 <mat-card class="form-panel summary-panel">

@@ -1,5 +1,5 @@
 /* ==========================================================================
-   SAAVIA NEXO — Configuracion de contacto
+   SAAVIA ERP — Configuracion de contacto
    Unico archivo a editar para cambiar el numero de WhatsApp o los mensajes.
    ========================================================================== */
 
@@ -11,8 +11,8 @@ const CONTACT = {
   /* Mensaje precargado segun el boton. La clave se referencia en el HTML
      con el atributo data-wa="demo" | "info". */
   messages: {
-    demo: 'Hola, quiero solicitar una demostración de NEXO.',
-    info: 'Hola, quiero más información sobre NEXO.',
+    demo: 'Hola, quiero solicitar una demostración de SAAVIA ERP.',
+    info: 'Hola, quiero más información sobre SAAVIA ERP.',
   },
 
   /* Cuantas preguntas frecuentes se muestran en cada visita, elegidas al

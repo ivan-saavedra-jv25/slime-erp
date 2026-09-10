@@ -5,9 +5,12 @@
   flex-wrap: wrap;
 }
 
-.form-group--checkbox {
-  display: flex;
-  align-items: center;
+.form-grid--triple {
+  grid-template-columns: repeat(3, 1fr);
+
+  @media (max-width: 720px) {
+    grid-template-columns: 1fr;
+  }
 }
 
 .form-group--inline {
@@ -18,8 +21,27 @@
   margin-bottom: var(--space-3);
 }
 
+.table-wrap {
+  position: relative;
+}
+
 .table-scroll {
   overflow-x: auto;
+}
+
+.loading-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.75);
+
+  span {
+    font: var(--font-body-sm);
+    color: var(--text-muted);
+  }
 }
 
 .pagination-info {
