@@ -101,4 +101,21 @@ class GastoRecurrenteGeneratorJobTest {
 
         verify(gastoService, never()).crearDesdeRecurrente(any(), any());
     }
+
+    @Test
+    void noAbortaLasDemasPlantillasSiUnaFallaAlGenerar() {
+        GastoRecurrente otra = GastoRecurrente.builder()
+                .id(11L).tenantId(tenantId).categoriaGastoId(2L).monto(new BigDecimal("20000"))
+                .descripcion("Internet").diaMes((short) 5).fechaInicio(LocalDate.of(2026, 1, 1))
+                .activo(true).build();
+        when(gastoRecurrenteRepository.findByTenantIdAndActivoTrue(tenantId)).thenReturn(List.of(recurrente, otra));
+        when(gastoRepository.existsByTenantIdAndGastoRecurrenteIdAndFechaBetween(
+                eq(tenantId), any(), any(), any())).thenReturn(false);
+        when(gastoService.crearDesdeRecurrente(recurrente, hoy)).thenThrow(new IllegalArgumentException("Categoría no encontrada"));
+
+        job.generarParaTenant(tenantId, hoy);
+
+        verify(gastoService).crearDesdeRecurrente(recurrente, hoy);
+        verify(gastoService).crearDesdeRecurrente(otra, hoy);
+    }
 }

@@ -2,6 +2,7 @@ package cl.slimerp.gastos;
 
 import cl.slimerp.common.PaginaResponse;
 import cl.slimerp.config.TenantContext;
+import cl.slimerp.tesoreria.CuentaPorPagarService;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
@@ -15,16 +16,19 @@ public class GastoService {
 
     private final GastoRepository gastoRepository;
     private final CategoriaGastoRepository categoriaGastoRepository;
+    private final CuentaPorPagarService cuentaPorPagarService;
 
-    public GastoService(GastoRepository gastoRepository, CategoriaGastoRepository categoriaGastoRepository) {
+    public GastoService(GastoRepository gastoRepository, CategoriaGastoRepository categoriaGastoRepository,
+                         CuentaPorPagarService cuentaPorPagarService) {
         this.gastoRepository = gastoRepository;
         this.categoriaGastoRepository = categoriaGastoRepository;
+        this.cuentaPorPagarService = cuentaPorPagarService;
     }
 
     @Transactional
     public Gasto crear(GastoRequest request) {
         Long tenantId = TenantContext.getTenantId();
-        validarCategoria(tenantId, request.categoriaGastoId());
+        CategoriaGasto categoria = validarCategoria(tenantId, request.categoriaGastoId());
 
         Gasto gasto = Gasto.builder()
                 .tenantId(tenantId)
@@ -33,13 +37,20 @@ public class GastoService {
                 .descripcion(request.descripcion())
                 .fecha(request.fecha())
                 .build();
-        return gastoRepository.save(gasto);
+        gasto = gastoRepository.save(gasto);
+        cuentaPorPagarService.crearParaGasto(gasto, categoria.getNombre());
+        return gasto;
     }
 
     // Usado únicamente por GastoRecurrenteGeneratorJob: a diferencia de crear(),
-    // deja registrado de qué plantilla proviene la instancia generada.
+    // deja registrado de qué plantilla proviene la instancia generada. Valida
+    // la categoría igual que crear() — si la plantilla apunta a una categoría
+    // borrada, el job la salta (ver el try/catch por plantilla en
+    // GastoRecurrenteGeneratorJob) en vez de generar un gasto sin categoría.
     @Transactional
     public Gasto crearDesdeRecurrente(GastoRecurrente recurrente, LocalDate fecha) {
+        CategoriaGasto categoria = validarCategoria(recurrente.getTenantId(), recurrente.getCategoriaGastoId());
+
         Gasto gasto = Gasto.builder()
                 .tenantId(recurrente.getTenantId())
                 .categoriaGastoId(recurrente.getCategoriaGastoId())
@@ -48,7 +59,9 @@ public class GastoService {
                 .descripcion(recurrente.getDescripcion())
                 .fecha(fecha)
                 .build();
-        return gastoRepository.save(gasto);
+        gasto = gastoRepository.save(gasto);
+        cuentaPorPagarService.crearParaGasto(gasto, categoria.getNombre());
+        return gasto;
     }
 
     @Transactional
@@ -105,8 +118,8 @@ public class GastoService {
         return PaginaResponse.de(gastoRepository.findAll(spec, pageable));
     }
 
-    private void validarCategoria(Long tenantId, Long categoriaGastoId) {
-        categoriaGastoRepository.findByIdAndTenantIdAndActivoTrue(categoriaGastoId, tenantId)
+    private CategoriaGasto validarCategoria(Long tenantId, Long categoriaGastoId) {
+        return categoriaGastoRepository.findByIdAndTenantIdAndActivoTrue(categoriaGastoId, tenantId)
                 .orElseThrow(() -> new IllegalArgumentException("Categoría de gasto no encontrada: " + categoriaGastoId));
     }
 }

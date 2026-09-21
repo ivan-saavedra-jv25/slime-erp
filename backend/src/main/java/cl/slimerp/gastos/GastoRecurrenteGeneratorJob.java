@@ -50,14 +50,18 @@ public class GastoRecurrenteGeneratorJob {
     void generarParaTenant(Long tenantId, LocalDate hoy) {
         for (GastoRecurrente recurrente : gastoRecurrenteRepository.findByTenantIdAndActivoTrue(tenantId)) {
             if (!correspondeGenerarHoy(recurrente, hoy)) continue;
+            try {
+                LocalDate inicioMes = hoy.withDayOfMonth(1);
+                LocalDate finMes = hoy.withDayOfMonth(hoy.lengthOfMonth());
+                boolean yaExiste = gastoRepository.existsByTenantIdAndGastoRecurrenteIdAndFechaBetween(
+                        tenantId, recurrente.getId(), inicioMes, finMes);
+                if (yaExiste) continue;
 
-            LocalDate inicioMes = hoy.withDayOfMonth(1);
-            LocalDate finMes = hoy.withDayOfMonth(hoy.lengthOfMonth());
-            boolean yaExiste = gastoRepository.existsByTenantIdAndGastoRecurrenteIdAndFechaBetween(
-                    tenantId, recurrente.getId(), inicioMes, finMes);
-            if (yaExiste) continue;
-
-            gastoService.crearDesdeRecurrente(recurrente, hoy);
+                gastoService.crearDesdeRecurrente(recurrente, hoy);
+            } catch (Exception e) {
+                log.error("Error generando el gasto de la plantilla recurrente {} para el tenant {}",
+                        recurrente.getId(), tenantId, e);
+            }
         }
     }
 

@@ -2,6 +2,7 @@ package cl.slimerp.gastos;
 
 import cl.slimerp.common.PaginaResponse;
 import cl.slimerp.config.TenantContext;
+import cl.slimerp.tesoreria.CuentaPorPagarService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,12 +18,14 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 class GastoServiceTest {
 
     private GastoRepository gastoRepository;
     private CategoriaGastoRepository categoriaGastoRepository;
+    private CuentaPorPagarService cuentaPorPagarService;
     private GastoService service;
 
     private final Long tenantId = 1L;
@@ -32,7 +35,8 @@ class GastoServiceTest {
     void setUp() {
         gastoRepository = mock(GastoRepository.class);
         categoriaGastoRepository = mock(CategoriaGastoRepository.class);
-        service = new GastoService(gastoRepository, categoriaGastoRepository);
+        cuentaPorPagarService = mock(CuentaPorPagarService.class);
+        service = new GastoService(gastoRepository, categoriaGastoRepository, cuentaPorPagarService);
         TenantContext.setTenantId(tenantId);
 
         when(categoriaGastoRepository.findByIdAndTenantIdAndActivoTrue(1L, tenantId)).thenReturn(Optional.of(categoria));
@@ -111,5 +115,23 @@ class GastoServiceTest {
     @Test
     void buscarRechazaPaginaNegativa() {
         assertThrows(IllegalArgumentException.class, () -> service.buscar(null, null, null, null, -1, 10));
+    }
+
+    @Test
+    void crearGeneraLaCuentaPorPagarConElNombreDeLaCategoria() {
+        service.crear(request());
+
+        verify(cuentaPorPagarService).crearParaGasto(any(Gasto.class), eq("Arriendo"));
+    }
+
+    @Test
+    void crearDesdeRecurrenteRechazaSiLaCategoriaFueBorrada() {
+        GastoRecurrente recurrente = GastoRecurrente.builder().id(7L).tenantId(tenantId).categoriaGastoId(999L)
+                .monto(new BigDecimal("100")).descripcion("X").diaMes((short) 1)
+                .fechaInicio(LocalDate.now()).activo(true).build();
+
+        assertThrows(IllegalArgumentException.class,
+                () -> service.crearDesdeRecurrente(recurrente, LocalDate.now()));
+        verify(cuentaPorPagarService, never()).crearParaGasto(any(), any());
     }
 }
