@@ -1,5 +1,4 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -38,7 +37,7 @@ export interface DeudaProveedor {
 @Component({
   selector: 'app-cuentas-por-pagar',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, MatButtonModule, MatIconModule, MatCardModule, MonedaPipe],
+  imports: [FormsModule, RouterLink, MatButtonModule, MatIconModule, MatCardModule, MonedaPipe],
   templateUrl: './cuentas-por-pagar.component.html',
   styleUrl: './cuentas-por-pagar.component.scss',
 })
