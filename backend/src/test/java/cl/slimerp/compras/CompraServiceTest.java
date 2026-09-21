@@ -8,6 +8,7 @@ import cl.slimerp.inventario.MovimientoInventarioRepository;
 import cl.slimerp.inventario.StockProductoBodega;
 import cl.slimerp.inventario.StockProductoBodegaRepository;
 import cl.slimerp.inventario.StockService;
+import cl.slimerp.tesoreria.CuentaPorPagarService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -21,6 +22,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 class CompraServiceTest {
@@ -32,6 +34,7 @@ class CompraServiceTest {
     private StockProductoBodegaRepository stockRepository;
     private StockService stockService;
     private CompraService service;
+    private CuentaPorPagarService cuentaPorPagarService;
 
     private final Map<String, StockProductoBodega> stockPorClave = new HashMap<>();
 
@@ -52,7 +55,9 @@ class CompraServiceTest {
         stockPorClave.clear();
 
         stockService = new StockService(stockRepository, bodegaRepository, movimientoRepository);
-        service = new CompraService(compraRepository, proveedorRepository, productoRepository, bodegaRepository, stockService);
+        cuentaPorPagarService = mock(CuentaPorPagarService.class);
+        service = new CompraService(compraRepository, proveedorRepository, productoRepository, bodegaRepository,
+                stockService, cuentaPorPagarService);
 
         TenantContext.setTenantId(tenantId);
 
@@ -121,5 +126,12 @@ class CompraServiceTest {
         var req = new CompraRequest(1L, 1L, null, List.of(new CompraRequest.Item(999L, BigDecimal.ONE, new BigDecimal("500"))));
 
         assertThrows(IllegalArgumentException.class, () -> service.crear(req));
+    }
+
+    @Test
+    void generaLaCuentaPorPagarAlConfirmarLaCompra() {
+        service.crear(request(new BigDecimal("500"), new BigDecimal("3")));
+
+        verify(cuentaPorPagarService).crearParaCompra(any(Compra.class), eq("Proveedor Uno"));
     }
 }

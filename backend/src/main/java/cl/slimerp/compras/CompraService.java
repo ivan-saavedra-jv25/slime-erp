@@ -1,5 +1,6 @@
 package cl.slimerp.compras;
 
+import cl.slimerp.catalogo.Proveedor;
 import cl.slimerp.catalogo.ProveedorRepository;
 import cl.slimerp.catalogo.ProductoRepository;
 import cl.slimerp.config.TenantContext;
@@ -7,6 +8,7 @@ import cl.slimerp.inventario.Bodega;
 import cl.slimerp.inventario.BodegaRepository;
 import cl.slimerp.inventario.StockService;
 import cl.slimerp.inventario.TipoMovimiento;
+import cl.slimerp.tesoreria.CuentaPorPagarService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,22 +24,24 @@ public class CompraService {
     private final ProductoRepository productoRepository;
     private final BodegaRepository bodegaRepository;
     private final StockService stockService;
+    private final CuentaPorPagarService cuentaPorPagarService;
 
     public CompraService(CompraRepository compraRepository, ProveedorRepository proveedorRepository,
                           ProductoRepository productoRepository, BodegaRepository bodegaRepository,
-                          StockService stockService) {
+                          StockService stockService, CuentaPorPagarService cuentaPorPagarService) {
         this.compraRepository = compraRepository;
         this.proveedorRepository = proveedorRepository;
         this.productoRepository = productoRepository;
         this.bodegaRepository = bodegaRepository;
         this.stockService = stockService;
+        this.cuentaPorPagarService = cuentaPorPagarService;
     }
 
     @Transactional
     public Compra crear(CompraRequest request) {
         Long tenantId = TenantContext.getTenantId();
 
-        proveedorRepository.findByIdAndTenantIdAndActivoTrue(request.proveedorId(), tenantId)
+        Proveedor proveedor = proveedorRepository.findByIdAndTenantIdAndActivoTrue(request.proveedorId(), tenantId)
                 .orElseThrow(() -> new IllegalArgumentException("Proveedor no encontrado: " + request.proveedorId()));
 
         Bodega bodega = request.bodegaId() != null
@@ -80,6 +84,8 @@ public class CompraService {
             stockService.sumar(tenantId, item.productoId(), bodega.getId(),
                     item.cantidad(), TipoMovimiento.ENTRADA_COMPRA, null, compra.getId());
         }
+
+        cuentaPorPagarService.crearParaCompra(compra, proveedor.getNombre());
 
         return compra;
     }
