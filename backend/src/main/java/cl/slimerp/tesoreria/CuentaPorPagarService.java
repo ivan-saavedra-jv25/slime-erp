@@ -50,11 +50,16 @@ public class CuentaPorPagarService {
             return;
         }
 
+        String descripcion = nombreCategoria + ": " + gasto.getDescripcion();
+        if (descripcion.length() > 255) {
+            descripcion = descripcion.substring(0, 252) + "...";
+        }
+
         cuentaPorPagarRepository.save(CuentaPorPagar.builder()
                 .tenantId(tenantId)
                 .gastoId(gasto.getId())
                 .categoriaGastoId(gasto.getCategoriaGastoId())
-                .descripcion(nombreCategoria + ": " + gasto.getDescripcion())
+                .descripcion(descripcion)
                 .montoTotal(gasto.getMonto())
                 .montoPagado(BigDecimal.ZERO)
                 .saldoPendiente(gasto.getMonto())

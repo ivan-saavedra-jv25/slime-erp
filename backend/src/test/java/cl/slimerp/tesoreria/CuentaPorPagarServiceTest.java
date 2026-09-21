@@ -102,6 +102,33 @@ class CuentaPorPagarServiceTest {
     }
 
     @Test
+    void crearParaGastoTruncaLaDescripcionCuandoSuperaLos255Caracteres() {
+        when(repository.findByTenantIdAndGastoId(tenantId, 1L)).thenReturn(Optional.empty());
+
+        // Peor caso real de producción: categoria_gasto.nombre (VARCHAR(100)) al máximo
+        // y gasto.descripcion (VARCHAR(255)) al máximo -> compuesto de 357 caracteres.
+        String nombreCategoriaMax = "A".repeat(100);
+        String descripcionGastoMax = "B".repeat(255);
+        Gasto gasto = Gasto.builder().id(1L).tenantId(tenantId).categoriaGastoId(3L)
+                .monto(new BigDecimal("350000")).descripcion(descripcionGastoMax).fecha(LocalDate.now()).build();
+
+        service.crearParaGasto(gasto, nombreCategoriaMax);
+
+        // Los primeros 252 caracteres del compuesto original + "..."
+        String compuestoOriginal = nombreCategoriaMax + ": " + descripcionGastoMax;
+        String truncadaEsperada = compuestoOriginal.substring(0, 252) + "...";
+
+        verify(repository).save(argThat(c ->
+                c.getGastoId().equals(1L)
+                        && c.getDescripcion().length() == 255
+                        && c.getDescripcion().equals(truncadaEsperada)
+                        && c.getDescripcion().endsWith("...")
+                        && c.getMontoTotal().compareTo(new BigDecimal("350000")) == 0
+                        && c.getSaldoPendiente().compareTo(new BigDecimal("350000")) == 0
+                        && c.getEstado() == EstadoCuentaPorPagar.DEUDA));
+    }
+
+    @Test
     void resumenSumaLosMontosYCuentaLosEstadosIgnorandoLasAnuladas() {
         when(repository.findByTenantIdOrderByFechaGeneracionDesc(tenantId)).thenReturn(List.of(
                 CuentaPorPagar.builder().id(1L).montoTotal(new BigDecimal("1000")).montoPagado(BigDecimal.ZERO)
