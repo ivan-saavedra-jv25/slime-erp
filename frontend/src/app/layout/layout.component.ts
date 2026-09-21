@@ -65,6 +65,8 @@ const GRUPOS: NavGroup[] = [
     items: [
       { ruta: '/tesoreria/cuentas', label: 'Cuentas por cobrar', icono: 'account_balance_wallet', permiso: 'TESORERIA_VER' },
       { ruta: '/tesoreria/historial', label: 'Historial de pagos', icono: 'history', permiso: 'TESORERIA_VER' },
+      { ruta: '/gastos', label: 'Gastos', icono: 'receipt_long', permiso: 'TESORERIA_VER' },
+      { ruta: '/gastos/recurrentes', label: 'Gastos recurrentes', icono: 'event_repeat', permiso: 'TESORERIA_VER' },
       { ruta: '/flujo-caja', label: 'Flujo de caja', icono: 'insights', permiso: 'TESORERIA_VER' },
       { ruta: '/caja', label: 'Caja chica', icono: 'point_of_sale', permiso: 'TESORERIA_VER' },
     ],

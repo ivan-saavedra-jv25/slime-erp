@@ -134,6 +134,16 @@ export const routes: Routes = [
           import('./features/tesoreria/tesoreria-historial.component').then((m) => m.TesoreriaHistorialComponent),
       },
       {
+        path: 'gastos',
+        loadComponent: () =>
+          import('./features/gastos/gastos.component').then((m) => m.GastosComponent),
+      },
+      {
+        path: 'gastos/recurrentes',
+        loadComponent: () =>
+          import('./features/gastos/gastos-recurrentes.component').then((m) => m.GastosRecurrentesComponent),
+      },
+      {
         path: 'flujo-caja',
         loadComponent: () => import('./features/flujo-caja/shell/shell').then((m) => m.Shell),
         children: [
