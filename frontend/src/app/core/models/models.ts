@@ -396,6 +396,64 @@ export interface ResumenTesoreria {
   cuentasPagadas: number;
 }
 
+export type EstadoCuentaPorPagar = 'DEUDA' | 'PARCIAL' | 'PAGADO' | 'ANULADO';
+
+export interface CuentaPorPagar {
+  id: number;
+  compraId: number | null;
+  gastoId: number | null;
+  proveedorId: number | null;
+  categoriaGastoId: number | null;
+  descripcion: string;
+  fechaGeneracion: string;
+  montoTotal: number;
+  montoPagado: number;
+  saldoPendiente: number;
+  estado: EstadoCuentaPorPagar;
+  fechaUltimoPago: string | null;
+  observaciones: string | null;
+  usuarioAnuloId: number | null;
+  fechaAnulacion: string | null;
+  motivoAnulacion: string | null;
+}
+
+export interface TransaccionPagoCompra {
+  id: number;
+  cuentaPorPagarId: number;
+  compraId: number | null;
+  gastoId: number | null;
+  fecha: string;
+  monto: number;
+  medioPago: MedioPago;
+  estado: EstadoTransaccion;
+  usuarioId: number | null;
+  observaciones: string | null;
+  transferenciaBancoOrigen: string | null;
+  transferenciaBancoDestino: string | null;
+  transferenciaNumeroOperacion: string | null;
+  transferenciaFecha: string | null;
+  tarjetaEntidad: string | null;
+  tarjetaTipo: string | null;
+  tarjetaNumeroOperacion: string | null;
+  tarjetaFecha: string | null;
+  chequeBanco: string | null;
+  chequeNumero: string | null;
+  chequeFechaEmision: string | null;
+  chequeFechaPago: string | null;
+  usuarioAnuloId: number | null;
+  fechaAnulacion: string | null;
+  motivoAnulacion: string | null;
+}
+
+export interface ResumenCuentasPorPagar {
+  totalPorPagar: number;
+  totalPagado: number;
+  saldoPendiente: number;
+  cuentasEnDeuda: number;
+  cuentasParciales: number;
+  cuentasPagadas: number;
+}
+
 export type EstadoEmpresa = 'TRIAL' | 'ACTIVE' | 'SUSPENDED' | 'EXPIRED' | 'BLOCKED' | 'CANCELLED';
 
 export const ESTADOS_EMPRESA: EstadoEmpresa[] = ['TRIAL', 'ACTIVE', 'SUSPENDED', 'EXPIRED', 'BLOCKED', 'CANCELLED'];
