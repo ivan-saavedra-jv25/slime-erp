@@ -1,0 +1,16 @@
+:host {
+  display: block;
+}
+
+.gastos-layout {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: var(--space-5);
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .gastos-layout {
+    grid-template-columns: 1fr;
+  }
+}
