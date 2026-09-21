@@ -311,6 +311,36 @@ export interface Compra {
   detalle: CompraDetalle[];
 }
 
+export interface CategoriaGasto {
+  id: number;
+  nombre: string;
+  activo: boolean;
+  fechaCreacion: string;
+}
+
+export interface GastoRecurrente {
+  id: number;
+  categoriaGastoId: number;
+  monto: number;
+  descripcion: string;
+  diaMes: number;
+  fechaInicio: string;
+  fechaFin: string | null;
+  activo: boolean;
+  fechaCreacion: string;
+}
+
+export interface Gasto {
+  id: number;
+  categoriaGastoId: number;
+  gastoRecurrenteId: number | null;
+  monto: number;
+  descripcion: string;
+  fecha: string;
+  activo: boolean;
+  fechaCreacion: string;
+}
+
 export type EstadoCuentaPorCobrar = 'DEUDA' | 'PARCIAL' | 'PAGADO' | 'ANULADO';
 export type EstadoTransaccion = 'CONFIRMADA' | 'ANULADA';
 export type MedioPago = 'EFECTIVO' | 'TRANSFERENCIA' | 'TARJETA' | 'CHEQUE';
