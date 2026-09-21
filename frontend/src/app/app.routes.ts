@@ -134,6 +134,26 @@ export const routes: Routes = [
           import('./features/tesoreria/tesoreria-historial.component').then((m) => m.TesoreriaHistorialComponent),
       },
       {
+        path: 'cuentas-por-pagar',
+        loadComponent: () =>
+          import('./features/cuentas-por-pagar/cuentas-por-pagar.component').then((m) => m.CuentasPorPagarComponent),
+      },
+      {
+        path: 'cuentas-por-pagar/historial',
+        loadComponent: () =>
+          import('./features/cuentas-por-pagar/pagos-compra-historial.component').then((m) => m.PagosCompraHistorialComponent),
+      },
+      {
+        path: 'cuentas-por-pagar/proveedores/:proveedorId',
+        loadComponent: () =>
+          import('./features/cuentas-por-pagar/proveedor-detalle.component').then((m) => m.ProveedorDetalleComponent),
+      },
+      {
+        path: 'cuentas-por-pagar/:id',
+        loadComponent: () =>
+          import('./features/cuentas-por-pagar/cuenta-por-pagar-detalle.component').then((m) => m.CuentaPorPagarDetalleComponent),
+      },
+      {
         path: 'gastos',
         loadComponent: () =>
           import('./features/gastos/gastos.component').then((m) => m.GastosComponent),
