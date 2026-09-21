@@ -59,10 +59,21 @@ class GastoRecurrenteGeneratorJobTest {
     }
 
     @Test
-    void noGeneraSiHoyNoEsElDiaDeLaPlantilla() {
-        job.generarParaTenant(tenantId, LocalDate.of(2026, 9, 10));
+    void noGeneraSiElDiaDeLaPlantillaAunNoLlega() {
+        job.generarParaTenant(tenantId, LocalDate.of(2026, 9, 3));
 
         verify(gastoService, never()).crearDesdeRecurrente(any(), any());
+    }
+
+    @Test
+    void generaLaInstanciaSiElDiaDeLaPlantillaYaPasoEsteMesYNoExisteAun() {
+        LocalDate hoyMasTarde = LocalDate.of(2026, 9, 10);
+        when(gastoRepository.existsByTenantIdAndGastoRecurrenteIdAndFechaBetween(
+                eq(tenantId), eq(7L), any(), any())).thenReturn(false);
+
+        job.generarParaTenant(tenantId, hoyMasTarde);
+
+        verify(gastoService).crearDesdeRecurrente(recurrente, hoyMasTarde);
     }
 
     @Test

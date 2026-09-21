@@ -65,7 +65,7 @@ export class GastosComponent implements OnInit, OnDestroy {
 
   error = '';
 
-  private readonly busquedaGastos$ = new Subject<void>();
+  private readonly busquedaGastos$ = new Subject<string>();
 
   constructor(
     private categoriaGastoService: CategoriaGastoService,
@@ -167,8 +167,13 @@ export class GastosComponent implements OnInit, OnDestroy {
       });
   }
 
+  onBusquedaGastosChange(): void {
+    this.busquedaGastos$.next(this.filtroTexto);
+  }
+
   onFiltroGastosChange(): void {
-    this.busquedaGastos$.next();
+    this.paginaGastos = 0;
+    this.cargarGastos();
   }
 
   onPageGastosChange(event: PageEvent): void {
