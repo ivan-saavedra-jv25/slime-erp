@@ -31,4 +31,15 @@ public interface ClienteRepository extends JpaRepository<Cliente, Long> {
                    OR LOWER(COALESCE(c.telefono, '')) LIKE :busqueda)
             """)
     Page<Cliente> buscar(@Param("tenantId") Long tenantId, @Param("busqueda") String busqueda, Pageable pageable);
+
+    // Ids de los clientes que calzan con un texto, para filtrar documentos que
+    // solo guardan clienteId (sin relación JPA) sin tener que traerlos todos a
+    // memoria. No filtra por activo: un documento histórico puede apuntar a un
+    // cliente ya desactivado y debe seguir siendo encontrable.
+    @Query("""
+            SELECT c.id FROM Cliente c
+            WHERE c.tenantId = :tenantId
+              AND (LOWER(c.nombre) LIKE :busqueda OR LOWER(COALESCE(c.rut, '')) LIKE :busqueda)
+            """)
+    List<Long> idsPorBusqueda(@Param("tenantId") Long tenantId, @Param("busqueda") String busqueda);
 }

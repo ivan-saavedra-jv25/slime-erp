@@ -1,0 +1,102 @@
+<div class="page-header">
+  <h1>Libro de Cotizaciones</h1>
+</div>
+
+@if (error) {
+  <p class="page-error">{{ error }}</p>
+}
+
+<mat-card class="form-panel">
+  <h2>Período</h2>
+  <div class="form-row form-row--filtros">
+    <div class="form-group">
+      <label for="desde">Desde<span class="required-mark">*</span></label>
+      <input id="desde" type="date" name="desde" [(ngModel)]="desde" />
+    </div>
+    <div class="form-group">
+      <label for="hasta">Hasta<span class="required-mark">*</span></label>
+      <input id="hasta" type="date" name="hasta" [(ngModel)]="hasta" />
+    </div>
+    <div class="form-group">
+      <label for="estado">Estado</label>
+      <select id="estado" name="estado" [(ngModel)]="estado">
+        <option [ngValue]="null">Todos los estados</option>
+        @for (e of estados; track e) {
+          <option [ngValue]="e">{{ etiquetaEstado(e) }}</option>
+        }
+      </select>
+    </div>
+    <button type="button" mat-flat-button color="primary" [disabled]="cargando" (click)="consultar()">
+      <mat-icon>search</mat-icon>
+      {{ cargando ? 'Consultando...' : 'Consultar' }}
+    </button>
+  </div>
+</mat-card>
+
+<mat-card class="form-panel">
+  <div class="page-header">
+    <h2>Registro de cotizaciones</h2>
+    <button
+      type="button"
+      mat-stroked-button
+      [disabled]="!libro || !libro.filas.length || exportando"
+      (click)="exportarExcel()"
+    >
+      <mat-icon>download</mat-icon>
+      {{ exportando ? 'Exportando...' : 'Exportar a Excel' }}
+    </button>
+  </div>
+
+  @if (cargando && !libro) {
+    <p class="empty-state">Consultando cotizaciones...</p>
+  }
+  @if (libro && !libro.filas.length) {
+    <p class="empty-state">No hay cotizaciones en el período seleccionado.</p>
+  }
+  @if (libro && libro.filas.length) {
+    <div class="table-scroll">
+      <table class="libro-table">
+        <thead>
+          <tr>
+            <th>Número</th>
+            <th>Fecha</th>
+            <th>Cliente</th>
+            <th>Estado</th>
+            <th class="right">Neto</th>
+            <th class="right">IVA</th>
+            <th class="right">Total</th>
+            <th>Usuario</th>
+            <th>Documentos relacionados</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (f of libro.filas; track f.cotizacionId) {
+            <tr>
+              <td>{{ f.numero }}</td>
+              <td>{{ f.fecha | date: 'dd-MM-yyyy' }}</td>
+              <td>
+                {{ f.clienteNombre }}
+                @if (f.clienteRut) {
+                  <span class="sub">{{ f.clienteRut }}</span>
+                }
+              </td>
+              <td><span [class]="'tag ' + tagEstado(f.estado)">{{ etiquetaEstado(f.estado) }}</span></td>
+              <td class="right">{{ f.montoNeto | moneda }}</td>
+              <td class="right">{{ f.montoIva | moneda }}</td>
+              <td class="right">{{ f.montoTotal | moneda }}</td>
+              <td>{{ f.usuario }}</td>
+              <td>{{ f.documentosRelacionados }}</td>
+            </tr>
+          }
+          <tr class="libro-table__total">
+            <td colspan="4">Total ({{ libro.resumen.cantidad }} cotizaciones)</td>
+            <td class="right">{{ libro.resumen.montoNeto | moneda }}</td>
+            <td class="right">{{ libro.resumen.montoIva | moneda }}</td>
+            <td class="right">{{ libro.resumen.montoTotal | moneda }}</td>
+            <td colspan="2"></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  }
+</mat-card>

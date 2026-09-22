@@ -34,6 +34,8 @@ export type Permiso =
   | 'FORMAS_PAGO_EDITAR'
   | 'MOVIMIENTOS_VER'
   | 'MOVIMIENTOS_EDITAR'
+  | 'COTIZACIONES_VER'
+  | 'COTIZACIONES_EDITAR'
   | 'VENTAS_VER'
   | 'VENTAS_EDITAR'
   | 'COMPRAS_VER'
@@ -288,6 +290,147 @@ export interface LibroVentasResponse {
   totalFilas: number;
   pagina: number;
   tamano: number;
+}
+
+export type EstadoCotizacion = 'BORRADOR' | 'ENVIADA' | 'ACEPTADA' | 'RECHAZADA' | 'VENCIDA' | 'CANCELADA';
+
+export type AccionCotizacion =
+  | 'CREADA'
+  | 'EDITADA'
+  | 'ENVIADA'
+  | 'ACEPTADA'
+  | 'RECHAZADA'
+  | 'CANCELADA'
+  | 'VENCIDA'
+  | 'DUPLICADA';
+
+export interface LineaCotizacion {
+  id: number | null;
+  productoId: number;
+  codigo: string | null;
+  descripcion: string;
+  cantidad: number;
+  precioUnitario: number;
+  descuento: number;
+  subtotal: number;
+}
+
+export interface EventoCotizacion {
+  fecha: string;
+  usuario: string;
+  accion: AccionCotizacion;
+  estadoAnterior: EstadoCotizacion | null;
+  estadoNuevo: EstadoCotizacion | null;
+  detalle: string | null;
+}
+
+export interface CotizacionResumen {
+  id: number;
+  folio: number;
+  numero: string;
+  estado: EstadoCotizacion;
+  fechaEmision: string;
+  fechaVencimiento: string;
+  clienteNombre: string;
+  clienteRut: string | null;
+  vendedorNombre: string;
+  montoTotal: number;
+}
+
+export interface DocumentoRelacionado {
+  tipoDocumento: string;
+  documentoId: number;
+  numero: string | null;
+  fecha: string;
+}
+
+export interface Cotizacion {
+  id: number;
+  folio: number;
+  numero: string;
+  estado: EstadoCotizacion;
+  fechaEmision: string;
+  fechaVencimiento: string;
+  exenta: boolean;
+  clienteId: number;
+  clienteNombre: string;
+  clienteRazonSocial: string | null;
+  clienteRut: string | null;
+  clienteDireccion: string | null;
+  clienteEmail: string | null;
+  clienteTelefono: string | null;
+  vendedorId: number;
+  vendedorNombre: string;
+  formaPagoId: number | null;
+  formaPagoNombre: string | null;
+  condicionesComerciales: string | null;
+  observaciones: string | null;
+  motivo: string | null;
+  descuento: number;
+  montoSubtotal: number;
+  montoDescuento: number;
+  montoNeto: number;
+  montoIva: number;
+  montoTotal: number;
+  lineas: LineaCotizacion[];
+  eventos: EventoCotizacion[];
+  documentosRelacionados: DocumentoRelacionado[];
+}
+
+export interface CotizacionItem {
+  productoId: number;
+  cantidad: number;
+  precioUnitario: number;
+  descuento: number;
+}
+
+export interface LibroCotizacionesFila {
+  cotizacionId: number;
+  numero: string;
+  fecha: string;
+  clienteNombre: string;
+  clienteRut: string | null;
+  estado: EstadoCotizacion;
+  montoNeto: number;
+  montoIva: number;
+  montoTotal: number;
+  usuario: string;
+  documentosRelacionados: string;
+}
+
+export interface LibroCotizacionesResumen {
+  cantidad: number;
+  montoNeto: number;
+  montoIva: number;
+  montoTotal: number;
+}
+
+export interface LibroCotizacionesResponse {
+  desde: string;
+  hasta: string;
+  estado: EstadoCotizacion | null;
+  filas: LibroCotizacionesFila[];
+  resumen: LibroCotizacionesResumen;
+}
+
+export interface ConteoPorEstadoCotizacion {
+  estado: EstadoCotizacion;
+  cantidad: number;
+  monto: number;
+}
+
+export interface DashboardCotizaciones {
+  desde: string;
+  hasta: string;
+  cantidad: number;
+  pendientes: number;
+  aceptadas: number;
+  rechazadas: number;
+  enviadas: number;
+  montoCotizado: number;
+  montoAceptado: number;
+  tasaConversion: number | null;
+  porEstado: ConteoPorEstadoCotizacion[];
 }
 
 export interface CompraItem {

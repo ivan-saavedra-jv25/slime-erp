@@ -1,0 +1,184 @@
+<div class="page-header">
+  <h1>Cotizaciones</h1>
+  @if (auth.tienePermiso('COTIZACIONES_EDITAR')) {
+    <a mat-flat-button color="primary" routerLink="/cotizaciones/nueva">
+      <mat-icon>add</mat-icon>
+      Nueva cotización
+    </a>
+  }
+</div>
+
+@if (error) {
+  <p class="page-error">{{ error }}</p>
+}
+
+<mat-card class="form-panel">
+  <div class="panel-header-row">
+    <h2>Período</h2>
+    <div class="rango-selector">
+      @for (p of periodos; track p.value) {
+        <button
+          type="button"
+          class="rango-btn"
+          [class.rango-btn--active]="periodoActivo === p.value"
+          (click)="seleccionarPeriodo(p.value)"
+        >
+          {{ p.label }}
+        </button>
+      }
+    </div>
+  </div>
+
+  @if (periodoActivo === 'personalizado') {
+    <div class="form-row form-row--filtros">
+      <div class="form-group">
+        <label for="desde">Desde</label>
+        <input id="desde" type="date" name="desde" [(ngModel)]="desde" />
+      </div>
+      <div class="form-group">
+        <label for="hasta">Hasta</label>
+        <input id="hasta" type="date" name="hasta" [(ngModel)]="hasta" />
+      </div>
+      <button type="button" mat-flat-button color="primary" [disabled]="cargando" (click)="consultar()">
+        <mat-icon>search</mat-icon>
+        {{ cargando ? 'Consultando...' : 'Consultar' }}
+      </button>
+    </div>
+  }
+</mat-card>
+
+@if (dashboard) {
+  <section class="kpi-section">
+    <div class="kpi-grid">
+      <mat-card class="kpi-card">
+        <span class="kpi-label">Cotizaciones del período</span>
+        <span class="kpi-value">{{ dashboard.cantidad }}</span>
+      </mat-card>
+      <mat-card class="kpi-card">
+        <span class="kpi-label">Pendientes</span>
+        <span class="kpi-value">{{ dashboard.pendientes }}</span>
+      </mat-card>
+      <mat-card class="kpi-card">
+        <span class="kpi-label">Aceptadas</span>
+        <span class="kpi-value">{{ dashboard.aceptadas }}</span>
+      </mat-card>
+      <mat-card class="kpi-card">
+        <span class="kpi-label">Rechazadas</span>
+        <span class="kpi-value">{{ dashboard.rechazadas }}</span>
+      </mat-card>
+      <mat-card class="kpi-card">
+        <span class="kpi-label">Monto cotizado</span>
+        <span class="kpi-value">{{ formatoMoneda(dashboard.montoCotizado) }}</span>
+      </mat-card>
+      <mat-card class="kpi-card">
+        <span class="kpi-label">Monto aceptado</span>
+        <span class="kpi-value">{{ formatoMoneda(dashboard.montoAceptado) }}</span>
+      </mat-card>
+    </div>
+  </section>
+
+  <mat-card class="form-panel">
+    <h2>Cotizaciones por estado</h2>
+    <div class="grafico-row">
+      <div class="grafico-row__chart">
+        @if (!tieneDatosGrafico) {
+          <p class="empty-state">Sin cotizaciones en este período.</p>
+        }
+        <div [style.display]="tieneDatosGrafico ? 'block' : 'none'">
+          <highcharts-chart
+            [Highcharts]="Highcharts"
+            [options]="chartOptions"
+            [(update)]="actualizarGrafico"
+            style="display: block; width: 100%; height: 240px;"
+          ></highcharts-chart>
+        </div>
+      </div>
+
+      <div class="conversion">
+        <span class="kpi-label">Tasa de conversión</span>
+        <span class="conversion__valor">
+          {{ dashboard.tasaConversion === null ? '—' : (dashboard.tasaConversion | number: '1.0-1') + '%' }}
+        </span>
+        <span class="hint">
+          {{ dashboard.aceptadas }} aceptadas de {{ dashboard.enviadas }} enviadas
+        </span>
+      </div>
+    </div>
+  </mat-card>
+}
+
+<mat-card class="form-panel">
+  <div class="form-row form-row--filtros">
+    <div class="form-group">
+      <label for="estado">Estado</label>
+      <select id="estado" name="estado" [(ngModel)]="estado" (ngModelChange)="consultar()">
+        <option [ngValue]="null">Todos los estados</option>
+        @for (e of estados; track e) {
+          <option [ngValue]="e">{{ etiquetaEstado(e) }}</option>
+        }
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="busqueda">Buscar</label>
+      <input
+        id="busqueda"
+        name="busqueda"
+        placeholder="N° de cotización, cliente o RUT..."
+        [(ngModel)]="busqueda"
+        (ngModelChange)="onBusquedaChange()"
+      />
+    </div>
+  </div>
+
+  @if (cargando && !cotizaciones.length) {
+    <p class="empty-state">Cargando cotizaciones...</p>
+  }
+  @if (!cargando && !cotizaciones.length) {
+    <p class="empty-state">No hay cotizaciones que coincidan con los filtros.</p>
+  }
+  @if (cotizaciones.length) {
+    <div class="table-scroll">
+      <table class="libro-table" matSort [matSortActive]="orden" [matSortDirection]="direccion"
+             (matSortChange)="onSortChange($event)">
+        <thead>
+          <tr>
+            <th mat-sort-header="folio">Número</th>
+            <th mat-sort-header="fechaEmision">Fecha</th>
+            <th>Cliente</th>
+            <th>Vendedor</th>
+            <th class="right" mat-sort-header="montoTotal">Total</th>
+            <th>Vencimiento</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (c of cotizaciones; track c.id) {
+            <tr class="clickable-row" (click)="abrir(c)">
+              <td>{{ c.numero }}</td>
+              <td>{{ c.fechaEmision | date: 'dd-MM-yyyy' }}</td>
+              <td>
+                {{ c.clienteNombre }}
+                @if (c.clienteRut) {
+                  <span class="sub">{{ c.clienteRut }}</span>
+                }
+              </td>
+              <td>{{ c.vendedorNombre }}</td>
+              <td class="right">{{ c.montoTotal | moneda }}</td>
+              <td>{{ c.fechaVencimiento | date: 'dd-MM-yyyy' }}</td>
+              <td><span [class]="'tag ' + tagEstado(c.estado)">{{ etiquetaEstado(c.estado) }}</span></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <mat-paginator
+      [length]="total"
+      [pageIndex]="paginaActual"
+      [pageSize]="tamanoPagina"
+      [pageSizeOptions]="opcionesTamano"
+      [disabled]="cargando"
+      (page)="onPageChange($event)"
+      showFirstLastButtons
+    ></mat-paginator>
+  }
+</mat-card>

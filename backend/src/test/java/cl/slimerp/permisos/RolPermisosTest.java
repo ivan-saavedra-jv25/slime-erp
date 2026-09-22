@@ -24,6 +24,7 @@ class RolPermisosTest {
                         Permiso.BODEGAS_VER, Permiso.BODEGAS_EDITAR,
                         Permiso.FORMAS_PAGO_VER, Permiso.FORMAS_PAGO_EDITAR,
                         Permiso.MOVIMIENTOS_VER, Permiso.MOVIMIENTOS_EDITAR,
+                        Permiso.COTIZACIONES_VER, Permiso.COTIZACIONES_EDITAR,
                         Permiso.VENTAS_VER, Permiso.VENTAS_EDITAR,
                         Permiso.COMPRAS_VER, Permiso.COMPRAS_EDITAR,
                         Permiso.TESORERIA_VER, Permiso.TESORERIA_EDITAR, Permiso.TESORERIA_ANULAR,
@@ -38,6 +39,7 @@ class RolPermisosTest {
                         Permiso.PRODUCTOS_VER, Permiso.CATEGORIAS_VER, Permiso.BODEGAS_VER,
                         Permiso.FORMAS_PAGO_VER,
                         Permiso.MOVIMIENTOS_VER, Permiso.MOVIMIENTOS_EDITAR,
+                        Permiso.COTIZACIONES_VER, Permiso.COTIZACIONES_EDITAR,
                         Permiso.VENTAS_VER, Permiso.VENTAS_EDITAR,
                         Permiso.TESORERIA_VER, Permiso.TESORERIA_EDITAR),
                 RolPermisos.permisosDe(Rol.VENDEDOR));
@@ -46,7 +48,8 @@ class RolPermisosTest {
     @Test
     void compradorGestionaProveedoresProductosCategoriasBodegasMovimientosYCompras() {
         assertEquals(
-                Set.of(Permiso.PROVEEDORES_VER, Permiso.PROVEEDORES_EDITAR,
+                Set.of(Permiso.COTIZACIONES_VER,
+                        Permiso.PROVEEDORES_VER, Permiso.PROVEEDORES_EDITAR,
                         Permiso.PRODUCTOS_VER, Permiso.PRODUCTOS_EDITAR,
                         Permiso.CATEGORIAS_VER, Permiso.CATEGORIAS_EDITAR,
                         Permiso.BODEGAS_VER, Permiso.BODEGAS_EDITAR,
@@ -60,7 +63,8 @@ class RolPermisosTest {
         assertEquals(
                 Set.of(Permiso.CLIENTES_VER, Permiso.PROVEEDORES_VER, Permiso.PRODUCTOS_VER,
                         Permiso.CATEGORIAS_VER, Permiso.BODEGAS_VER,
-                        Permiso.FORMAS_PAGO_VER, Permiso.MOVIMIENTOS_VER, Permiso.VENTAS_VER,
+                        Permiso.FORMAS_PAGO_VER, Permiso.MOVIMIENTOS_VER,
+                        Permiso.COTIZACIONES_VER, Permiso.VENTAS_VER,
                         Permiso.COMPRAS_VER, Permiso.TESORERIA_VER),
                 RolPermisos.permisosDe(Rol.VISUALIZADOR));
     }

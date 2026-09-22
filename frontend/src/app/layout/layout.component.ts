@@ -44,6 +44,7 @@ const GRUPOS: NavGroupSource[] = [
     titulo: 'Operación',
     icono: 'point_of_sale',
     items: [
+      { ruta: '/cotizaciones', label: 'Cotizaciones', icono: 'description', permiso: 'COTIZACIONES_VER' },
       { ruta: '/ventas', label: 'Ventas', icono: 'point_of_sale', permiso: 'VENTAS_VER' },
       { ruta: '/compras', label: 'Compras', icono: 'shopping_cart', permiso: 'COMPRAS_VER' },
     ],
@@ -107,6 +108,7 @@ const GRUPOS: NavGroupSource[] = [
     titulo: 'Reportes',
     icono: 'bar_chart',
     items: [
+      { ruta: '/reportes/libro-cotizaciones', label: 'Libro de Cotizaciones', icono: 'description', permiso: 'COTIZACIONES_VER' },
       { ruta: '/reportes/libro-ventas', label: 'Libro de Ventas', icono: 'receipt_long', permiso: 'VENTAS_VER' },
       { ruta: '/reportes/libro-compras', label: 'Libro de Compras', icono: 'request_quote', permiso: 'COMPRAS_VER' },
     ],

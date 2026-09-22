@@ -2,7 +2,12 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { LibroComprasResponse, LibroVentasResponse } from '../models/models';
+import {
+  EstadoCotizacion,
+  LibroComprasResponse,
+  LibroCotizacionesResponse,
+  LibroVentasResponse,
+} from '../models/models';
 
 @Injectable({ providedIn: 'root' })
 export class ReporteService {
@@ -51,5 +56,30 @@ export class ReporteService {
       params: { desde, hasta },
       responseType: 'blob',
     });
+  }
+
+  libroCotizaciones(
+    desde: string,
+    hasta: string,
+    estado?: EstadoCotizacion | null
+  ): Observable<LibroCotizacionesResponse> {
+    return this.http.get<LibroCotizacionesResponse>(`${this.base}/libro-cotizaciones`, {
+      params: this.parametrosCotizaciones(desde, hasta, estado),
+    });
+  }
+
+  libroCotizacionesExcel(desde: string, hasta: string, estado?: EstadoCotizacion | null): Observable<Blob> {
+    return this.http.get(`${this.base}/libro-cotizaciones/excel`, {
+      params: this.parametrosCotizaciones(desde, hasta, estado),
+      responseType: 'blob',
+    });
+  }
+
+  private parametrosCotizaciones(desde: string, hasta: string, estado?: EstadoCotizacion | null): HttpParams {
+    let params = new HttpParams().set('desde', desde).set('hasta', hasta);
+    if (estado) {
+      params = params.set('estado', estado);
+    }
+    return params;
   }
 }

@@ -110,6 +110,26 @@ export const routes: Routes = [
         loadComponent: () => import('./features/ventas/ventas.component').then((m) => m.VentasComponent),
       },
       {
+        path: 'cotizaciones',
+        loadComponent: () =>
+          import('./features/cotizaciones/cotizaciones.component').then((m) => m.CotizacionesComponent),
+      },
+      {
+        path: 'cotizaciones/nueva',
+        loadComponent: () =>
+          import('./features/cotizaciones/cotizacion-form.component').then((m) => m.CotizacionFormComponent),
+      },
+      {
+        path: 'cotizaciones/:id/editar',
+        loadComponent: () =>
+          import('./features/cotizaciones/cotizacion-form.component').then((m) => m.CotizacionFormComponent),
+      },
+      {
+        path: 'cotizaciones/:id',
+        loadComponent: () =>
+          import('./features/cotizaciones/cotizacion-detalle.component').then((m) => m.CotizacionDetalleComponent),
+      },
+      {
         path: 'tesoreria/cuentas',
         loadComponent: () =>
           import('./features/tesoreria/tesoreria-cuentas.component').then((m) => m.TesoreriaCuentasComponent),
@@ -297,6 +317,11 @@ export const routes: Routes = [
         path: 'reportes/libro-compras',
         loadComponent: () =>
           import('./features/reportes/libro-compras.component').then((m) => m.LibroComprasComponent),
+      },
+      {
+        path: 'reportes/libro-cotizaciones',
+        loadComponent: () =>
+          import('./features/reportes/libro-cotizaciones.component').then((m) => m.LibroCotizacionesComponent),
       },
     ],
   },

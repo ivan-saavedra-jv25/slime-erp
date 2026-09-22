@@ -15,6 +15,10 @@ interface GrupoPermiso {
 }
 
 const GRUPOS_PERMISOS: GrupoPermiso[] = [
+  { titulo: 'Cotizaciones', permisos: [
+    { valor: 'COTIZACIONES_VER', label: 'Ver cotizaciones' },
+    { valor: 'COTIZACIONES_EDITAR', label: 'Crear y gestionar cotizaciones' },
+  ] },
   { titulo: 'Ventas', permisos: [
     { valor: 'VENTAS_VER', label: 'Ver ventas' },
     { valor: 'VENTAS_EDITAR', label: 'Registrar y editar ventas' },

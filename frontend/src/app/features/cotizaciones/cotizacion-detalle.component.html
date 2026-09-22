@@ -1,0 +1,272 @@
+@if (cargando) {
+  <p class="empty-state">Cargando cotización...</p>
+}
+
+@if (error) {
+  <p class="page-error">{{ error }}</p>
+}
+
+@if (!cargando && cotizacion) {
+  <div class="page-header">
+    <h1>
+      {{ cotizacion.numero }} — {{ cotizacion.clienteNombre }}
+      <span [class]="'tag ' + tagEstado(cotizacion.estado)">{{ etiquetaEstado(cotizacion.estado) }}</span>
+    </h1>
+    <a mat-stroked-button routerLink="/cotizaciones">
+      <mat-icon>arrow_back</mat-icon>
+      Volver
+    </a>
+  </div>
+
+  <mat-card class="form-panel">
+    <div class="panel-header-row">
+      <h2>Acciones</h2>
+      <div class="panel-actions">
+        @if (puedeEditar && esEstado('BORRADOR')) {
+          <a mat-stroked-button [routerLink]="['/cotizaciones', cotizacion.id, 'editar']">
+            <mat-icon>edit</mat-icon>
+            Editar
+          </a>
+          <button type="button" mat-flat-button color="primary" [disabled]="procesando" (click)="enviar()">
+            <mat-icon>send</mat-icon>
+            Enviar
+          </button>
+        }
+        @if (puedeEditar && esEstado('ENVIADA')) {
+          <button type="button" mat-flat-button color="primary" [disabled]="procesando" (click)="aceptar()">
+            <mat-icon>check_circle</mat-icon>
+            Aceptar
+          </button>
+          <button type="button" mat-stroked-button [disabled]="procesando" (click)="abrirMotivo('rechazar')">
+            <mat-icon>cancel</mat-icon>
+            Rechazar
+          </button>
+        }
+        @if (puedeEditar && esEstado('BORRADOR', 'ENVIADA')) {
+          <button type="button" mat-stroked-button [disabled]="procesando" (click)="abrirMotivo('cancelar')">
+            <mat-icon>block</mat-icon>
+            Cancelar
+          </button>
+        }
+        @if (puedeEditar) {
+          <button type="button" mat-stroked-button [disabled]="procesando" (click)="duplicar()">
+            <mat-icon>content_copy</mat-icon>
+            Duplicar
+          </button>
+        }
+        <button type="button" mat-stroked-button [disabled]="procesando" (click)="verPdf()">
+          <mat-icon>picture_as_pdf</mat-icon>
+          Ver PDF
+        </button>
+        @if (puedeEditar && esEstado('BORRADOR')) {
+          <button type="button" mat-stroked-button [disabled]="procesando" (click)="eliminar()">
+            <mat-icon>delete</mat-icon>
+            Eliminar
+          </button>
+        }
+      </div>
+    </div>
+
+    @if (accionConMotivo) {
+      <div class="inline-form">
+        <div class="form-group">
+          <label for="motivo">
+            Motivo de {{ accionConMotivo === 'rechazar' ? 'rechazo' : 'cancelación' }}
+            <span class="hint">(opcional)</span>
+          </label>
+          <input id="motivo" type="text" name="motivo" [(ngModel)]="motivo" />
+        </div>
+        <div class="inline-form__actions">
+          <button type="button" mat-flat-button color="primary" [disabled]="procesando" (click)="confirmarMotivo()">
+            Confirmar
+          </button>
+          <button type="button" mat-stroked-button (click)="cerrarMotivo()">Volver</button>
+        </div>
+      </div>
+    }
+  </mat-card>
+
+  <div class="two-col">
+    <mat-card class="form-panel">
+      <h2>Cliente</h2>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Razón social / nombre</label>
+          <input type="text" [value]="cotizacion.clienteRazonSocial || cotizacion.clienteNombre" readonly />
+        </div>
+        <div class="form-group">
+          <label>RUT</label>
+          <input type="text" [value]="cotizacion.clienteRut || '—'" readonly />
+        </div>
+        <div class="form-group">
+          <label>Correo</label>
+          <input type="text" [value]="cotizacion.clienteEmail || '—'" readonly />
+        </div>
+        <div class="form-group">
+          <label>Teléfono</label>
+          <input type="text" [value]="cotizacion.clienteTelefono || '—'" readonly />
+        </div>
+        <div class="form-group span-2">
+          <label>Dirección</label>
+          <input type="text" [value]="cotizacion.clienteDireccion || '—'" readonly />
+        </div>
+      </div>
+
+      <h2>Datos de la cotización</h2>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Emisión</label>
+          <input type="text" [value]="cotizacion.fechaEmision | date: 'dd-MM-yyyy'" readonly />
+        </div>
+        <div class="form-group">
+          <label>Vencimiento</label>
+          <input type="text" [value]="cotizacion.fechaVencimiento | date: 'dd-MM-yyyy'" readonly />
+        </div>
+        <div class="form-group">
+          <label>Vendedor</label>
+          <input type="text" [value]="cotizacion.vendedorNombre" readonly />
+        </div>
+        <div class="form-group">
+          <label>Forma de pago</label>
+          <input type="text" [value]="cotizacion.formaPagoNombre || '—'" readonly />
+        </div>
+        <div class="form-group span-2">
+          <label>Condiciones comerciales</label>
+          <input type="text" [value]="cotizacion.condicionesComerciales || '—'" readonly />
+        </div>
+        @if (cotizacion.observaciones) {
+          <div class="form-group span-2">
+            <label>Observaciones</label>
+            <input type="text" [value]="cotizacion.observaciones" readonly />
+          </div>
+        }
+        @if (cotizacion.motivo) {
+          <div class="form-group span-2">
+            <label>Motivo</label>
+            <input type="text" [value]="cotizacion.motivo" readonly />
+          </div>
+        }
+      </div>
+    </mat-card>
+
+    <mat-card class="form-panel">
+      <h2>Totales</h2>
+      <div class="totals-group">
+        <div class="totals-row">
+          <span class="totals-row__label">Subtotal</span>
+          <span class="totals-row__value">{{ cotizacion.montoSubtotal | moneda }}</span>
+        </div>
+        <div class="totals-row">
+          <span class="totals-row__label">Descuento</span>
+          <span class="totals-row__value">{{ cotizacion.montoDescuento | moneda }}</span>
+        </div>
+        <div class="totals-row">
+          <span class="totals-row__label">Neto</span>
+          <span class="totals-row__value">{{ cotizacion.montoNeto | moneda }}</span>
+        </div>
+        <div class="totals-row">
+          <span class="totals-row__label">IVA {{ cotizacion.exenta ? '(exenta)' : '(19%)' }}</span>
+          <span class="totals-row__value">{{ cotizacion.montoIva | moneda }}</span>
+        </div>
+        <div class="totals-row totals-row--total">
+          <span class="totals-row__label">Total</span>
+          <span class="totals-row__value">{{ cotizacion.montoTotal | moneda }}</span>
+        </div>
+      </div>
+    </mat-card>
+  </div>
+
+  <mat-card class="form-panel">
+    <h2>Productos y servicios</h2>
+    <div class="table-scroll">
+      <table class="items-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Código</th>
+            <th>Descripción</th>
+            <th class="right">Cantidad</th>
+            <th class="right">Precio neto</th>
+            <th class="right">Descuento</th>
+            <th class="right">Subtotal</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (l of cotizacion.lineas; track l.id; let i = $index) {
+            <tr>
+              <td>{{ i + 1 }}</td>
+              <td>{{ l.codigo || '—' }}</td>
+              <td>{{ l.descripcion }}</td>
+              <td class="right">{{ l.cantidad }}</td>
+              <td class="right">{{ l.precioUnitario | moneda }}</td>
+              <td class="right">{{ l.descuento | moneda }}</td>
+              <td class="right">{{ l.subtotal | moneda }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </mat-card>
+
+  <mat-card class="form-panel">
+    <h2>Documentos relacionados</h2>
+    @if (!cotizacion.documentosRelacionados.length) {
+      <p class="empty-state">No existen documentos relacionados.</p>
+    } @else {
+      <div class="cadena">
+        <div class="cadena__nodo cadena__nodo--actual">
+          <span class="cadena__tipo">Cotización</span>
+          <span class="cadena__numero">{{ cotizacion.numero }}</span>
+        </div>
+        @for (d of cotizacion.documentosRelacionados; track d.documentoId) {
+          <mat-icon class="cadena__flecha">arrow_downward</mat-icon>
+          <div class="cadena__nodo">
+            <span class="cadena__tipo">{{ etiquetaTipoDocumento(d.tipoDocumento) }}</span>
+            <span class="cadena__numero">{{ d.numero || '#' + d.documentoId }}</span>
+            <span class="hint">{{ d.fecha | date: 'dd-MM-yyyy' }}</span>
+          </div>
+        }
+      </div>
+    }
+  </mat-card>
+
+  <mat-card class="form-panel">
+    <h2>Historial</h2>
+    @if (!cotizacion.eventos.length) {
+      <p class="empty-state">Sin eventos registrados.</p>
+    } @else {
+      <div class="table-scroll">
+        <table class="historial-table">
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Usuario</th>
+              <th>Acción</th>
+              <th>Estado</th>
+              <th>Detalle</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (e of cotizacion.eventos; track e.fecha) {
+              <tr>
+                <td>{{ e.fecha | date: 'short' }}</td>
+                <td>{{ e.usuario }}</td>
+                <td>{{ etiquetaAccion(e.accion) }}</td>
+                <td>
+                  @if (e.estadoAnterior && e.estadoNuevo && e.estadoAnterior !== e.estadoNuevo) {
+                    {{ etiquetaEstado(e.estadoAnterior) }} → {{ etiquetaEstado(e.estadoNuevo) }}
+                  } @else if (e.estadoNuevo) {
+                    {{ etiquetaEstado(e.estadoNuevo) }}
+                  } @else {
+                    —
+                  }
+                </td>
+                <td>{{ e.detalle || '—' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </mat-card>
+}

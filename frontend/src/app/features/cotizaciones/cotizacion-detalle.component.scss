@@ -1,0 +1,147 @@
+.page-header h1 .tag {
+  margin-left: var(--space-3);
+  vertical-align: middle;
+}
+
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-5);
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .two-col {
+    grid-template-columns: 1fr;
+  }
+}
+
+.panel-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.panel-header-row h2 {
+  margin: 0;
+}
+
+.panel-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.inline-form {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  margin-top: var(--space-4);
+  padding: var(--space-4);
+  background: var(--surface-subtle);
+  border-radius: var(--radius-2);
+}
+
+.inline-form .form-group {
+  flex: 1;
+  min-width: 220px;
+}
+
+.inline-form__actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.totals-group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-3);
+}
+
+.totals-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  font: var(--font-body-sm);
+  color: var(--text-body);
+}
+
+.totals-row--total {
+  font: var(--font-h3);
+  font-weight: 700;
+  color: var(--text-title);
+  border-top: var(--border-width-default) solid var(--border-default);
+  padding-top: var(--space-2);
+}
+
+.cadena {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+.cadena__nodo {
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-3) var(--space-4);
+  border: var(--border-width-default) solid var(--border-default);
+  border-radius: var(--radius-2);
+  min-width: 220px;
+}
+
+.cadena__nodo--actual {
+  border-color: var(--primary-base);
+  background: var(--primary-background);
+}
+
+.cadena__tipo {
+  font: var(--font-body-sm);
+  color: var(--text-muted);
+}
+
+.cadena__numero {
+  font: var(--font-body);
+  font-weight: 700;
+  color: var(--text-title);
+}
+
+.cadena__flecha {
+  color: var(--text-muted);
+  margin-left: var(--space-5);
+}
+
+.table-scroll {
+  overflow-x: auto;
+}
+
+.items-table,
+.historial-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.items-table th,
+.items-table td,
+.historial-table th,
+.historial-table td {
+  text-align: left;
+  padding: var(--space-2) var(--space-3);
+  border-bottom: var(--border-width-default) solid var(--border-default);
+  font: var(--font-body-sm);
+}
+
+.items-table th,
+.historial-table th {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.items-table .right {
+  text-align: right;
+}
