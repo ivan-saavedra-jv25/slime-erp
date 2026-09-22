@@ -1,4 +1,4 @@
-<h1>Bienvenido, {{ auth.session()?.nombre }}</h1>
+<h1>{{ saludoBienvenida() }}</h1>
 
 <section class="quick-actions">
   <a mat-stroked-button routerLink="/ventas"><mat-icon>point_of_sale</mat-icon>Nueva venta</a>

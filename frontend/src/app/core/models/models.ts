@@ -50,11 +50,13 @@ export interface LoginResponse {
   usuarioId: number;
   tenantId: number;
   tenantNombre: string;
+  tenantRut: string;
   nombre: string;
   email: string;
   rut: string;
   rol: Rol;
   permisos: Permiso[];
+  esPrimerIngreso: boolean;
 }
 
 export interface Usuario {

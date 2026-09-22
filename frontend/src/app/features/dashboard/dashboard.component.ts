@@ -133,6 +133,24 @@ export class DashboardComponent implements OnInit {
     return MONEDA.format(valor);
   }
 
+  saludoBienvenida(): string {
+    if (this.auth.session()?.esPrimerIngreso) {
+      return `${this.saludoDelDia()}, ${this.primerNombre()}`;
+    }
+    return `Me alegra volver a verte, ${this.primerNombre()}`;
+  }
+
+  private saludoDelDia(): string {
+    const hora = new Date().getHours();
+    if (hora >= 6 && hora < 12) return 'Buenos días';
+    if (hora >= 12 && hora < 20) return 'Buenas tardes';
+    return 'Buenas noches';
+  }
+
+  private primerNombre(): string {
+    return (this.auth.session()?.nombre ?? '').split(' ').filter(Boolean)[0] ?? '';
+  }
+
   formatoNumero(valor: number): string {
     return NUMERO.format(valor);
   }

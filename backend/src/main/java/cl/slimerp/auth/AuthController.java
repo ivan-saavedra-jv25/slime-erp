@@ -13,6 +13,8 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
+
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
@@ -52,11 +54,16 @@ public class AuthController {
         String token = jwtService.generarToken(
                 usuario.getId(), usuario.getTenantId(), usuario.getEmail(), usuario.getRol().name());
 
+        boolean esPrimerIngreso = usuario.getUltimoAcceso() == null;
+        usuario.setUltimoAcceso(LocalDateTime.now());
+        usuarioRepository.save(usuario);
+
         var permisos = permisoEfectivoService.calcular(usuario.getTenantId(), usuario.getId(), usuario.getRol())
                 .stream().map(Permiso::name).toList();
 
         return ResponseEntity.ok(new LoginResponse(
-                token, usuario.getId(), usuario.getTenantId(), tenant.getNombre(), usuario.getNombre(),
-                usuario.getEmail(), usuario.getRut(), usuario.getRol().name(), permisos));
+                token, usuario.getId(), usuario.getTenantId(), tenant.getNombre(), tenant.getRut(),
+                usuario.getNombre(), usuario.getEmail(), usuario.getRut(), usuario.getRol().name(), permisos,
+                esPrimerIngreso));
     }
 }

@@ -7,10 +7,12 @@ public record LoginResponse(
         Long usuarioId,
         Long tenantId,
         String tenantNombre,
+        String tenantRut,
         String nombre,
         String email,
         String rut,
         String rol,
-        List<String> permisos
+        List<String> permisos,
+        boolean esPrimerIngreso
 ) {
 }

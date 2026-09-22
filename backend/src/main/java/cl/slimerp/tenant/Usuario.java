@@ -45,4 +45,7 @@ public class Usuario {
     @Column(name = "fecha_creacion", nullable = false)
     @Builder.Default
     private LocalDateTime fechaCreacion = LocalDateTime.now();
+
+    @Column(name = "ultimo_acceso")
+    private LocalDateTime ultimoAcceso;
 }

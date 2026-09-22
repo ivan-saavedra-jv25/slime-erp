@@ -70,6 +70,39 @@
   gap: 10px;
 }
 
+.fecha-actual {
+  font-size: 12px;
+  color: var(--white);
+  opacity: 0.72;
+  letter-spacing: 0.02em;
+}
+
+.empresa-block {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 3px;
+  line-height: 1.15;
+}
+
+.empresa-nombre {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--white);
+}
+
+.empresa-rut {
+  font-size: 12px;
+  color: var(--white);
+  opacity: 0.72;
+}
+
+.topbar-sep {
+  width: 1px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.25);
+}
+
 .avatar {
   width: 26px;
   height: 26px;
@@ -266,7 +299,10 @@
 @media (max-width: 480px) {
   .divider,
   .page-title,
-  .user-id {
+  .user-id,
+  .empresa-block,
+  .topbar-sep,
+  .fecha-actual {
     display: none;
   }
 

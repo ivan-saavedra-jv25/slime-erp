@@ -121,6 +121,12 @@ const GRUPOS: NavGroupSource[] = [
   },
 ];
 
+function formatearFechaHoy(): string {
+  return new Date()
+    .toLocaleDateString('es-CL', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' })
+    .replace(/\./g, '');
+}
+
 @Component({
   selector: 'app-layout',
   standalone: true,
@@ -140,6 +146,7 @@ const GRUPOS: NavGroupSource[] = [
 export class LayoutComponent implements OnInit {
   dashboard = DASHBOARD;
   tituloPagina = signal('');
+  fechaActual = signal('');
   esMovil = signal(false);
   sidenavAbierto = signal(true);
   private grupoExpandido = signal<string | null>(null);
@@ -173,6 +180,7 @@ export class LayoutComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.fechaActual.set(formatearFechaHoy());
     this.actualizarTitulo(this.router.url);
     this.expandirGrupoActivo(this.router.url);
     this.router.events.pipe(filter((e) => e instanceof NavigationEnd)).subscribe((e) => {
