@@ -146,6 +146,9 @@
           <ng-container *ngTemplateOutlet="rowTpl; context: { $implicit: ingresosRow() }" />
           <ng-container *ngTemplateOutlet="rowTpl; context: { $implicit: comprasRow() }" />
           <ng-container *ngTemplateOutlet="rowTpl; context: { $implicit: gastosRow() }" />
+          @for (row of gastosCategoriaRows(); track row.label) {
+            <ng-container *ngTemplateOutlet="rowTpl; context: { $implicit: row }" />
+          }
           <ng-container *ngTemplateOutlet="rowTpl; context: { $implicit: egresosRow() }" />
           <ng-container *ngTemplateOutlet="rowTpl; context: { $implicit: resultadoRow() }" />
           <ng-container *ngTemplateOutlet="rowTpl; context: { $implicit: closingRow() }" />

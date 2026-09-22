@@ -7,7 +7,6 @@
   flex-wrap: wrap;
   align-items: flex-start;
   gap: var(--space-4);
-  margin-bottom: var(--space-5);
 }
 
 .year-picker {
@@ -165,6 +164,17 @@
 .row-subtotal th,
 .row-subtotal td {
   font-weight: 600;
+}
+
+.row-subcategory th,
+.row-subcategory td {
+  font: var(--font-body-sm);
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.row-subcategory .sticky-col {
+  padding-left: calc(var(--space-3) + var(--space-4));
 }
 
 .row-result th,

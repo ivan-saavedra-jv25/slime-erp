@@ -20,7 +20,7 @@ interface MatrixRow {
   values: number[];
   /** Suma de la fila; `null` cuando sumar meses no tiene sentido (saldos). */
   total: number | null;
-  style: 'category' | 'subtotal' | 'result' | 'balance';
+  style: 'category' | 'subtotal' | 'subcategory' | 'result' | 'balance';
 }
 
 interface MonthStatus {
@@ -131,8 +131,34 @@ export class Dashboard {
   );
 
   readonly gastosRow = computed<MatrixRow>(() =>
-    this.categoryRow('Gastos', this.months().map((m) => m.gastos)),
+    this.subtotalRow('Gastos', this.months().map((m) => m.gastos)),
   );
+
+  readonly gastosCategoriaRows = computed<MatrixRow[]>(() => {
+    const months = this.months();
+    const totals = new Map<string, { categoria: string; total: number }>();
+    for (const mes of months) {
+      for (const item of mes.gastosPorCategoria) {
+        const key = String(item.categoriaGastoId ?? item.categoria);
+        const acc = totals.get(key);
+        if (acc) acc.total += item.total;
+        else totals.set(key, { categoria: item.categoria, total: item.total });
+      }
+    }
+    return [...totals.entries()]
+      .filter(([, v]) => v.total > 0)
+      .sort((a, b) => b[1].total - a[1].total)
+      .map(([key, v]) => ({
+        label: v.categoria,
+        values: months.map(
+          (m) =>
+            m.gastosPorCategoria.find((g) => String(g.categoriaGastoId ?? g.categoria) === key)
+              ?.total ?? 0,
+        ),
+        total: v.total,
+        style: 'subcategory' as const,
+      }));
+  });
 
   readonly egresosRow = computed<MatrixRow>(() =>
     this.subtotalRow(

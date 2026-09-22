@@ -7,7 +7,6 @@
   flex-wrap: wrap;
   align-items: flex-start;
   gap: var(--space-4);
-  margin-bottom: var(--space-5);
 }
 
 .year-picker {

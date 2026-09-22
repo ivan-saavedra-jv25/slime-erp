@@ -12,7 +12,13 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: var(--space-4);
+  margin-bottom: var(--space-3);
+}
+
+// El h1 (u otro título) dentro de un .page-header no debe sumar su propio
+// margin al margin-bottom del header — si no, el espacio se duplica.
+.page-header h1 {
+  margin: 0;
 }
 
 .empty-state {
