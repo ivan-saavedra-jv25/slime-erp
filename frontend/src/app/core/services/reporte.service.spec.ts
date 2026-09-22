@@ -81,4 +81,32 @@ describe('ReporteService', () => {
     expect(req.request.params.get('desde')).toBe('2026-09-01');
     req.flush(new Blob());
   });
+
+  it('libroNotasVenta hace GET a /reportes/libro-notas-venta con los parámetros de fecha', () => {
+    service.libroNotasVenta('2026-09-01', '2026-09-30').subscribe();
+
+    const req = httpMock.expectOne((r) => r.url === `${environment.apiUrl}/reportes/libro-notas-venta`);
+    expect(req.request.method).toBe('GET');
+    expect(req.request.params.get('desde')).toBe('2026-09-01');
+    expect(req.request.params.get('hasta')).toBe('2026-09-30');
+    req.flush({ desde: '2026-09-01', hasta: '2026-09-30', estado: null, filas: [], resumen: null });
+  });
+
+  it('libroNotasVenta envía el parámetro estado cuando se especifica', () => {
+    service.libroNotasVenta('2026-09-01', '2026-09-30', 'ENTREGADA').subscribe();
+
+    const req = httpMock.expectOne((r) => r.url === `${environment.apiUrl}/reportes/libro-notas-venta`);
+    expect(req.request.params.get('estado')).toBe('ENTREGADA');
+    req.flush({ desde: '2026-09-01', hasta: '2026-09-30', estado: 'ENTREGADA', filas: [], resumen: null });
+  });
+
+  it('libroNotasVentaExcel hace GET con responseType blob y los parámetros de fecha', () => {
+    service.libroNotasVentaExcel('2026-09-01', '2026-09-30').subscribe();
+
+    const req = httpMock.expectOne((r) => r.url === `${environment.apiUrl}/reportes/libro-notas-venta/excel`);
+    expect(req.request.method).toBe('GET');
+    expect(req.request.responseType).toBe('blob');
+    expect(req.request.params.get('desde')).toBe('2026-09-01');
+    req.flush(new Blob());
+  });
 });

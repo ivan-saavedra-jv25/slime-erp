@@ -9,6 +9,7 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { Observable } from 'rxjs';
 import { AccionCotizacion, Cotizacion, EstadoCotizacion } from '../../core/models/models';
 import { CotizacionService } from '../../core/services/cotizacion.service';
+import { NotaVentaService } from '../../core/services/nota-venta.service';
 import { AuthService } from '../../core/services/auth.service';
 import { MonedaPipe } from '../../core/pipes/moneda.pipe';
 import { VentaPdfDialogComponent } from '../ventas/venta-pdf-dialog.component';
@@ -53,6 +54,7 @@ export class CotizacionDetalleComponent implements OnInit {
 
   constructor(
     private cotizacionService: CotizacionService,
+    private notaVentaService: NotaVentaService,
     private route: ActivatedRoute,
     private router: Router,
     private dialog: MatDialog,
@@ -152,6 +154,22 @@ export class CotizacionDetalleComponent implements OnInit {
       },
       error: (err) => {
         this.error = err?.error?.error ?? 'No se pudo duplicar la cotización.';
+        this.procesando = false;
+      },
+    });
+  }
+
+  crearNotaVenta(): void {
+    if (this.procesando) return;
+    this.procesando = true;
+    this.error = '';
+    this.notaVentaService.crearDesdeCotizacion(this.cotizacion!.id).subscribe({
+      next: (nota) => {
+        this.procesando = false;
+        this.router.navigate(['/notas-venta', nota.id]);
+      },
+      error: (err) => {
+        this.error = err?.error?.error ?? 'No se pudo crear la nota de venta.';
         this.procesando = false;
       },
     });

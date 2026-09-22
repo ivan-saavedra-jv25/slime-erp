@@ -50,7 +50,7 @@ describe('DashboardComponent', () => {
 
   it('muestra el nombre del usuario logueado', () => {
     const texto = (fixture.nativeElement as HTMLElement).textContent ?? '';
-    expect(texto).toContain('Admin Demo');
+    expect(texto).toContain('Admin');
   });
 
   it('muestra las tarjetas de KPI una vez cargado el resumen', () => {

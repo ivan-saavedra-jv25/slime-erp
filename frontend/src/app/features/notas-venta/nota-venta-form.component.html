@@ -1,0 +1,277 @@
+<div class="page-header">
+  <h1>{{ esEdicion ? 'Editar nota de venta' : 'Nueva nota de venta' }}</h1>
+  <a mat-stroked-button routerLink="/notas-venta">
+    <mat-icon>arrow_back</mat-icon>
+    Volver
+  </a>
+</div>
+
+@if (error) {
+  <p class="page-error">{{ error }}</p>
+}
+
+@if (cargando) {
+  <p class="empty-state">Cargando nota de venta...</p>
+} @else {
+  <div class="two-col">
+    <mat-card class="form-panel">
+      <h2>Cliente</h2>
+
+      @if (!clienteSeleccionado) {
+        <div class="form-group search-group">
+          <label for="clienteBuscar">Cliente<span class="required-mark">*</span></label>
+          <input
+            id="clienteBuscar"
+            type="text"
+            placeholder="Buscar por nombre o RUT..."
+            name="clienteBuscar"
+            [(ngModel)]="filtroCliente"
+            (ngModelChange)="onBusquedaClienteChange()"
+          />
+          @if (clientesResultados.length) {
+            <div class="search-results">
+              @for (c of clientesResultados; track c.id) {
+                <div class="search-results__item" (click)="seleccionarCliente(c)">
+                  <span class="search-results__nombre">{{ c.nombre }}</span>
+                  <span class="search-results__sku">{{ c.rut || '—' }}</span>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      } @else {
+        <div class="cliente-seleccionado">
+          <span class="cliente-seleccionado__nombre">{{ clienteSeleccionado.nombre }}</span>
+          <button type="button" mat-icon-button title="Cambiar cliente" (click)="cambiarCliente()">
+            <mat-icon>sync_alt</mat-icon>
+          </button>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>RUT</label>
+            <input type="text" [value]="clienteSeleccionado.rut || '—'" readonly />
+          </div>
+          <div class="form-group">
+            <label>Correo</label>
+            <input type="text" [value]="clienteSeleccionado.email || '—'" readonly />
+          </div>
+          <div class="form-group span-2">
+            <label>Dirección</label>
+            <input type="text" [value]="clienteSeleccionado.direccion || '—'" readonly />
+          </div>
+        </div>
+      }
+    </mat-card>
+
+    <mat-card class="form-panel">
+      <h2>Datos de la nota</h2>
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="fechaEmision">Fecha de emisión<span class="required-mark">*</span></label>
+          <input id="fechaEmision" type="date" name="fechaEmision" [(ngModel)]="fechaEmision" />
+        </div>
+        <div class="form-group">
+          <label for="fechaEntregaEstimada">Fecha de entrega estimada <span class="hint">(opcional)</span></label>
+          <input
+            id="fechaEntregaEstimada"
+            type="date"
+            name="fechaEntregaEstimada"
+            [(ngModel)]="fechaEntregaEstimada"
+          />
+        </div>
+        <div class="form-group">
+          <label for="formaPagoId">Forma de pago <span class="hint">(opcional)</span></label>
+          <select id="formaPagoId" name="formaPagoId" [(ngModel)]="formaPagoId">
+            <option [ngValue]="null">Sin especificar</option>
+            @for (f of formasPago; track f.id) {
+              <option [ngValue]="f.id">{{ f.nombre }}</option>
+            }
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="moneda">Moneda</label>
+          <select id="moneda" name="moneda" [(ngModel)]="moneda">
+            @for (m of monedas; track m) {
+              <option [ngValue]="m">{{ m }}</option>
+            }
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="exenta">Afecta a IVA</label>
+          <div class="checkbox-row">
+            <input id="exenta" type="checkbox" name="exenta" [(ngModel)]="exenta" />
+            <label for="exenta">Nota exenta de IVA</label>
+          </div>
+        </div>
+        <div class="form-group span-2">
+          <label for="condicionesVenta">Condiciones de venta <span class="hint">(opcional)</span></label>
+          <input
+            id="condicionesVenta"
+            type="text"
+            name="condicionesVenta"
+            placeholder="Ej: Coordinar despacho antes de la fecha estimada"
+            [(ngModel)]="condicionesVenta"
+          />
+        </div>
+        <div class="form-group span-2">
+          <label for="direccionEntrega">Dirección de entrega <span class="hint">(opcional)</span></label>
+          <input
+            id="direccionEntrega"
+            type="text"
+            name="direccionEntrega"
+            placeholder="Ej: Av. Providencia 1234, Santiago"
+            [(ngModel)]="direccionEntrega"
+          />
+        </div>
+        <div class="form-group span-2">
+          <label for="observaciones">Observaciones <span class="hint">(opcional)</span></label>
+          <textarea id="observaciones" name="observaciones" rows="2" [(ngModel)]="observaciones"></textarea>
+        </div>
+      </div>
+    </mat-card>
+  </div>
+
+  <mat-card class="form-panel">
+    <h2>Detalle</h2>
+    <p class="form-section-hint">
+      Busca por <strong>SKU o nombre</strong> y presiona <strong>Enter</strong> para cargar el primer resultado.
+      Los precios son <strong>netos</strong>.
+    </p>
+
+    @if (itemError) {
+      <p class="field-error">{{ itemError }}</p>
+    }
+
+    <div class="item-entry">
+      <div class="item-entry__row">
+        <div class="form-group item-entry__col item-entry__col--search">
+          <label for="filtroProducto">Buscar producto</label>
+          <input
+            id="filtroProducto"
+            type="text"
+            placeholder="Buscar producto..."
+            name="filtroProducto"
+            [(ngModel)]="filtroProducto"
+            (ngModelChange)="onBusquedaProductoChange()"
+            (keydown.enter)="stagePrimeroFiltrado()"
+          />
+          @if (productosResultados.length) {
+            <div class="search-results">
+              @for (p of productosResultados; track p.id) {
+                <div class="search-results__item" (click)="stageProducto(p)">
+                  <span class="search-results__nombre">{{ p.nombre }}</span>
+                  <span class="search-results__sku">SKU: {{ p.sku || '—' }} · {{ p.precioVenta | moneda }}</span>
+                </div>
+              }
+            </div>
+          }
+        </div>
+
+        <div class="form-group item-entry__col">
+          <label>Descripción</label>
+          <input type="text" [value]="itemStaged.descripcion" readonly placeholder="Selecciona un producto" />
+        </div>
+
+        <div class="form-group item-entry__col item-entry__col--qty">
+          <label for="itemPrecio">Precio neto</label>
+          <input id="itemPrecio" type="number" name="itemPrecio" [(ngModel)]="itemStaged.precio" />
+        </div>
+
+        <div class="form-group item-entry__col item-entry__col--qty">
+          <label for="itemCantidad">Cantidad</label>
+          <input id="itemCantidad" type="number" name="itemCantidad" min="1" [(ngModel)]="itemStaged.cantidad" />
+        </div>
+
+        <div class="form-group item-entry__col item-entry__col--qty">
+          <label for="itemDescuento">Descuento</label>
+          <input id="itemDescuento" type="number" name="itemDescuento" min="0" [(ngModel)]="itemStaged.descuento" />
+        </div>
+
+        <button
+          type="button"
+          mat-icon-button
+          class="item-entry__add-btn"
+          [disabled]="!itemStaged.productoId"
+          (click)="confirmarStaged()"
+        >
+          <mat-icon>add_circle</mat-icon>
+        </button>
+      </div>
+    </div>
+
+    <table class="items-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Código</th>
+          <th>Descripción</th>
+          <th class="right">Precio neto</th>
+          <th class="right">Cantidad</th>
+          <th class="right">Descuento</th>
+          <th class="right">Subtotal</th>
+          <th class="right"></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (it of items; track it.productoId; let i = $index) {
+          <tr>
+            <td>{{ i + 1 }}</td>
+            <td>{{ skuProducto(it.productoId) }}</td>
+            <td>{{ nombreProducto(it.productoId) }}</td>
+            <td class="right">{{ it.precioUnitario | moneda }}</td>
+            <td class="right">{{ it.cantidad }}</td>
+            <td class="right">{{ it.descuento | moneda }}</td>
+            <td class="right">{{ totalLinea(it) | moneda }}</td>
+            <td class="right">
+              <button type="button" mat-icon-button (click)="editarItem(i)"><mat-icon>edit</mat-icon></button>
+              <button type="button" mat-icon-button (click)="quitarItem(i)"><mat-icon>delete</mat-icon></button>
+            </td>
+          </tr>
+        }
+        @if (!items.length) {
+          <tr>
+            <td colspan="8" class="empty-state">Agrega líneas desde el buscador de arriba.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </mat-card>
+
+  <mat-card class="form-panel">
+    <h2>Totales</h2>
+    <div class="totals-grid">
+      <div class="form-group">
+        <label for="descuentoGlobal">Descuento global</label>
+        <input id="descuentoGlobal" type="number" name="descuentoGlobal" min="0" [(ngModel)]="descuento" />
+      </div>
+
+      <div class="totals-group">
+        <div class="totals-row">
+          <span class="totals-row__label">Subtotal</span>
+          <span class="totals-row__value">{{ subtotalActual | moneda }}</span>
+        </div>
+        <div class="totals-row">
+          <span class="totals-row__label">Descuento</span>
+          <span class="totals-row__value">{{ descuentoTotal | moneda }}</span>
+        </div>
+        <div class="totals-row">
+          <span class="totals-row__label">Neto</span>
+          <span class="totals-row__value">{{ netoActual | moneda }}</span>
+        </div>
+        <div class="totals-row">
+          <span class="totals-row__label">IVA {{ exenta ? '(exenta)' : '(19%)' }}</span>
+          <span class="totals-row__value">{{ ivaActual | moneda }}</span>
+        </div>
+        <div class="totals-row totals-row--total">
+          <span class="totals-row__label">Total</span>
+          <span class="totals-row__value">{{ totalActual | moneda }}</span>
+        </div>
+
+        <button type="button" mat-flat-button color="primary" [disabled]="!puedeGuardar" (click)="guardar()">
+          <mat-icon>save</mat-icon>
+          {{ guardando ? 'Guardando...' : esEdicion ? 'Guardar cambios' : 'Crear nota de venta' }}
+        </button>
+      </div>
+    </div>
+  </mat-card>
+}

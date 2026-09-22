@@ -26,6 +26,7 @@ public final class RolPermisos {
                 Permiso.FORMAS_PAGO_VER, Permiso.FORMAS_PAGO_EDITAR,
                 Permiso.MOVIMIENTOS_VER, Permiso.MOVIMIENTOS_EDITAR,
                 Permiso.COTIZACIONES_VER, Permiso.COTIZACIONES_EDITAR,
+                Permiso.NOTAS_VENTA_VER, Permiso.NOTAS_VENTA_EDITAR,
                 Permiso.VENTAS_VER, Permiso.VENTAS_EDITAR,
                 Permiso.COMPRAS_VER, Permiso.COMPRAS_EDITAR,
                 Permiso.TESORERIA_VER, Permiso.TESORERIA_EDITAR, Permiso.TESORERIA_ANULAR,
@@ -36,6 +37,7 @@ public final class RolPermisos {
                 Permiso.FORMAS_PAGO_VER,
                 Permiso.MOVIMIENTOS_VER, Permiso.MOVIMIENTOS_EDITAR,
                 Permiso.COTIZACIONES_VER, Permiso.COTIZACIONES_EDITAR,
+                Permiso.NOTAS_VENTA_VER, Permiso.NOTAS_VENTA_EDITAR,
                 Permiso.VENTAS_VER, Permiso.VENTAS_EDITAR,
                 Permiso.TESORERIA_VER, Permiso.TESORERIA_EDITAR));
         MAPA.put(Rol.COMPRADOR, EnumSet.of(
@@ -50,7 +52,7 @@ public final class RolPermisos {
                 Permiso.CLIENTES_VER, Permiso.PROVEEDORES_VER, Permiso.PRODUCTOS_VER,
                 Permiso.CATEGORIAS_VER, Permiso.BODEGAS_VER,
                 Permiso.FORMAS_PAGO_VER, Permiso.MOVIMIENTOS_VER,
-                Permiso.COTIZACIONES_VER, Permiso.VENTAS_VER,
+                Permiso.COTIZACIONES_VER, Permiso.NOTAS_VENTA_VER, Permiso.VENTAS_VER,
                 Permiso.COMPRAS_VER, Permiso.TESORERIA_VER));
     }
 

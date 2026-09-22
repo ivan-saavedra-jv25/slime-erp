@@ -36,6 +36,8 @@ export type Permiso =
   | 'MOVIMIENTOS_EDITAR'
   | 'COTIZACIONES_VER'
   | 'COTIZACIONES_EDITAR'
+  | 'NOTAS_VENTA_VER'
+  | 'NOTAS_VENTA_EDITAR'
   | 'VENTAS_VER'
   | 'VENTAS_EDITAR'
   | 'COMPRAS_VER'
@@ -431,6 +433,173 @@ export interface DashboardCotizaciones {
   montoAceptado: number;
   tasaConversion: number | null;
   porEstado: ConteoPorEstadoCotizacion[];
+}
+
+export type EstadoNotaVenta =
+  | 'BORRADOR'
+  | 'CONFIRMADA'
+  | 'EN_PREPARACION'
+  | 'PARCIALMENTE_ENTREGADA'
+  | 'ENTREGADA'
+  | 'FACTURADA'
+  | 'CANCELADA';
+
+export type OrigenNotaVenta = 'COTIZACION' | 'VENTA_DIRECTA';
+
+export type AccionNotaVenta =
+  | 'CREADA'
+  | 'EDITADA'
+  | 'CONFIRMADA'
+  | 'PREPARADA'
+  | 'ENTREGA_REGISTRADA'
+  | 'ENTREGADA'
+  | 'FACTURADA'
+  | 'CANCELADA'
+  | 'DUPLICADA';
+
+export interface LineaNotaVenta {
+  id: number | null;
+  productoId: number;
+  codigo: string | null;
+  descripcion: string;
+  cantidad: number;
+  cantidadEntregada: number;
+  precioUnitario: number;
+  descuento: number;
+  subtotal: number;
+}
+
+export interface EventoNotaVenta {
+  fecha: string;
+  usuario: string;
+  accion: AccionNotaVenta;
+  estadoAnterior: EstadoNotaVenta | null;
+  estadoNuevo: EstadoNotaVenta | null;
+  detalle: string | null;
+}
+
+export interface EntregaLineaNotaVenta {
+  productoId: number;
+  descripcion: string;
+  cantidad: number;
+}
+
+export interface EntregaNotaVenta {
+  id: number;
+  fecha: string;
+  usuario: string;
+  observacion: string | null;
+  lineas: EntregaLineaNotaVenta[];
+}
+
+export interface NotaVentaResumen {
+  id: number;
+  folio: number;
+  numero: string;
+  estado: EstadoNotaVenta;
+  origen: OrigenNotaVenta;
+  fechaEmision: string;
+  fechaEntregaEstimada: string | null;
+  clienteNombre: string;
+  clienteRut: string | null;
+  vendedorNombre: string;
+  montoTotal: number;
+}
+
+export interface ConteoPorEstadoNotaVenta {
+  estado: EstadoNotaVenta;
+  cantidad: number;
+  monto: number;
+}
+
+export interface DashboardNotasVenta {
+  desde: string;
+  hasta: string;
+  cantidad: number;
+  confirmadas: number;
+  enPreparacion: number;
+  pendientesEntrega: number;
+  entregadas: number;
+  facturadas: number;
+  canceladas: number;
+  montoTotalVendido: number;
+  porEstado: ConteoPorEstadoNotaVenta[];
+}
+
+export interface NotaVenta {
+  id: number;
+  folio: number;
+  numero: string;
+  estado: EstadoNotaVenta;
+  exenta: boolean;
+  origen: OrigenNotaVenta;
+  cotizacionId: number | null;
+  cotizacionNumero: string | null;
+  moneda: string;
+  fechaEmision: string;
+  fechaEntregaEstimada: string | null;
+  clienteId: number;
+  clienteNombre: string;
+  clienteRazonSocial: string | null;
+  clienteRut: string | null;
+  clienteDireccion: string | null;
+  clienteEmail: string | null;
+  clienteTelefono: string | null;
+  vendedorId: number;
+  vendedorNombre: string;
+  formaPagoId: number | null;
+  formaPagoNombre: string | null;
+  direccionEntrega: string | null;
+  condicionesVenta: string | null;
+  observaciones: string | null;
+  motivo: string | null;
+  descuento: number;
+  montoSubtotal: number;
+  montoDescuento: number;
+  montoNeto: number;
+  montoIva: number;
+  montoTotal: number;
+  lineas: LineaNotaVenta[];
+  eventos: EventoNotaVenta[];
+  entregas: EntregaNotaVenta[];
+  documentosRelacionados: DocumentoRelacionado[];
+}
+
+export interface NotaVentaItem {
+  productoId: number;
+  cantidad: number;
+  precioUnitario: number;
+  descuento: number;
+}
+
+export interface LibroNotasVentaFila {
+  notaVentaId: number;
+  numero: string;
+  fecha: string;
+  clienteNombre: string;
+  clienteRut: string | null;
+  estado: EstadoNotaVenta;
+  montoNeto: number;
+  montoIva: number;
+  montoTotal: number;
+  vendedor: string;
+  origen: string;
+  documentosRelacionados: string;
+}
+
+export interface LibroNotasVentaResumen {
+  cantidad: number;
+  montoNeto: number;
+  montoIva: number;
+  montoTotal: number;
+}
+
+export interface LibroNotasVentaResponse {
+  desde: string;
+  hasta: string;
+  estado: EstadoNotaVenta | null;
+  filas: LibroNotasVentaFila[];
+  resumen: LibroNotasVentaResumen;
 }
 
 export interface CompraItem {

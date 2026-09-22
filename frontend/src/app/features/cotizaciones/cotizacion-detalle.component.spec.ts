@@ -3,6 +3,7 @@ import { ActivatedRoute, ParamMap, Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { CotizacionDetalleComponent } from './cotizacion-detalle.component';
 import { CotizacionService } from '../../core/services/cotizacion.service';
+import { NotaVentaService } from '../../core/services/nota-venta.service';
 import { AuthService } from '../../core/services/auth.service';
 import { Cotizacion, EstadoCotizacion } from '../../core/models/models';
 
@@ -56,14 +57,19 @@ describe('CotizacionDetalleComponent', () => {
       cancelar: jasmine.createSpy('cancelar').and.returnValue(of(cotizacion('CANCELADA'))),
       duplicar: jasmine.createSpy('duplicar').and.returnValue(of({ ...cotizacion('BORRADOR'), id: 2 })),
     } as unknown as CotizacionService;
+    const notaVentaService = {
+      crearDesdeCotizacion: jasmine
+        .createSpy('crearDesdeCotizacion')
+        .and.returnValue(of({ id: 10, numero: 'NV-000001' })),
+    } as unknown as NotaVentaService;
     const route = { paramMap: params$.asObservable() } as unknown as ActivatedRoute;
     const router = { navigate: jasmine.createSpy('navigate') } as unknown as Router;
     const dialog = { open: jasmine.createSpy('open') } as unknown as MatDialog;
     const auth = { tienePermiso: () => puedeEditar } as unknown as AuthService;
 
-    const component = new CotizacionDetalleComponent(cotizacionService, route, router, dialog, auth);
+    const component = new CotizacionDetalleComponent(cotizacionService, notaVentaService, route, router, dialog, auth);
     component.ngOnInit();
-    return { component, cotizacionService, router, params$, paramMapDe };
+    return { component, cotizacionService, notaVentaService, router, params$, paramMapDe };
   }
 
   it('un borrador permite editar, enviar y eliminar, pero no aceptar', () => {
@@ -115,6 +121,15 @@ describe('CotizacionDetalleComponent', () => {
     const { component } = crear('BORRADOR', false);
 
     expect(component.puedeEditar).toBeFalse();
+  });
+
+  it('crearNotaVenta crea la nota desde la cotización y navega a su detalle', () => {
+    const { component, notaVentaService, router } = crear('ACEPTADA');
+
+    component.crearNotaVenta();
+
+    expect(notaVentaService.crearDesdeCotizacion).toHaveBeenCalledWith(1);
+    expect(router.navigate).toHaveBeenCalledWith(['/notas-venta', 10]);
   });
 
   it('recarga la cotización cuando cambia el id de la ruta sin recrear el componente', () => {

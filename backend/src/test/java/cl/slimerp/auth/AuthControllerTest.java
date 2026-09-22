@@ -76,6 +76,7 @@ class AuthControllerTest {
         Set<String> permisosEsperados = Set.of("CLIENTES_VER", "CLIENTES_EDITAR", "PRODUCTOS_VER", "CATEGORIAS_VER",
                 "BODEGAS_VER", "FORMAS_PAGO_VER", "MOVIMIENTOS_VER", "MOVIMIENTOS_EDITAR",
                 "COTIZACIONES_VER", "COTIZACIONES_EDITAR",
+                "NOTAS_VENTA_VER", "NOTAS_VENTA_EDITAR",
                 "VENTAS_VER", "VENTAS_EDITAR", "TESORERIA_VER", "TESORERIA_EDITAR");
         assertEquals(permisosEsperados, Set.copyOf(response.getBody().permisos()));
     }

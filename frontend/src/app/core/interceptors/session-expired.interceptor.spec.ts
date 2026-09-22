@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { sessionExpiredInterceptor } from './session-expired.interceptor';
 import { AuthService } from '../services/auth.service';
+import { AdminAuthService } from '../services/admin-auth.service';
 
 describe('sessionExpiredInterceptor', () => {
   let authServiceStub: { estaAutenticado: boolean; logout: jasmine.Spy };
@@ -15,6 +16,7 @@ describe('sessionExpiredInterceptor', () => {
     TestBed.configureTestingModule({
       providers: [
         { provide: AuthService, useValue: authServiceStub },
+        { provide: AdminAuthService, useValue: { estaAutenticado: false, cerrarSesion: jasmine.createSpy('cerrarSesion') } },
         { provide: Router, useValue: routerStub },
       ],
     });

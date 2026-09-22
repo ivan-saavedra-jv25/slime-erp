@@ -4,8 +4,10 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
   EstadoCotizacion,
+  EstadoNotaVenta,
   LibroComprasResponse,
   LibroCotizacionesResponse,
+  LibroNotasVentaResponse,
   LibroVentasResponse,
 } from '../models/models';
 
@@ -76,6 +78,31 @@ export class ReporteService {
   }
 
   private parametrosCotizaciones(desde: string, hasta: string, estado?: EstadoCotizacion | null): HttpParams {
+    let params = new HttpParams().set('desde', desde).set('hasta', hasta);
+    if (estado) {
+      params = params.set('estado', estado);
+    }
+    return params;
+  }
+
+  libroNotasVenta(
+    desde: string,
+    hasta: string,
+    estado?: EstadoNotaVenta | null
+  ): Observable<LibroNotasVentaResponse> {
+    return this.http.get<LibroNotasVentaResponse>(`${this.base}/libro-notas-venta`, {
+      params: this.parametrosNotasVenta(desde, hasta, estado),
+    });
+  }
+
+  libroNotasVentaExcel(desde: string, hasta: string, estado?: EstadoNotaVenta | null): Observable<Blob> {
+    return this.http.get(`${this.base}/libro-notas-venta/excel`, {
+      params: this.parametrosNotasVenta(desde, hasta, estado),
+      responseType: 'blob',
+    });
+  }
+
+  private parametrosNotasVenta(desde: string, hasta: string, estado?: EstadoNotaVenta | null): HttpParams {
     let params = new HttpParams().set('desde', desde).set('hasta', hasta);
     if (estado) {
       params = params.set('estado', estado);

@@ -32,6 +32,12 @@
             Enviar
           </button>
         }
+        @if (auth.tienePermiso('NOTAS_VENTA_EDITAR') && esEstado('ACEPTADA')) {
+          <button type="button" mat-flat-button color="primary" [disabled]="procesando" (click)="crearNotaVenta()">
+            <mat-icon>receipt_long</mat-icon>
+            Crear Nota de Venta
+          </button>
+        }
         @if (puedeEditar && esEstado('ENVIADA')) {
           <button type="button" mat-flat-button color="primary" [disabled]="procesando" (click)="aceptar()">
             <mat-icon>check_circle</mat-icon>

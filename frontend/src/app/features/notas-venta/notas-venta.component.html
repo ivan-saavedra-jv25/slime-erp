@@ -1,0 +1,181 @@
+<div class="page-header">
+  <h1>Notas de Venta</h1>
+  @if (auth.tienePermiso('NOTAS_VENTA_EDITAR')) {
+    <a mat-flat-button color="primary" routerLink="/notas-venta/nueva">
+      <mat-icon>add</mat-icon>
+      Nueva nota de venta
+    </a>
+  }
+</div>
+
+@if (error) {
+  <p class="page-error">{{ error }}</p>
+}
+
+<mat-card class="form-panel">
+  <div class="panel-header-row">
+    <h2>Período</h2>
+    <div class="rango-selector">
+      @for (p of periodos; track p.value) {
+        <button
+          type="button"
+          class="rango-btn"
+          [class.rango-btn--active]="periodoActivo === p.value"
+          (click)="seleccionarPeriodo(p.value)"
+        >
+          {{ p.label }}
+        </button>
+      }
+    </div>
+  </div>
+
+  @if (periodoActivo === 'personalizado') {
+    <div class="form-row form-row--filtros">
+      <div class="form-group">
+        <label for="desde">Desde</label>
+        <input id="desde" type="date" name="desde" [(ngModel)]="desde" />
+      </div>
+      <div class="form-group">
+        <label for="hasta">Hasta</label>
+        <input id="hasta" type="date" name="hasta" [(ngModel)]="hasta" />
+      </div>
+      <button type="button" mat-flat-button color="primary" [disabled]="cargando" (click)="consultar()">
+        <mat-icon>search</mat-icon>
+        {{ cargando ? 'Consultando...' : 'Consultar' }}
+      </button>
+    </div>
+  }
+</mat-card>
+
+@if (dashboard) {
+  <section class="kpi-section">
+    <div class="kpi-grid">
+      <mat-card class="kpi-card">
+        <span class="kpi-label">Notas del período</span>
+        <span class="kpi-value">{{ dashboard.cantidad }}</span>
+      </mat-card>
+      <mat-card class="kpi-card">
+        <span class="kpi-label">Confirmadas</span>
+        <span class="kpi-value">{{ dashboard.confirmadas }}</span>
+      </mat-card>
+      <mat-card class="kpi-card">
+        <span class="kpi-label">En preparación</span>
+        <span class="kpi-value">{{ dashboard.enPreparacion }}</span>
+      </mat-card>
+      <mat-card class="kpi-card">
+        <span class="kpi-label">Pendientes de entrega</span>
+        <span class="kpi-value">{{ dashboard.pendientesEntrega }}</span>
+      </mat-card>
+      <mat-card class="kpi-card">
+        <span class="kpi-label">Entregadas</span>
+        <span class="kpi-value">{{ dashboard.entregadas }}</span>
+      </mat-card>
+      <mat-card class="kpi-card">
+        <span class="kpi-label">Total vendido</span>
+        <span class="kpi-value">{{ dashboard.montoTotalVendido | moneda }}</span>
+      </mat-card>
+    </div>
+  </section>
+
+  <mat-card class="form-panel">
+    <h2>Notas de venta por estado</h2>
+    <div class="grafico-row">
+      <div class="grafico-row__chart">
+        @if (!tieneDatosGrafico) {
+          <p class="empty-state">Sin notas de venta en este período.</p>
+        }
+        <div [style.display]="tieneDatosGrafico ? 'block' : 'none'">
+          <highcharts-chart
+            [Highcharts]="Highcharts"
+            [options]="chartOptions"
+            [(update)]="actualizarGrafico"
+            style="display: block; width: 100%; height: 240px;"
+          ></highcharts-chart>
+        </div>
+      </div>
+
+      <div class="resumen">
+        <span class="kpi-label">Facturadas</span>
+        <span class="resumen__valor">{{ dashboard.facturadas }}</span>
+        <span class="kpi-label">Canceladas</span>
+        <span class="resumen__valor">{{ dashboard.canceladas }}</span>
+      </div>
+    </div>
+  </mat-card>
+}
+
+<mat-card class="form-panel">
+  <div class="form-row form-row--filtros">
+    <div class="form-group">
+      <label for="estado">Estado</label>
+      <select id="estado" name="estado" [(ngModel)]="estado" (ngModelChange)="consultar()">
+        <option [ngValue]="null">Todos los estados</option>
+        @for (e of estados; track e) {
+          <option [ngValue]="e">{{ etiquetaEstado(e) }}</option>
+        }
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="busqueda">Buscar</label>
+      <input
+        id="busqueda"
+        name="busqueda"
+        placeholder="N° de nota, cliente o RUT..."
+        [(ngModel)]="busqueda"
+        (ngModelChange)="onBusquedaChange()"
+      />
+    </div>
+  </div>
+
+  @if (cargando && !notas.length) {
+    <p class="empty-state">Cargando notas de venta...</p>
+  }
+  @if (!cargando && !notas.length) {
+    <p class="empty-state">No hay notas de venta que coincidan con los filtros.</p>
+  }
+  @if (notas.length) {
+    <div class="table-scroll">
+      <table class="libro-table" matSort [matSortActive]="orden" [matSortDirection]="direccion"
+             (matSortChange)="onSortChange($event)">
+        <thead>
+          <tr>
+            <th mat-sort-header="folio">Número</th>
+            <th mat-sort-header="fechaEmision">Fecha</th>
+            <th>Cliente</th>
+            <th>Vendedor</th>
+            <th>Origen</th>
+            <th class="right" mat-sort-header="montoTotal">Total</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (n of notas; track n.id) {
+            <tr class="clickable-row" (click)="abrir(n)">
+              <td>{{ n.numero }}</td>
+              <td>{{ n.fechaEmision | date: 'dd-MM-yyyy' }}</td>
+              <td>
+                {{ n.clienteNombre }}
+                @if (n.clienteRut) {
+                  <span class="sub">{{ n.clienteRut }}</span>
+                }
+              </td>
+              <td>{{ n.vendedorNombre }}</td>
+              <td>{{ etiquetaOrigen(n.origen) }}</td>
+              <td class="right">{{ n.montoTotal | moneda }}</td>
+              <td><span [class]="'tag ' + tagEstado(n.estado)">{{ etiquetaEstado(n.estado) }}</span></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <mat-paginator
+      [length]="total"
+      [pageIndex]="paginaActual"
+      [pageSize]="tamanoPagina"
+      [pageSizeOptions]="opcionesTamano"
+      [disabled]="cargando"
+      (page)="onPageChange($event)"
+      showFirstLastButtons
+    ></mat-paginator>
+  }
+</mat-card>

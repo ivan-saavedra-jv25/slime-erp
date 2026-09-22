@@ -1,0 +1,402 @@
+@if (cargando) {
+  <p class="empty-state">Cargando nota de venta...</p>
+}
+
+@if (error) {
+  <p class="page-error">{{ error }}</p>
+}
+
+@if (!cargando && nota) {
+  <div class="page-header">
+    <h1>
+      {{ nota.numero }} — {{ nota.clienteNombre }}
+      <span [class]="'tag ' + tagEstado(nota.estado)">{{ etiquetaEstado(nota.estado) }}</span>
+    </h1>
+    <a mat-stroked-button routerLink="/notas-venta">
+      <mat-icon>arrow_back</mat-icon>
+      Volver
+    </a>
+  </div>
+
+  <mat-card class="form-panel">
+    <div class="panel-header-row">
+      <h2>Acciones</h2>
+      <div class="panel-actions">
+        @if (puedeEditar && esEstado('BORRADOR')) {
+          <a mat-stroked-button [routerLink]="['/notas-venta', nota.id, 'editar']">
+            <mat-icon>edit</mat-icon>
+            Editar
+          </a>
+          <button type="button" mat-flat-button color="primary" [disabled]="procesando" (click)="confirmar()">
+            <mat-icon>check</mat-icon>
+            Confirmar
+          </button>
+        }
+        @if (puedeEditar && esEstado('CONFIRMADA')) {
+          <button type="button" mat-flat-button color="primary" [disabled]="procesando" (click)="preparar()">
+            <mat-icon>inventory_2</mat-icon>
+            Enviar a preparación
+          </button>
+        }
+        @if (puedeEditar && esEstado('CONFIRMADA', 'EN_PREPARACION', 'PARCIALMENTE_ENTREGADA') && pendientesDeEntrega) {
+          <button type="button" mat-flat-button color="primary" [disabled]="procesando" (click)="abrirEntrega()">
+            <mat-icon>local_shipping</mat-icon>
+            Registrar entrega
+          </button>
+        }
+        @if (puedeEditar && esEstado('BORRADOR', 'CONFIRMADA')) {
+          <button type="button" mat-stroked-button [disabled]="procesando" (click)="abrirMotivo()">
+            <mat-icon>block</mat-icon>
+            Cancelar
+          </button>
+          <button type="button" mat-stroked-button [disabled]="procesando" (click)="duplicar()">
+            <mat-icon>content_copy</mat-icon>
+            Duplicar
+          </button>
+        }
+        <button type="button" mat-stroked-button [disabled]="procesando" (click)="verPdf()">
+          <mat-icon>picture_as_pdf</mat-icon>
+          Ver PDF
+        </button>
+        @if (puedeEditar && esEstado('BORRADOR')) {
+          <button type="button" mat-stroked-button [disabled]="procesando" (click)="eliminar()">
+            <mat-icon>delete</mat-icon>
+            Eliminar
+          </button>
+        }
+      </div>
+    </div>
+
+    @if (accionConMotivo) {
+      <div class="inline-form">
+        <div class="form-group">
+          <label for="motivo">
+            Motivo de cancelación
+            <span class="hint">(opcional)</span>
+          </label>
+          <input id="motivo" type="text" name="motivo" [(ngModel)]="motivo" />
+        </div>
+        <div class="inline-form__actions">
+          <button type="button" mat-flat-button color="primary" [disabled]="procesando" (click)="confirmarMotivo()">
+            Confirmar
+          </button>
+          <button type="button" mat-stroked-button (click)="cerrarMotivo()">Volver</button>
+        </div>
+      </div>
+    }
+
+    @if (entregaAbierta) {
+      <div class="entrega-form">
+        <h3>Registrar avance de entrega</h3>
+        @if (entregaError) {
+          <p class="field-error">{{ entregaError }}</p>
+        }
+        <p class="form-section-hint">
+          Indica las cantidades que se están entregando. El estado de la nota se actualiza automáticamente.
+        </p>
+        <div class="table-scroll">
+          <table class="entrega-table">
+            <thead>
+              <tr>
+                <th>Producto</th>
+                <th class="right">Solicitado</th>
+                <th class="right">Entregado</th>
+                <th class="right">Pendiente</th>
+                <th class="right">Cantidad a entregar</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (l of lineasEntrega; track l.productoId) {
+                <tr>
+                  <td>{{ l.descripcion }}</td>
+                  <td class="right">{{ l.solicitada }}</td>
+                  <td class="right">{{ l.yaEntregada }}</td>
+                  <td class="right">{{ restanteEntrega(l) }}</td>
+                  <td class="right">
+                    <input
+                      class="entrega-input"
+                      type="number"
+                      name="cantidadEntrega"
+                      min="0"
+                      [max]="restanteEntrega(l)"
+                      [(ngModel)]="l.cantidad"
+                    />
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        <div class="inline-form">
+          <div class="form-group">
+            <label for="entregaObservacion">Observaciones <span class="hint">(opcional)</span></label>
+            <input
+              id="entregaObservacion"
+              type="text"
+              name="entregaObservacion"
+              [(ngModel)]="entregaObservacion"
+            />
+          </div>
+          <div class="inline-form__actions">
+            <button type="button" mat-flat-button color="primary" [disabled]="procesando" (click)="confirmarEntrega()">
+              Registrar
+            </button>
+            <button type="button" mat-stroked-button (click)="cerrarEntrega()">Volver</button>
+          </div>
+        </div>
+      </div>
+    }
+  </mat-card>
+
+  <div class="two-col">
+    <mat-card class="form-panel">
+      <h2>Cliente</h2>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Razón social / nombre</label>
+          <input type="text" [value]="nota.clienteRazonSocial || nota.clienteNombre" readonly />
+        </div>
+        <div class="form-group">
+          <label>RUT</label>
+          <input type="text" [value]="nota.clienteRut || '—'" readonly />
+        </div>
+        <div class="form-group">
+          <label>Correo</label>
+          <input type="text" [value]="nota.clienteEmail || '—'" readonly />
+        </div>
+        <div class="form-group">
+          <label>Teléfono</label>
+          <input type="text" [value]="nota.clienteTelefono || '—'" readonly />
+        </div>
+        <div class="form-group span-2">
+          <label>Dirección</label>
+          <input type="text" [value]="nota.clienteDireccion || '—'" readonly />
+        </div>
+      </div>
+
+      <h2>Datos de la nota</h2>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Emisión</label>
+          <input type="text" [value]="nota.fechaEmision | date: 'dd-MM-yyyy'" readonly />
+        </div>
+        <div class="form-group">
+          <label>Entrega estimada</label>
+          <input type="text" [value]="(nota.fechaEntregaEstimada | date: 'dd-MM-yyyy') || '—'" readonly />
+        </div>
+        <div class="form-group">
+          <label>Vendedor</label>
+          <input type="text" [value]="nota.vendedorNombre" readonly />
+        </div>
+        <div class="form-group">
+          <label>Origen</label>
+          <input type="text" [value]="etiquetaOrigen()" readonly />
+        </div>
+        <div class="form-group">
+          <label>Forma de pago</label>
+          <input type="text" [value]="nota.formaPagoNombre || '—'" readonly />
+        </div>
+        <div class="form-group">
+          <label>Moneda</label>
+          <input type="text" [value]="nota.moneda" readonly />
+        </div>
+        @if (nota.cotizacionNumero) {
+          <div class="form-group span-2">
+            <label>Cotización de origen</label>
+            <input type="text" [value]="nota.cotizacionNumero" readonly />
+          </div>
+        }
+        @if (nota.direccionEntrega) {
+          <div class="form-group span-2">
+            <label>Dirección de entrega</label>
+            <input type="text" [value]="nota.direccionEntrega" readonly />
+          </div>
+        }
+        @if (nota.condicionesVenta) {
+          <div class="form-group span-2">
+            <label>Condiciones de venta</label>
+            <input type="text" [value]="nota.condicionesVenta" readonly />
+          </div>
+        }
+        @if (nota.observaciones) {
+          <div class="form-group span-2">
+            <label>Observaciones</label>
+            <input type="text" [value]="nota.observaciones" readonly />
+          </div>
+        }
+        @if (nota.motivo) {
+          <div class="form-group span-2">
+            <label>Motivo</label>
+            <input type="text" [value]="nota.motivo" readonly />
+          </div>
+        }
+      </div>
+    </mat-card>
+
+    <mat-card class="form-panel">
+      <h2>Totales</h2>
+      <div class="totals-group">
+        <div class="totals-row">
+          <span class="totals-row__label">Subtotal</span>
+          <span class="totals-row__value">{{ nota.montoSubtotal | moneda }}</span>
+        </div>
+        <div class="totals-row">
+          <span class="totals-row__label">Descuento</span>
+          <span class="totals-row__value">{{ nota.montoDescuento | moneda }}</span>
+        </div>
+        <div class="totals-row">
+          <span class="totals-row__label">Neto</span>
+          <span class="totals-row__value">{{ nota.montoNeto | moneda }}</span>
+        </div>
+        <div class="totals-row">
+          <span class="totals-row__label">IVA {{ nota.exenta ? '(exenta)' : '(19%)' }}</span>
+          <span class="totals-row__value">{{ nota.montoIva | moneda }}</span>
+        </div>
+        <div class="totals-row totals-row--total">
+          <span class="totals-row__label">Total</span>
+          <span class="totals-row__value">{{ nota.montoTotal | moneda }}</span>
+        </div>
+      </div>
+    </mat-card>
+  </div>
+
+  <mat-card class="form-panel">
+    <h2>Productos y servicios</h2>
+    <div class="table-scroll">
+      <table class="items-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Código</th>
+            <th>Descripción</th>
+            <th class="right">Cantidad</th>
+            <th class="right">Entregado</th>
+            <th class="right">Precio neto</th>
+            <th class="right">Descuento</th>
+            <th class="right">Subtotal</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (l of nota.lineas; track l.id; let i = $index) {
+            <tr>
+              <td>{{ i + 1 }}</td>
+              <td>{{ l.codigo || '—' }}</td>
+              <td>{{ l.descripcion }}</td>
+              <td class="right">{{ l.cantidad }}</td>
+              <td class="right">{{ l.cantidadEntregada }}</td>
+              <td class="right">{{ l.precioUnitario | moneda }}</td>
+              <td class="right">{{ l.descuento | moneda }}</td>
+              <td class="right">{{ l.subtotal | moneda }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </mat-card>
+
+  <mat-card class="form-panel">
+    <h2>Entregas</h2>
+    @if (!nota.entregas.length) {
+      <p class="empty-state">Aún no se registran entregas para esta nota.</p>
+    } @else {
+      <div class="entregas">
+        @for (e of nota.entregas; track e.id) {
+          <div class="entrega-card">
+            <div class="entrega-card__header">
+              <span class="entrega-card__fecha">{{ e.fecha | date: 'dd-MM-yyyy HH:mm' }}</span>
+              <span class="entrega-card__usuario">{{ e.usuario }}</span>
+            </div>
+            @if (e.observacion) {
+              <p class="entrega-card__obs">{{ e.observacion }}</p>
+            }
+            <table class="entrega-table">
+              <thead>
+                <tr>
+                  <th>Producto</th>
+                  <th class="right">Cantidad</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (l of e.lineas; track l.productoId) {
+                  <tr>
+                    <td>{{ l.descripcion }}</td>
+                    <td class="right">{{ l.cantidad }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+    }
+  </mat-card>
+
+  <mat-card class="form-panel">
+    <h2>Documentos relacionados</h2>
+    @if (!nota.documentosRelacionados.length && !nota.cotizacionNumero) {
+      <p class="empty-state">No existen documentos relacionados.</p>
+    } @else {
+      <div class="cadena">
+        @if (nota.cotizacionNumero) {
+          <div class="cadena__nodo">
+            <span class="cadena__tipo">Cotización</span>
+            <span class="cadena__numero">{{ nota.cotizacionNumero }}</span>
+          </div>
+          <mat-icon class="cadena__flecha">arrow_downward</mat-icon>
+        }
+        <div class="cadena__nodo cadena__nodo--actual">
+          <span class="cadena__tipo">Nota de Venta</span>
+          <span class="cadena__numero">{{ nota.numero }}</span>
+        </div>
+        @for (d of nota.documentosRelacionados; track d.documentoId) {
+          <mat-icon class="cadena__flecha">arrow_downward</mat-icon>
+          <div class="cadena__nodo">
+            <span class="cadena__tipo">{{ etiquetaTipoDocumento(d.tipoDocumento) }}</span>
+            <span class="cadena__numero">{{ d.numero || '#' + d.documentoId }}</span>
+            <span class="hint">{{ d.fecha | date: 'dd-MM-yyyy' }}</span>
+          </div>
+        }
+      </div>
+    }
+  </mat-card>
+
+  <mat-card class="form-panel">
+    <h2>Historial</h2>
+    @if (!nota.eventos.length) {
+      <p class="empty-state">Sin eventos registrados.</p>
+    } @else {
+      <div class="table-scroll">
+        <table class="historial-table">
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Usuario</th>
+              <th>Acción</th>
+              <th>Estado</th>
+              <th>Detalle</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (e of nota.eventos; track e.fecha) {
+              <tr>
+                <td>{{ e.fecha | date: 'short' }}</td>
+                <td>{{ e.usuario }}</td>
+                <td>{{ etiquetaAccion(e.accion) }}</td>
+                <td>
+                  @if (e.estadoAnterior && e.estadoNuevo && e.estadoAnterior !== e.estadoNuevo) {
+                    {{ etiquetaEstado(e.estadoAnterior) }} → {{ etiquetaEstado(e.estadoNuevo) }}
+                  } @else if (e.estadoNuevo) {
+                    {{ etiquetaEstado(e.estadoNuevo) }}
+                  } @else {
+                    —
+                  }
+                </td>
+                <td>{{ e.detalle || '—' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </mat-card>
+}

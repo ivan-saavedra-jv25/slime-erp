@@ -3,6 +3,7 @@ import { HttpRequest, HttpHandlerFn, HttpEvent } from '@angular/common/http';
 import { of } from 'rxjs';
 import { authInterceptor } from './auth.interceptor';
 import { AuthService } from '../services/auth.service';
+import { AdminAuthService } from '../services/admin-auth.service';
 
 describe('authInterceptor', () => {
   // Tipado como objeto plano (no Partial<AuthService>): `token` es un getter
@@ -14,7 +15,10 @@ describe('authInterceptor', () => {
   beforeEach(() => {
     authServiceStub = { token: null };
     TestBed.configureTestingModule({
-      providers: [{ provide: AuthService, useValue: authServiceStub }],
+      providers: [
+        { provide: AuthService, useValue: authServiceStub },
+        { provide: AdminAuthService, useValue: { token: null } },
+      ],
     });
   });
 

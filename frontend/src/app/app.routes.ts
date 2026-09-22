@@ -130,6 +130,26 @@ export const routes: Routes = [
           import('./features/cotizaciones/cotizacion-detalle.component').then((m) => m.CotizacionDetalleComponent),
       },
       {
+        path: 'notas-venta',
+        loadComponent: () =>
+          import('./features/notas-venta/notas-venta.component').then((m) => m.NotasVentaComponent),
+      },
+      {
+        path: 'notas-venta/nueva',
+        loadComponent: () =>
+          import('./features/notas-venta/nota-venta-form.component').then((m) => m.NotaVentaFormComponent),
+      },
+      {
+        path: 'notas-venta/:id/editar',
+        loadComponent: () =>
+          import('./features/notas-venta/nota-venta-form.component').then((m) => m.NotaVentaFormComponent),
+      },
+      {
+        path: 'notas-venta/:id',
+        loadComponent: () =>
+          import('./features/notas-venta/nota-venta-detalle.component').then((m) => m.NotaVentaDetalleComponent),
+      },
+      {
         path: 'tesoreria/cuentas',
         loadComponent: () =>
           import('./features/tesoreria/tesoreria-cuentas.component').then((m) => m.TesoreriaCuentasComponent),
@@ -322,6 +342,11 @@ export const routes: Routes = [
         path: 'reportes/libro-cotizaciones',
         loadComponent: () =>
           import('./features/reportes/libro-cotizaciones.component').then((m) => m.LibroCotizacionesComponent),
+      },
+      {
+        path: 'reportes/libro-notas-venta',
+        loadComponent: () =>
+          import('./features/reportes/libro-notas-venta.component').then((m) => m.LibroNotasVentaComponent),
       },
     ],
   },

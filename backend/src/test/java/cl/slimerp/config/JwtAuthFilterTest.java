@@ -66,11 +66,13 @@ class JwtAuthFilterTest {
         assertTrue(autoridades.contains("MOVIMIENTOS_EDITAR"));
         assertTrue(autoridades.contains("COTIZACIONES_VER"));
         assertTrue(autoridades.contains("COTIZACIONES_EDITAR"));
+        assertTrue(autoridades.contains("NOTAS_VENTA_VER"));
+        assertTrue(autoridades.contains("NOTAS_VENTA_EDITAR"));
         assertTrue(autoridades.contains("VENTAS_VER"));
         assertTrue(autoridades.contains("VENTAS_EDITAR"));
         assertTrue(autoridades.contains("TESORERIA_VER"));
         assertTrue(autoridades.contains("TESORERIA_EDITAR"));
-        assertEquals(15, autoridades.size());
+        assertEquals(17, autoridades.size());
         verify(chain).doFilter(request, response);
     }
 

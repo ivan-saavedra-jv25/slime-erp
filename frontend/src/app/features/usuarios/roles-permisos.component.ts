@@ -19,6 +19,10 @@ const GRUPOS_PERMISOS: GrupoPermiso[] = [
     { valor: 'COTIZACIONES_VER', label: 'Ver cotizaciones' },
     { valor: 'COTIZACIONES_EDITAR', label: 'Crear y gestionar cotizaciones' },
   ] },
+  { titulo: 'Notas de venta', permisos: [
+    { valor: 'NOTAS_VENTA_VER', label: 'Ver notas de venta' },
+    { valor: 'NOTAS_VENTA_EDITAR', label: 'Crear y gestionar notas de venta' },
+  ] },
   { titulo: 'Ventas', permisos: [
     { valor: 'VENTAS_VER', label: 'Ver ventas' },
     { valor: 'VENTAS_EDITAR', label: 'Registrar y editar ventas' },
