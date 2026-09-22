@@ -1,0 +1,120 @@
+<div class="page-header">
+  <h1>Libro de Compras</h1>
+</div>
+
+@if (error) {
+  <p class="page-error">{{ error }}</p>
+}
+
+<mat-card class="form-panel">
+  <h2>Período</h2>
+  <div class="form-row form-row--filtros">
+    <div class="form-group">
+      <label for="desde">Desde<span class="required-mark">*</span></label>
+      <input id="desde" type="date" [(ngModel)]="desde" name="desde" />
+    </div>
+    <div class="form-group">
+      <label for="hasta">Hasta<span class="required-mark">*</span></label>
+      <input id="hasta" type="date" [(ngModel)]="hasta" name="hasta" />
+    </div>
+    <button type="button" mat-flat-button color="primary" [disabled]="cargando" (click)="consultar()">
+      <mat-icon>search</mat-icon>
+      {{ cargando ? 'Consultando...' : 'Consultar' }}
+    </button>
+  </div>
+</mat-card>
+
+@if (cargando && !libro) {
+  <p class="empty-state">Consultando compras...</p>
+}
+
+@if (libro) {
+  <section class="kpi-section">
+    <div class="kpi-grid kpi-grid--4">
+      <mat-card class="kpi-card">
+        <span class="kpi-label">Total del período</span>
+        <span class="kpi-value">{{ formatoMoneda(libro.resumen.montoTotal) }}</span>
+      </mat-card>
+      <mat-card class="kpi-card">
+        <span class="kpi-label">N° de compras</span>
+        <span class="kpi-value">{{ libro.resumen.cantidadCompras }}</span>
+      </mat-card>
+      <mat-card class="kpi-card">
+        <span class="kpi-label">Promedio por compra</span>
+        <span class="kpi-value">{{ formatoMoneda(promedioPorCompra) }}</span>
+      </mat-card>
+      <mat-card class="kpi-card">
+        <span class="kpi-label">Proveedor principal</span>
+        <span class="kpi-value kpi-value--texto">{{ proveedorPrincipal }}</span>
+      </mat-card>
+    </div>
+  </section>
+
+  <mat-card class="form-panel">
+    <h2>Evolución de compras</h2>
+    @if (!libro.filas.length) {
+      <p class="empty-state">Sin compras en este período.</p>
+    } @else {
+      <highcharts-chart
+        [Highcharts]="Highcharts"
+        [options]="chartOptions"
+        [(update)]="actualizarGrafico"
+        style="display: block; width: 100%; height: 240px;"
+      ></highcharts-chart>
+    }
+  </mat-card>
+
+  <mat-card class="form-panel">
+    <div class="page-header">
+      <h2>Detalle de compras</h2>
+      <button type="button" mat-stroked-button [disabled]="!libro.filas.length || exportando" (click)="exportarExcel()">
+        <mat-icon>download</mat-icon>
+        {{ exportando ? 'Exportando...' : 'Exportar a Excel' }}
+      </button>
+    </div>
+
+    @if (!libro.filas.length) {
+      <p class="empty-state">No hay compras en el período seleccionado.</p>
+    } @else {
+      <div class="table-scroll">
+        <table class="libro-table">
+          <thead>
+            <tr>
+              <th>N°</th>
+              <th>Fecha</th>
+              <th>N° Documento</th>
+              <th>Proveedor</th>
+              <th class="right">N° Ítems</th>
+              <th class="right">Neto</th>
+              <th class="right">IVA</th>
+              <th class="right">Total</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (f of libro.filas; track f.compraId) {
+              <tr>
+                <td>{{ f.compraId }}</td>
+                <td>{{ f.fecha | date: 'short' }}</td>
+                <td>{{ f.numeroDocumento || '—' }}</td>
+                <td>{{ f.proveedorNombre }}</td>
+                <td class="right">{{ f.cantidadItems }}</td>
+                <td class="right">{{ f.montoNeto | moneda }}</td>
+                <td class="right">{{ f.montoIva | moneda }}</td>
+                <td class="right">{{ f.montoTotal | moneda }}</td>
+                <td><span [class]="'tag ' + tagEstado(f)">{{ f.estadoPago }}</span></td>
+              </tr>
+            }
+            <tr class="libro-table__total">
+              <td colspan="5">Total ({{ libro.resumen.cantidadCompras }} compras)</td>
+              <td class="right">{{ libro.resumen.montoNeto | moneda }}</td>
+              <td class="right">{{ libro.resumen.montoIva | moneda }}</td>
+              <td class="right">{{ libro.resumen.montoTotal | moneda }}</td>
+              <td></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    }
+  </mat-card>
+}

@@ -16,4 +16,10 @@ public interface CompraRepository extends JpaRepository<Compra, Long> {
 
     // Usado por el Dashboard: no necesita el detalle de líneas.
     List<Compra> findByTenantIdAndActivoTrueAndFechaBetween(Long tenantId, LocalDateTime desde, LocalDateTime hasta);
+
+    // Para el Libro de Compras: ordenado por fecha y con el detalle cargado
+    // (se necesita el tamaño de la lista para la columna "N° Ítems").
+    @EntityGraph(attributePaths = "detalle")
+    List<Compra> findByTenantIdAndActivoTrueAndFechaBetweenOrderByFechaAsc(
+            Long tenantId, LocalDateTime desde, LocalDateTime hasta);
 }

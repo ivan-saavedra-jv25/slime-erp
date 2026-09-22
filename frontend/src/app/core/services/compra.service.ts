@@ -7,6 +7,7 @@ import { Compra, CompraItem } from '../models/models';
 export interface CompraRequest {
   proveedorId: number;
   bodegaId: number | null;
+  numeroDocumento?: string;
   observacion?: string;
   items: CompraItem[];
 }

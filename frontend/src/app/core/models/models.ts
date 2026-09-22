@@ -309,8 +309,44 @@ export interface Compra {
   bodegaId: number;
   fecha: string;
   total: number;
+  numeroDocumento: string | null;
+  montoNeto: number;
+  montoIva: number;
   observacion: string | null;
   detalle: CompraDetalle[];
+}
+
+export interface LibroComprasFila {
+  compraId: number;
+  fecha: string;
+  numeroDocumento: string | null;
+  proveedorNombre: string;
+  proveedorRut: string | null;
+  cantidadItems: number;
+  montoNeto: number;
+  montoIva: number;
+  montoTotal: number;
+  estadoPago: string;
+}
+
+export interface LibroComprasResumen {
+  cantidadCompras: number;
+  montoNeto: number;
+  montoIva: number;
+  montoTotal: number;
+}
+
+export interface LibroComprasPuntoEvolucion {
+  etiqueta: string;
+  total: number;
+}
+
+export interface LibroComprasResponse {
+  desde: string;
+  hasta: string;
+  filas: LibroComprasFila[];
+  resumen: LibroComprasResumen;
+  evolucion: LibroComprasPuntoEvolucion[];
 }
 
 export interface CategoriaGasto {

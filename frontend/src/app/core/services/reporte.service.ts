@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { LibroVentasResponse } from '../models/models';
+import { LibroComprasResponse, LibroVentasResponse } from '../models/models';
 
 @Injectable({ providedIn: 'root' })
 export class ReporteService {
@@ -40,5 +40,16 @@ export class ReporteService {
       params = params.set('q', q);
     }
     return params;
+  }
+
+  libroCompras(desde: string, hasta: string): Observable<LibroComprasResponse> {
+    return this.http.get<LibroComprasResponse>(`${this.base}/libro-compras`, { params: { desde, hasta } });
+  }
+
+  libroComprasExcel(desde: string, hasta: string): Observable<Blob> {
+    return this.http.get(`${this.base}/libro-compras/excel`, {
+      params: { desde, hasta },
+      responseType: 'blob',
+    });
   }
 }

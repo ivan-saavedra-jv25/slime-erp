@@ -39,6 +39,7 @@ export class ComprasComponent implements OnInit {
 
   proveedorId: number | null = null;
   bodegaId: number | null = null;
+  numeroDocumento = '';
   observacion = '';
   items: CompraItem[] = [];
   guardando = false;
@@ -173,6 +174,7 @@ export class ComprasComponent implements OnInit {
       .crear({
         proveedorId: this.proveedorId!,
         bodegaId: this.bodegaId,
+        numeroDocumento: this.numeroDocumento || undefined,
         observacion: this.observacion,
         items: this.items,
       })
@@ -181,6 +183,7 @@ export class ComprasComponent implements OnInit {
           cerrarCargando();
           this.mensaje = `Compra #${compra.id} registrada correctamente. Total: ${formatearCLP(compra.total)}.`;
           this.proveedorId = null;
+          this.numeroDocumento = '';
           this.observacion = '';
           this.items = [];
           this.itemStaged = itemVacio();

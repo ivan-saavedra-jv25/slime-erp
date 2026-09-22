@@ -38,6 +38,17 @@ public class Compra {
     @Builder.Default
     private BigDecimal total = BigDecimal.ZERO;
 
+    @Column(name = "numero_documento", length = 50)
+    private String numeroDocumento;
+
+    @Column(name = "monto_neto", nullable = false, precision = 14, scale = 2)
+    @Builder.Default
+    private BigDecimal montoNeto = BigDecimal.ZERO;
+
+    @Column(name = "monto_iva", nullable = false, precision = 14, scale = 2)
+    @Builder.Default
+    private BigDecimal montoIva = BigDecimal.ZERO;
+
     @Column(length = 500)
     private String observacion;
 

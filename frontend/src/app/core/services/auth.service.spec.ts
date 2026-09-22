@@ -14,11 +14,13 @@ describe('AuthService', () => {
     usuarioId: 1,
     tenantId: 1,
     tenantNombre: 'Empresa Demo',
+    tenantRut: '76.123.456-7',
     nombre: 'Admin Demo',
     email: 'admin@demo.cl',
     rut: '15.234.567-8',
     rol: 'ADMIN',
     permisos: ['CLIENTES_VER', 'CLIENTES_EDITAR'],
+    esPrimerIngreso: false,
   };
 
   beforeEach(() => {

@@ -90,7 +90,7 @@ class CompraServiceTest {
     }
 
     private CompraRequest request(BigDecimal precioUnitario, BigDecimal cantidad) {
-        return new CompraRequest(1L, 1L, null, List.of(new CompraRequest.Item(10L, cantidad, precioUnitario)));
+        return new CompraRequest(1L, 1L, null, null, List.of(new CompraRequest.Item(10L, cantidad, precioUnitario)));
     }
 
     @Test
@@ -116,14 +116,14 @@ class CompraServiceTest {
 
     @Test
     void rechazaLaCompraSiElProveedorNoExiste() {
-        var req = new CompraRequest(999L, 1L, null, List.of(new CompraRequest.Item(10L, BigDecimal.ONE, new BigDecimal("500"))));
+        var req = new CompraRequest(999L, 1L, null, null, List.of(new CompraRequest.Item(10L, BigDecimal.ONE, new BigDecimal("500"))));
 
         assertThrows(IllegalArgumentException.class, () -> service.crear(req));
     }
 
     @Test
     void rechazaLaCompraSiElProductoNoExiste() {
-        var req = new CompraRequest(1L, 1L, null, List.of(new CompraRequest.Item(999L, BigDecimal.ONE, new BigDecimal("500"))));
+        var req = new CompraRequest(1L, 1L, null, null, List.of(new CompraRequest.Item(999L, BigDecimal.ONE, new BigDecimal("500"))));
 
         assertThrows(IllegalArgumentException.class, () -> service.crear(req));
     }
@@ -133,5 +133,25 @@ class CompraServiceTest {
         service.crear(request(new BigDecimal("500"), new BigDecimal("3")));
 
         verify(cuentaPorPagarService).crearParaCompra(any(Compra.class), eq("Proveedor Uno"));
+    }
+
+    @Test
+    void calculaMontoNetoYMontoIvaApartirDelTotalYPersisteElNumeroDeDocumento() {
+        var req = new CompraRequest(1L, 1L, "FAC-123", null,
+                List.of(new CompraRequest.Item(10L, new BigDecimal("3"), new BigDecimal("500"))));
+
+        Compra compra = service.crear(req);
+
+        assertEquals("FAC-123", compra.getNumeroDocumento());
+        assertEquals(new BigDecimal("1500"), compra.getMontoNeto());
+        assertEquals(new BigDecimal("285.00"), compra.getMontoIva());
+        assertEquals(compra.getTotal(), compra.getMontoNeto());
+    }
+
+    @Test
+    void elNumeroDeDocumentoEsNuloSiNoSeEnvia() {
+        Compra compra = service.crear(request(new BigDecimal("500"), new BigDecimal("3")));
+
+        assertNull(compra.getNumeroDocumento());
     }
 }

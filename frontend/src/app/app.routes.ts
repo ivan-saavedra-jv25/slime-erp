@@ -293,6 +293,11 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/reportes/libro-ventas.component').then((m) => m.LibroVentasComponent),
       },
+      {
+        path: 'reportes/libro-compras',
+        loadComponent: () =>
+          import('./features/reportes/libro-compras.component').then((m) => m.LibroComprasComponent),
+      },
     ],
   },
   { path: '**', redirectTo: 'dashboard' },

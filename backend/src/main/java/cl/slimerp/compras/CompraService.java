@@ -53,6 +53,7 @@ public class CompraService {
                 .tenantId(tenantId)
                 .proveedorId(request.proveedorId())
                 .bodegaId(bodega.getId())
+                .numeroDocumento(request.numeroDocumento())
                 .observacion(request.observacion())
                 .build();
         compra = compraRepository.save(compra);
@@ -76,8 +77,11 @@ public class CompraService {
                     .build());
         }
 
+        CalculadoraMontosCompra.Montos montos = CalculadoraMontosCompra.calcularDesdeNeto(total);
         compra.setDetalle(detalle);
         compra.setTotal(total);
+        compra.setMontoNeto(montos.neto());
+        compra.setMontoIva(montos.iva());
         compra = compraRepository.save(compra);
 
         for (CompraRequest.Item item : request.items()) {

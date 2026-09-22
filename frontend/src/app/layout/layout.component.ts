@@ -108,6 +108,7 @@ const GRUPOS: NavGroupSource[] = [
     icono: 'bar_chart',
     items: [
       { ruta: '/reportes/libro-ventas', label: 'Libro de Ventas', icono: 'receipt_long', permiso: 'VENTAS_VER' },
+      { ruta: '/reportes/libro-compras', label: 'Libro de Compras', icono: 'request_quote', permiso: 'COMPRAS_VER' },
     ],
   },
   {

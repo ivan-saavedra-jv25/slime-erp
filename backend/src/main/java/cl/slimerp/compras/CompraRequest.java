@@ -10,6 +10,7 @@ import java.util.List;
 public record CompraRequest(
         @NotNull Long proveedorId,
         Long bodegaId,
+        String numeroDocumento,
         String observacion,
         @NotEmpty @Valid List<Item> items
 ) {

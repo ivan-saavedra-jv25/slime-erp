@@ -23,5 +23,9 @@ public interface CuentaPorPagarRepository extends JpaRepository<CuentaPorPagar, 
 
     List<CuentaPorPagar> findByTenantIdAndGastoIdIn(Long tenantId, Collection<Long> gastoIds);
 
+    // Resuelve el estado de pago de varias compras en una sola consulta
+    // (usado por el Libro de Compras).
+    List<CuentaPorPagar> findByTenantIdAndCompraIdIn(Long tenantId, Collection<Long> compraIds);
+
     List<CuentaPorPagar> findByTenantIdAndIdIn(Long tenantId, Collection<Long> ids);
 }
