@@ -1,284 +1,351 @@
-import { formatMonthLabel } from './month';
-import { CashflowState, MonthKey } from './models';
-import { MonthProjection } from './projection';
+import { formatMonthLabelLong } from './month';
+import { MesResumen } from './flujo-caja.service';
 
-export type CheckStatus = 'pass' | 'warn' | 'fail' | 'info';
+export type AuditStatus = 'pass' | 'info' | 'warn' | 'fail';
+
+export interface AuditExpectation {
+  label: string;
+  met: boolean;
+  detail?: string;
+}
+
+export interface AuditFigure {
+  label: string;
+  value: number;
+}
 
 export interface AuditCheck {
   id: string;
   title: string;
-  status: CheckStatus;
-  /** Qué se está midiendo. */
-  criterion: string;
-  /** Hallazgo con el dato numérico, ya redactado salvo los montos. */
-  finding: string;
-  /** Montos a mostrar junto al hallazgo. */
-  figures: { label: string; amount: number; month?: MonthKey }[];
-  /** Qué hacer con el hallazgo. */
-  advice: string;
+  icon: string;
+  status: AuditStatus;
+  /** Titular que resume el estado del check. */
+  info: string;
+  expectations: AuditExpectation[];
+  figures: AuditFigure[];
 }
 
 export interface AuditReport {
   year: number;
   checks: AuditCheck[];
-  passed: number;
-  failed: number;
-  warned: number;
 }
 
-function statusOf(months: MonthProjection[]): { negatives: MonthProjection[] } {
-  return { negatives: months.filter((m) => m.closingBalance < 0) };
-}
+const MONTHS_WITHOUT_SALDO = 0;
 
-function minBy(months: MonthProjection[], value: (m: MonthProjection) => number): MonthProjection {
-  return months.reduce((worst, m) => (value(m) < value(worst) ? m : worst));
-}
+const avg = (values: number[]): number =>
+  values.length === 0 ? 0 : values.reduce((a, b) => a + b, 0) / values.length;
 
-function sum(months: MonthProjection[], value: (m: MonthProjection) => number): number {
-  return months.reduce((total, m) => total + value(m), 0);
-}
-
-function share(part: number, total: number): number {
-  return total === 0 ? 0 : (part / total) * 100;
-}
-
-function percent(value: number): string {
-  return `${value.toFixed(1).replace('.', ',')}%`;
-}
+const std = (values: number[]): number => {
+  const m = avg(values);
+  const variance = avg(values.map((v) => (v - m) ** 2));
+  return Math.sqrt(variance);
+};
 
 /**
- * Cuota mensual constante que el flujo aguanta sin que el disponible caiga bajo
- * cero en ningún mes. Se evalúa contra el acumulado, no sólo contra el mes.
+ * Sugerencias para leer el flujo de caja del año existen en un set fijo de 7
+ * preguntas. Cada pregunta devuelve un diagnóstico (`pass`/`warn`/`fail`/`info`)
+ * más las cifras que la respaldan.
  */
-function debtCapacity(months: MonthProjection[]): number {
-  const perMonth = months.map((m, i) => m.availableBalance / (i + 1));
-  return Math.max(0, Math.min(...perMonth));
-}
-
-function liquidityCheck(months: MonthProjection[]): AuditCheck {
-  const { negatives } = statusOf(months);
-  const worst = minBy(months, (m) => m.closingBalance);
-  return {
-    id: 'liquidez',
-    title: 'Saldo final positivo en todos los periodos',
-    criterion: 'Ningún mes puede cerrar bajo cero.',
-    status: negatives.length === 0 ? 'pass' : 'fail',
-    finding:
-      negatives.length === 0
-        ? 'Los doce meses cierran en positivo.'
-        : `${negatives.length} mes(es) cierran en negativo. El peor es ${formatMonthLabel(worst.month)}.`,
-    figures: [
-      { label: 'Saldo más bajo del año', amount: worst.closingBalance, month: worst.month },
-    ],
-    advice:
-      negatives.length === 0
-        ? 'Sin déficit de caja proyectado con los datos actuales.'
-        : 'Adelanta cobros, posterga pagos no críticos o consigue financiamiento antes de ese mes.',
-  };
-}
-
-function criticalPointCheck(months: MonthProjection[]): AuditCheck {
-  const lowestBalance = minBy(months, (m) => m.closingBalance);
-  const lowestNet = minBy(months, (m) => m.net);
-  const samMonth = lowestBalance.month === lowestNet.month;
-  return {
-    id: 'punto-critico',
-    title: 'Punto crítico de caja',
-    criterion: 'Identificar el periodo de menor liquidez y su monto exacto.',
-    status: 'info',
-    finding: samMonth
-      ? `${formatMonthLabel(lowestBalance.month)} es el mes más ajustado, tanto por saldo como por resultado.`
-      : `Por saldo el punto crítico es ${formatMonthLabel(lowestBalance.month)}; por resultado del mes es ${formatMonthLabel(lowestNet.month)}, que es el que casi no genera caja.`,
-    figures: [
-      { label: 'Saldo más bajo', amount: lowestBalance.closingBalance, month: lowestBalance.month },
-      { label: 'Resultado más bajo', amount: lowestNet.net, month: lowestNet.month },
-    ],
-    advice: 'Concentra el control de gastos y la gestión de cobranza en esos meses.',
-  };
-}
-
-function incomeQualityCheck(months: MonthProjection[]): AuditCheck {
-  const operational = sum(months, (m) => m.operationalIncome);
-  const nonOperational = sum(months, (m) => m.nonOperationalIncome);
-  const financing = sum(months, (m) => m.financingIncome);
-  const total = operational + nonOperational + financing;
-  const nonRecurringShare = share(nonOperational + financing, total);
-  return {
-    id: 'ingresos-clasificados',
-    title: 'Ingresos operacionales separados de los no operacionales y del financiamiento',
-    criterion: 'Distinguir las ventas del giro del dinero que entra por deuda o hechos puntuales.',
-    status: total === 0 ? 'info' : nonRecurringShare > 20 ? 'warn' : 'pass',
-    finding:
-      total === 0
-        ? 'Todavía no hay ingresos cargados.'
-        : `${percent(share(operational, total))} de los ingresos son del giro; ${percent(nonRecurringShare)} no se repite.`,
-    figures: [
-      { label: 'Operacionales', amount: operational },
-      { label: 'No operacionales', amount: nonOperational },
-      { label: 'Financiamiento', amount: financing },
-    ],
-    advice:
-      nonRecurringShare > 20
-        ? 'Buena parte de la caja no viene del giro: el año se ve mejor de lo que la operación sostiene.'
-        : 'La caja se explica por la operación, que es lo que se busca.',
-  };
-}
-
-function receivablesCheck(months: MonthProjection[]): AuditCheck {
-  return {
-    id: 'desfase-cobro',
-    title: 'Desfase de cobro',
-    criterion: 'Los ingresos deben registrarse cuando el dinero entra, no cuando se factura.',
-    status: 'info',
-    finding:
-      'El modelo es de caja pura: cada movimiento cae en el mes en que la plata se mueve. No hay fecha de factura, así que la app no puede detectar una venta cargada al facturar.',
-    figures: [{ label: 'Ingresos del año', amount: sum(months, (m) => m.totalIncome) }],
-    advice: 'Al cargar una venta a 30 o 60 días, anótala en el mes de cobro, no en el de emisión.',
-  };
-}
-
-function expenseStructureCheck(months: MonthProjection[]): AuditCheck {
-  const fixed = sum(months, (m) => m.fixedExpense);
-  const variable = sum(months, (m) => m.variableExpense);
-  const debt = sum(months, (m) => m.financingExpense);
-  const interest = sum(months, (m) => m.debtInterest);
-  const total = fixed + variable;
-  const fixedShare = share(fixed, total);
-  return {
-    id: 'estructura-gastos',
-    title: 'Gastos fijos, variables y servicio de la deuda catalogados',
-    criterion:
-      'Clasificar los egresos y separar las cuotas de préstamos de los costos de operación.',
-    status: total === 0 ? 'info' : fixedShare > 70 ? 'warn' : 'pass',
-    finding:
-      total === 0
-        ? 'Todavía no hay gastos cargados.'
-        : debt === 0
-          ? `${percent(fixedShare)} de los egresos son fijos y no hay servicio de deuda cargado.`
-          : `${percent(fixedShare)} de los egresos son fijos. El servicio de deuda va separado de los costos de operación.`,
-    figures: [
-      { label: 'Fijos', amount: fixed },
-      { label: 'Variables', amount: variable },
-      { label: 'Servicio de deuda', amount: debt },
-      { label: 'De eso, interés', amount: interest },
-    ],
-    advice:
-      fixedShare > 70
-        ? 'Estructura rígida: si las ventas caen, el gasto no baja con ellas.'
-        : 'La estructura deja margen para ajustar gasto si caen las ventas.',
-  };
-}
-
-function provisionsCheck(state: CashflowState, months: MonthProjection[]): AuditCheck {
-  const { taxRatePercent, contingencyMonths } = state.settings.provisions;
-  const last = months[months.length - 1];
-  const both = taxRatePercent > 0 && contingencyMonths > 0;
-  const none = taxRatePercent === 0 && contingencyMonths === 0;
-  return {
-    id: 'provisiones',
-    title: 'Fondo para imprevistos e impuestos',
-    criterion: 'Confirmar provisiones para pagos periódicos y contingencias.',
-    status: none ? 'fail' : both ? 'pass' : 'warn',
-    finding: none
-      ? 'No hay provisiones configuradas: el saldo mostrado es bruto y sobreestima lo disponible.'
-      : `Impuestos al ${percent(taxRatePercent)} del resultado operacional y colchón de ${contingencyMonths} mes(es) de gastos fijos.`,
-    figures: [
-      { label: 'Impuestos provisionados al cierre', amount: last.accumulatedTaxProvision },
-      { label: 'Colchón objetivo', amount: last.contingencyTarget },
-      { label: 'Falta para el colchón', amount: Math.max(0, last.contingencyGap) },
-      { label: 'Disponible al cierre', amount: last.availableBalance, month: last.month },
-    ],
-    advice: none
-      ? 'Define al menos la tasa de impuestos en Ajustes → Provisiones.'
-      : last.contingencyGap > 0
-        ? 'El disponible ya descuenta los impuestos, pero el colchón todavía no está constituido.'
-        : 'El disponible ya descuenta los impuestos y el colchón está cubierto.',
-  };
-}
-
-function capacityCheck(months: MonthProjection[]): AuditCheck {
-  const minNet = minBy(months, (m) => m.net);
-  const capacity = debtCapacity(months);
-  const worstAvailable = minBy(months, (m) => m.availableBalance);
-  return {
-    id: 'capacidad-pago',
-    title: 'Capacidad para asumir nuevos compromisos',
-    criterion: 'Margen libre después de cubrir egresos, compromisos y provisiones.',
-    status: capacity <= 0 ? 'fail' : minNet.net < 0 ? 'warn' : 'pass',
-    finding:
-      capacity <= 0
-        ? 'No hay margen para una cuota nueva sin quedar bajo las provisiones.'
-        : minNet.net < 0
-          ? `El flujo aguanta la cuota indicada usando el saldo acumulado, pero ${formatMonthLabel(minNet.month)} no se autofinancia.`
-          : 'El flujo aguanta la cuota indicada y cada mes se paga solo.',
-    figures: [
-      { label: 'Cuota mensual máxima', amount: capacity },
-      { label: 'Peor resultado mensual', amount: minNet.net, month: minNet.month },
-      {
-        label: 'Disponible más bajo',
-        amount: worstAvailable.availableBalance,
-        month: worstAvailable.month,
-      },
-    ],
-    advice:
-      capacity <= 0
-        ? 'Antes de tomar deuda nueva, sube el resultado operacional o baja el gasto fijo.'
-        : 'La cuota máxima descuenta impuestos, pero no reserva el colchón de imprevistos.',
-  };
-}
-
-function surplusCheck(months: MonthProjection[]): AuditCheck {
-  const last = months[months.length - 1];
-  const { negatives } = statusOf(months);
-  const fixedMonthly = sum(months, (m) => m.fixedRecurringExpense) / months.length;
-  // Ocioso es lo que sobra por encima del colchón, o de tres meses de gastos fijos.
-  const idleThreshold = Math.max(last.contingencyTarget, fixedMonthly * 3);
-  const idle = last.availableBalance > idleThreshold && idleThreshold > 0;
-  return {
-    id: 'excedentes',
-    title: 'Destino del superávit o estrategia ante déficit',
-    criterion:
-      'Definir reinversión o ahorro en periodos positivos, financiamiento o recorte en los negativos.',
-    status: negatives.length > 0 ? 'fail' : idle ? 'warn' : 'pass',
-    finding:
-      negatives.length > 0
-        ? `Hay ${negatives.length} mes(es) en déficit sin una fuente de financiamiento cargada en el flujo.`
-        : idle
-          ? 'El disponible al cierre supera la reserva razonable y queda sin destino asignado.'
-          : 'El excedente al cierre está dentro de un rango razonable de colchón operativo.',
-    figures: [
-      { label: 'Disponible al cierre', amount: last.availableBalance, month: last.month },
-      { label: 'Reserva razonable', amount: idleThreshold },
-    ],
-    advice:
-      negatives.length > 0
-        ? 'Carga la línea de crédito o el aporte de capital como ingreso de financiamiento para ver el flujo real.'
-        : idle
-          ? 'Define destino: reinversión, prepago de deuda o depósito a plazo. Caja ociosa pierde valor.'
-          : 'Mantén el monitoreo; no hay excedente ocioso relevante.',
-  };
-}
-
-export function buildAudit(
-  state: CashflowState,
-  months: MonthProjection[],
-  year: number,
-): AuditReport {
+export function buildAuditReport(year: number, months: MesResumen[]): AuditReport {
   const checks = [
     liquidityCheck(months),
     criticalPointCheck(months),
-    incomeQualityCheck(months),
+    incomeRegularityCheck(months),
     receivablesCheck(months),
-    expenseStructureCheck(months),
-    provisionsCheck(state, months),
+    expenseConcentrationCheck(months),
     capacityCheck(months),
     surplusCheck(months),
   ];
+  return { year, checks };
+}
+
+/** 1. ¿Hubo liquidez todos los meses? */
+function liquidityCheck(months: MesResumen[]): AuditCheck {
+  const balances = months.map((m) => m.saldo);
+  const minSaldo = Math.min(...balances);
+  const minSaldoMonth = months[balances.indexOf(minSaldo)];
+  const totalEgresos = months.reduce((a, m) => a + m.compras + m.gastos, 0);
+  const avgMonthlyEgresos =
+    months.length === 0 ? 0 : avg(months.map((m) => m.compras + m.gastos));
+  const lowCount = months.filter((m) => m.saldo < avgMonthlyEgresos * 0.3).length;
+
+  if (totalEgresos === 0) {
+    return {
+      id: 'liquidez',
+      title: '¿Hubo liquidez todos los meses?',
+      icon: 'account_balance_wallet',
+      status: 'info',
+      info: `No hay egresos registrados en tesorería para el año ${months[0]?.mes.slice(0, 4) ?? ''}, así que no hay una presión de caja que evaluar.`,
+      expectations: [{ label: 'Presencia de egresos', met: false }],
+      figures: [{ label: 'Saldo mínimo', value: minSaldo }],
+    };
+  }
+
+  const met = minSaldo >= MONTHS_WITHOUT_SALDO && lowCount === 0;
+  const status: AuditStatus = met ? 'pass' : minSaldo < 0 ? 'fail' : 'warn';
+  const low = lowCount === 0 ? 'Ninguno' : `${lowCount} mesa(s)`;
   return {
-    year,
-    checks,
-    passed: checks.filter((c) => c.status === 'pass').length,
-    warned: checks.filter((c) => c.status === 'warn').length,
-    failed: checks.filter((c) => c.status === 'fail').length,
+    id: 'liquidez',
+    title: '¿Hubo liquidez todos los meses?',
+    icon: 'account_balance_wallet',
+    status,
+    info: met
+      ? 'El saldo se mantuvo positivo todos los meses del año.'
+      : minSaldo < 0
+        ? 'Hubo al menos un mes con saldo negativo en caja.'
+        : 'El año tuvo meses con saldos bajos, pero sin llegar a negativo.',
+    expectations: [
+      {
+        label: 'Saldo positivo cada mes',
+        met: minSaldo >= 0,
+        detail: minSaldoMonth ? `Mínimo en ${formatMonthLabelLong(minSaldoMonth.mes)}` : undefined,
+      },
+      { label: 'Cierres holgados (≥ 30% del gasto mensual promedio)', met: lowCount === 0, detail: low },
+    ],
+    figures: [
+      { label: 'Saldo mínimo del año', value: minSaldo },
+      { label: 'Gasto mensual promedio', value: Math.round(avgMonthlyEgresos) },
+    ],
+  };
+}
+
+/** 2. ¿Cuál fue el punto crítico del año? */
+function criticalPointCheck(months: MesResumen[]): AuditCheck {
+  const balances = months.map((m) => m.saldo);
+  const minSaldo = Math.min(...balances);
+  const idx = balances.indexOf(minSaldo);
+  const minMonth = months[idx];
+  const totalMovimientos = months.reduce((a, m) => a + m.ingresos + m.compras + m.gastos, 0);
+
+  if (totalMovimientos === 0) {
+    return {
+      id: 'punto-critico',
+      title: '¿Cuál fue el punto crítico del año?',
+      icon: 'trending_down',
+      status: 'info',
+      info: 'Sin movimientos en tesorería aún no hay un punto crítico que identificar.',
+      expectations: [],
+      figures: [],
+    };
+  }
+
+  const status: AuditStatus = minSaldo < 0 ? 'warn' : 'info';
+  return {
+    id: 'punto-critico',
+    title: '¿Cuál fue el punto crítico del año?',
+    icon: 'trending_down',
+    status,
+    info: minMonth
+      ? `El peor momento de la caja fue ${formatMonthLabelLong(minMonth.mes)}, con un saldo final de $${Math.abs(minSaldo).toLocaleString('es-CL')}.`
+      : 'Sin información de saldo para el año.',
+    expectations: [
+      {
+        label: 'Mes más ajustado identificado',
+        met: Boolean(minMonth),
+        detail: minMonth ? formatMonthLabelLong(minMonth.mes) : undefined,
+      },
+    ],
+    figures: minMonth ? [{ label: `Saldo final de ${minMonth.mes}`, value: minSaldo }] : [],
+  };
+}
+
+/** 3. ¿Fueron regulares los ingresos? */
+function incomeRegularityCheck(months: MesResumen[]): AuditCheck {
+  const incomes = months.map((m) => m.ingresos);
+  const totalIngresos = incomes.reduce((a, b) => a + b, 0);
+  const monthsWithIncome = incomes.filter((v) => v > 0).length;
+  const mean = avg(incomes);
+  const variation = mean > 0 ? std(incomes) / mean : 0;
+
+  let status: AuditStatus = 'pass';
+  let info = 'Los ingresos se mantuvieron estables mes a mes a lo largo del año.';
+
+  if (totalIngresos === 0) {
+    status = 'warn';
+    info = 'No hubo ingresos cobrados (ni pagos confirmados de cuentas por cobrar) en el año.';
+  } else if (variation > 0.4) {
+    status = 'warn';
+    info = 'Los ingresos se concentran en pocos meses; la caja depende de cobros puntuales.';
+  }
+
+  return {
+    id: 'regularidad-ingresos',
+    title: '¿Fueron regulares los ingresos?',
+    icon: 'trending_up',
+    status,
+    info,
+    expectations: [
+      { label: 'Ingresos todos los meses', met: monthsWithIncome === months.length, detail: `${monthsWithIncome} de ${months.length}` },
+      { label: 'Variación moderada (≤ 40%)', met: variation <= 0.4 },
+    ],
+    figures: [
+      { label: 'Ingreso mensual promedio', value: Math.round(mean) },
+      { label: 'Mes más fuerte', value: Math.max(...incomes, 0) },
+    ],
+  };
+}
+
+/** 4. ¿Qué tan rápido se cobra y en qué momentos? */
+function receivablesCheck(months: MesResumen[]): AuditCheck {
+  const totalIngresos = months.reduce((a, m) => a + m.ingresos, 0);
+  const abono = totalIngresos === 0 ? 0 : totalIngresos / months.length;
+
+  return {
+    id: 'desfase-cobro',
+    title: '¿Cómo se comportan los cobros?',
+    icon: 'hourglass_bottom',
+    status: 'info',
+    info:
+      totalIngresos === 0
+        ? 'Los ingresos se registran cuando se confirman los pagos en Tesorería; aún no hay cobros en el año.'
+        : `Los ingresos entran a caja cuando se confirman los cobros en Tesorería: en promedio ${Math.round(abono).toLocaleString('es-CL')} por mes.`,
+    expectations: [
+      {
+        label: 'Cobros confirmados reflejados',
+        met: totalIngresos > 0,
+        detail: 'Los ingresos provienen de pagos confirmados de cuentas por cobrar',
+      },
+    ],
+    figures: [{ label: 'Total cobrado en el año', value: totalIngresos }],
+  };
+}
+
+/** 5. ¿Hay concentración en los egresos? */
+function expenseConcentrationCheck(months: MesResumen[]): AuditCheck {
+  const totalEgresos = months.reduce((a, m) => a + m.compras + m.gastos, 0);
+  const byCategory = new Map<string, number>();
+  for (const month of months) {
+    for (const c of month.gastosPorCategoria) {
+      byCategory.set(c.categoria, (byCategory.get(c.categoria) ?? 0) + c.total);
+    }
+  }
+  if (totalEgresos === 0 || byCategory.size === 0) {
+    return {
+      id: 'concentracion',
+      title: '¿Hay concentración en los egresos?',
+      icon: 'pie_chart',
+      status: 'info',
+      info: 'Sin egresos registrados no hay concentración que evaluar.',
+      expectations: [],
+      figures: [],
+    };
+  }
+
+  const entries = [...byCategory.entries()].sort((a, b) => b[1] - a[1]);
+  const [topName, topTotal] = entries[0];
+  const share = topTotal / totalEgresos;
+  const status: AuditStatus = share > 0.6 ? 'warn' : 'pass';
+
+  return {
+    id: 'concentracion',
+    title: '¿Hay concentración en los egresos?',
+    icon: 'pie_chart',
+    status,
+    info:
+      share > 0.6
+        ? `${topName} concentra el ${Math.round(share * 100)}% de los egresos: el negocio depende de una sola partida de gasto.`
+        : 'Los egresos están repartidos entre varias categorías: no hay una dependencia peligrosa de una sola partida.',
+    expectations: [
+      {
+        label: 'Ninguna categoría supera el 60%',
+        met: share <= 0.6,
+        detail: `${Math.round(share * 100)}%`,
+      },
+    ],
+    figures: [
+      { label: 'Categoría dominante', value: topTotal },
+      { label: 'Total de egresos del año', value: totalEgresos },
+    ],
+  };
+}
+
+/** 6. ¿Con qué holgura podría la caja absorber egresos? */
+function capacityCheck(months: MesResumen[]): AuditCheck {
+  const series = months.map((m, i) => ({ saldo: m.saldo, index: i }));
+  const capacity = months.length === 0 ? 0 : Math.min(...series.map((s) => s.saldo / (s.index + 1)));
+  const maxMonthEgreso = Math.max(...months.map((m) => m.compras + m.gastos), 0);
+
+  if (capacity === 0 && maxMonthEgreso === 0) {
+    return {
+      id: 'capacidad',
+      title: '¿Con qué holgura aguanta la caja?',
+      icon: 'shield',
+      status: 'info',
+      info: 'Sin movimientos en tesorería no hay presión que evaluar.',
+      expectations: [],
+      figures: [],
+    };
+  }
+
+  const met = capacity >= maxMonthEgreso;
+  const status: AuditStatus = capacity < 0 ? 'fail' : met ? 'pass' : 'warn';
+
+  return {
+    id: 'capacidad',
+    title: '¿Con qué holgura aguanta la caja?',
+    icon: 'shield',
+    status,
+    info: met
+      ? `La caja soporta, como gasto mensual constante, hasta ${Math.round(capacity).toLocaleString('es-CL')}: holgura para absorber el mes más caro.`
+      : capacity < 0
+        ? 'La caja inicia algunos meses en terreno negativo: no alcanza para sostener un egreso mensual constante.'
+        : `La caja aguanta hasta ${Math.round(capacity).toLocaleString('es-CL')} por mes, pero el mes más caro llega a ${Math.round(maxMonthEgreso).toLocaleString('es-CL')}.`,
+    expectations: [
+      {
+        label: 'Aguanta el mes más caro sin descuadrarse',
+        met,
+        detail: maxMonthEgreso > 0 ? `${Math.round(maxMonthEgreso).toLocaleString('es-CL')} este año` : undefined,
+      },
+    ],
+    figures: [
+      { label: 'Capacidad mensual de la caja', value: Math.round(capacity) },
+      { label: 'Mes más caro', value: maxMonthEgreso },
+    ],
+  };
+}
+
+/** 7. ¿El año cerró con excedentes o déficits? */
+function surplusCheck(months: MesResumen[]): AuditCheck {
+  const totalIngresos = months.reduce((a, m) => a + m.ingresos, 0);
+  const totalEgresos = months.reduce((a, m) => a + m.compras + m.gastos, 0);
+  const resultado = totalIngresos - totalEgresos;
+  const monthsWithResultNegative = months.filter((m) => m.resultado < 0).length;
+  const finalSaldo = months.length > 0 ? months[months.length - 1].saldo : 0;
+
+  if (totalIngresos === 0 && totalEgresos === 0) {
+    return {
+      id: 'excedentes',
+      title: '¿El año cerró con excedentes o déficits?',
+      icon: 'savings',
+      status: 'info',
+      info: 'Sin movimientos registrados en el año.',
+      expectations: [],
+      figures: [],
+    };
+  }
+
+  const positiveResult = resultado > 0;
+  const cushion = totalEgresos > 0 ? resultado >= totalEgresos * 0.1 : positiveResult;
+  const status: AuditStatus = !positiveResult ? 'fail' : cushion ? 'pass' : 'warn';
+
+  return {
+    id: 'excedentes',
+    title: '¿El año cerró con excedentes o déficits?',
+    icon: 'savings',
+    status,
+    info: status === 'fail'
+      ? 'El año cerró en terreno negativo: se gastó más de lo que se cobró.'
+      : status === 'warn'
+        ? 'El resultado anual es positivo pero ajustado: menos del 10% de margen sobre los gastos.'
+        : 'El año cerró con excedentes: los ingresos superaron con holgura a los gastos.',
+    expectations: [
+      { label: 'Resultado anual positivo', met: positiveResult, detail: resultado.toLocaleString('es-CL') },
+      { label: 'Colchón de al menos un 10%', met: cushion, detail: `${Math.round((totalEgresos ? (resultado / totalEgresos) * 100 : 100))}%` },
+    ],
+    figures: [
+      { label: 'Resultado del año', value: resultado },
+      { label: 'Saldo final del año', value: finalSaldo },
+      { label: 'Meses con resultado negativo', value: monthsWithResultNegative },
+    ],
   };
 }

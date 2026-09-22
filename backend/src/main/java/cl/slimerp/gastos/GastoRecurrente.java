@@ -32,8 +32,13 @@ public class GastoRecurrente {
     @Column(nullable = false, length = 255)
     private String descripcion;
 
-    @Column(name = "dia_mes", nullable = false)
+    @Column(name = "dia_mes")
     private Short diaMes;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    @Builder.Default
+    private FrecuenciaGastoRecurrente frecuencia = FrecuenciaGastoRecurrente.MENSUAL;
 
     @Column(name = "fecha_inicio", nullable = false)
     private LocalDate fechaInicio;

@@ -39,7 +39,7 @@ public class TransaccionPagoCompraService {
         }
         validarDatosMedioPago(request);
 
-        TransaccionPagoCompra pago = TransaccionPagoCompra.builder()
+        TransaccionPagoCompra.TransaccionPagoCompraBuilder pagoBuilder = TransaccionPagoCompra.builder()
                 .tenantId(tenantId)
                 .cuentaPorPagarId(cuenta.getId())
                 .compraId(cuenta.getCompraId())
@@ -59,8 +59,13 @@ public class TransaccionPagoCompraService {
                 .chequeNumero(request.chequeNumero())
                 .chequeFechaEmision(request.chequeFechaEmision())
                 .chequeFechaPago(request.chequeFechaPago())
-                .usuarioId(usuarioId)
-                .build();
+                .usuarioId(usuarioId);
+        if (request.fecha() != null) {
+            // Permite registrar pagos realizados en fechas anteriores (ej.
+            // pagos de meses previos). Si no se indica, la entidad usa now().
+            pagoBuilder.fecha(request.fecha());
+        }
+        TransaccionPagoCompra pago = pagoBuilder.build();
         pago = transaccionPagoCompraRepository.save(pago);
 
         cuenta.setMontoPagado(cuenta.getMontoPagado().add(request.monto()));

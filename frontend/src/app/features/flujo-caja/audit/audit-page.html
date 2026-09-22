@@ -5,66 +5,96 @@
         type="button"
         mat-icon-button
         aria-label="Año anterior"
-        [disabled]="!canGoToPreviousYear()"
+        matTooltip="Año anterior"
         (click)="stepYear(-1)"
       >
         <mat-icon>chevron_left</mat-icon>
       </button>
       <h1 class="page-title">Auditoría {{ year() }}</h1>
-      <button type="button" mat-icon-button aria-label="Año siguiente" (click)="stepYear(1)">
+      <button
+        type="button"
+        mat-icon-button
+        aria-label="Año siguiente"
+        matTooltip="Año siguiente"
+        (click)="stepYear(1)"
+      >
         <mat-icon>chevron_right</mat-icon>
       </button>
     </div>
-    <p class="page-subtitle">
-      Ocho preguntas sobre liquidez, calidad del flujo y capacidad de pago.
-    </p>
+    <p class="page-subtitle">Siete preguntas sobre liquidez, calidad del flujo y capacidad de pago.</p>
   </div>
 
-  <div class="score">
-    <span class="score-item pass">{{ report().passed }} cumple</span>
-    <span class="score-item warn">{{ report().warned }} atención</span>
-    <span class="score-item fail">{{ report().failed }} no cumple</span>
-  </div>
+  @if (report(); as report) {
+    <div class="score">
+      <span class="score-item pass">{{ counts.pass() }} cumple</span>
+      <span class="score-item warn">{{ counts.warn() }} atención</span>
+      <span class="score-item fail">{{ counts.fail() }} no cumple</span>
+    </div>
+  }
 </header>
 
-@if (isEmpty()) {
-  <mat-card class="empty-card">
-    <mat-icon class="empty-icon">fact_check</mat-icon>
-    <h2>Sin movimientos que auditar</h2>
-    <p>
-      Carga tu flujo en el <a routerLink="../mes">detalle mensual</a> o parte con el ejemplo desde
-      <a routerLink="../ajustes">Ajustes</a>.
-    </p>
+@if (loading()) {
+  <mat-progress-bar mode="indeterminate" aria-label="Cargando auditoría" />
+}
+
+@if (error(); as message) {
+  <mat-card class="empty-card error-banner">
+    <mat-icon class="empty-icon">error_outline</mat-icon>
+    <p>{{ message }}</p>
   </mat-card>
-} @else {
-  <div class="checks">
-    @for (check of report().checks; track check.id) {
-      <mat-card class="check" [class]="'check-' + check.status">
-        <header class="check-head">
-          <mat-icon class="check-icon">{{ meta(check.status).icon }}</mat-icon>
-          <h2 class="check-title">{{ check.title }}</h2>
-          <span class="check-badge">{{ meta(check.status).label }}</span>
-        </header>
+}
 
-        <p class="check-criterion">{{ check.criterion }}</p>
-        <p class="check-finding">{{ check.finding }}</p>
+@if (!loading() && !error()) {
+  @if (report(); as report) {
+    @if (isEmpty()) {
+    <mat-card class="empty-card">
+      <mat-icon class="empty-icon">fact_check</mat-icon>
+      <h2>Sin movimientos que auditar</h2>
+      <p>
+        En tesorería no hay cobros ni pagos confirmados para {{ report.year }}. El flujo aparece en
+        cuanto registres <a routerLink="/tesoreria/cuentas">cobros</a> o pagues
+        <a routerLink="/cuentas-por-pagar">cuentas por pagar</a>.
+      </p>
+    </mat-card>
+  } @else {
+    <div class="checks">
+      @for (check of report.checks; track check.id) {
+        <mat-card class="check" [class]="'check-' + check.status">
+          <header class="check-head">
+            <mat-icon class="check-icon">{{ meta(check.status).icon }}</mat-icon>
+            <h2 class="check-title">{{ check.title }}</h2>
+            <span class="check-badge">{{ meta(check.status).label }}</span>
+          </header>
 
-        <dl class="figures">
-          @for (figure of check.figures; track figure.label) {
-            <div class="figure">
-              <dt>
-                {{ figure.label }}
-                @if (figure.month) {
-                  <span class="figure-month">{{ figure.month | monthLabel }}</span>
-                }
-              </dt>
-              <dd [class.negative]="figure.amount < 0">{{ figure.amount | clp }}</dd>
-            </div>
+          <p class="check-finding">{{ check.info }}</p>
+
+          <ul class="expectations">
+            @for (expectation of check.expectations; track expectation.label) {
+              <li [class]="expectation.met ? 'exp-pass' : 'exp-fail'">
+                <mat-icon>{{ expectation.met ? 'check_circle' : 'cancel' }}</mat-icon>
+                <span>
+                  {{ expectation.label }}
+                  @if (expectation.detail) {
+                    <span class="exp-detail">{{ expectation.detail }}</span>
+                  }
+                </span>
+              </li>
+            }
+          </ul>
+
+          @if (check.figures.length > 0) {
+            <dl class="figures">
+              @for (figure of check.figures; track figure.label) {
+                <div class="figure">
+                  <dt>{{ figure.label }}</dt>
+                  <dd [class.negative]="figure.value < 0">{{ figure.value | clp }}</dd>
+                </div>
+              }
+            </dl>
           }
-        </dl>
-
-        <p class="check-advice">{{ check.advice }}</p>
-      </mat-card>
-    }
-  </div>
+        </mat-card>
+      }
+    </div>
+  }
+  }
 }

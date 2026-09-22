@@ -155,13 +155,13 @@ export const routes: Routes = [
       },
       {
         path: 'gastos',
-        loadComponent: () =>
-          import('./features/gastos/gastos.component').then((m) => m.GastosComponent),
+        redirectTo: '/gastos/gastos',
+        pathMatch: 'full',
       },
       {
-        path: 'gastos/recurrentes',
+        path: 'gastos/:tab',
         loadComponent: () =>
-          import('./features/gastos/gastos-recurrentes.component').then((m) => m.GastosRecurrentesComponent),
+          import('./features/gastos/gastos.component').then((m) => m.GastosComponent),
       },
       {
         path: 'flujo-caja',
@@ -182,11 +182,6 @@ export const routes: Routes = [
             path: 'auditoria',
             loadComponent: () =>
               import('./features/flujo-caja/audit/audit-page').then((m) => m.AuditPage),
-          },
-          {
-            path: 'ajustes',
-            loadComponent: () =>
-              import('./features/flujo-caja/settings/settings').then((m) => m.SettingsPage),
           },
         ],
       },

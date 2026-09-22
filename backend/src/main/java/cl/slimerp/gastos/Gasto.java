@@ -45,4 +45,9 @@ public class Gasto {
     @Column(name = "fecha_creacion", nullable = false)
     @Builder.Default
     private LocalDateTime fechaCreacion = LocalDateTime.now();
+
+    // Solo para serialización: estado de la cuenta por pagar asociada al gasto.
+    // No es una columna; se pobla en GastoService (buscar/obtener).
+    @Transient
+    private String cuentaPorPagarEstado;
 }

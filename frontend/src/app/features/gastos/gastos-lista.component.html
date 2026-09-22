@@ -1,0 +1,136 @@
+@if (error) {
+  <p class="page-error">{{ error }}</p>
+}
+
+<mat-card class="form-panel">
+  <h2>{{ editandoGastoId ? 'Editar gasto' : 'Nuevo gasto' }}</h2>
+
+  @if (auth.tienePermiso('TESORERIA_EDITAR')) {
+    <form #fg="ngForm" (ngSubmit)="guardarGasto()" novalidate>
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="categoriaGastoId">Categoría<span class="required-mark">*</span></label>
+          <select id="categoriaGastoId" name="categoriaGastoId" [(ngModel)]="categoriaGastoId" required>
+            <option [ngValue]="null" disabled>Selecciona una categoría</option>
+            @for (c of categorias; track c.id) {
+              <option [ngValue]="c.id">{{ c.nombre }}</option>
+            }
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="fecha">Fecha<span class="required-mark">*</span></label>
+          <input id="fecha" name="fecha" type="date" [(ngModel)]="fecha" required />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="monto">Monto<span class="required-mark">*</span></label>
+        <input id="monto" name="monto" type="number" min="1" step="1" [(ngModel)]="monto" required />
+      </div>
+
+      <div class="form-group">
+        <label for="descripcion">Descripción<span class="required-mark">*</span></label>
+        <textarea id="descripcion" name="descripcion" rows="2" [(ngModel)]="descripcion" required></textarea>
+      </div>
+
+      <div class="form-actions">
+        @if (editandoGastoId) {
+          <button mat-button type="button" (click)="cancelarEdicionGasto()">Cancelar</button>
+        }
+        <button mat-flat-button color="primary" type="submit" [disabled]="guardandoGasto || fg.invalid">
+          {{ guardandoGasto ? 'Guardando...' : editandoGastoId ? 'Guardar' : 'Agregar' }}
+        </button>
+      </div>
+    </form>
+  }
+</mat-card>
+
+<mat-card class="form-panel">
+  <h2>Historial</h2>
+
+  <div class="form-grid">
+    <div class="form-group">
+      <label for="filtroCategoriaId">Categoría</label>
+      <select id="filtroCategoriaId" name="filtroCategoriaId" [(ngModel)]="filtroCategoriaId" (ngModelChange)="onFiltroGastosChange()">
+        <option [ngValue]="null">Todas</option>
+        @for (c of categorias; track c.id) {
+          <option [ngValue]="c.id">{{ c.nombre }}</option>
+        }
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="filtroFechaDesde">Desde</label>
+      <input id="filtroFechaDesde" name="filtroFechaDesde" type="date" [(ngModel)]="filtroFechaDesde" (ngModelChange)="onFiltroGastosChange()" />
+    </div>
+    <div class="form-group">
+      <label for="filtroFechaHasta">Hasta</label>
+      <input id="filtroFechaHasta" name="filtroFechaHasta" type="date" [(ngModel)]="filtroFechaHasta" (ngModelChange)="onFiltroGastosChange()" />
+    </div>
+    <div class="form-group">
+      <label for="filtroTexto">Buscar</label>
+      <input id="filtroTexto" name="filtroTexto" placeholder="Descripción..." [(ngModel)]="filtroTexto" (ngModelChange)="onBusquedaGastosChange()" />
+    </div>
+  </div>
+
+  <table mat-table [dataSource]="gastos" class="mat-elevation-z1">
+    <ng-container matColumnDef="fecha">
+      <th mat-header-cell *matHeaderCellDef>Fecha</th>
+      <td mat-cell *matCellDef="let g">{{ g.fecha }}</td>
+    </ng-container>
+    <ng-container matColumnDef="categoria">
+      <th mat-header-cell *matHeaderCellDef>Categoría</th>
+      <td mat-cell *matCellDef="let g">{{ nombreCategoriaDe(g.categoriaGastoId) }}</td>
+    </ng-container>
+    <ng-container matColumnDef="descripcion">
+      <th mat-header-cell *matHeaderCellDef>Descripción</th>
+      <td mat-cell *matCellDef="let g">
+        {{ g.descripcion }}
+        @if (g.gastoRecurrenteId) {
+          <mat-icon class="hint" matTooltip="Generado automáticamente por una plantilla recurrente">sync</mat-icon>
+        }
+        @if (gestionadoEnTesoreria(g)) {
+          <span class="tag tag--info" matTooltip="Este gasto tiene una Cuenta por Pagar activa en Tesorería">
+            En tesorería
+          </span>
+        }
+      </td>
+    </ng-container>
+    <ng-container matColumnDef="monto">
+      <th mat-header-cell *matHeaderCellDef>Monto</th>
+      <td mat-cell *matCellDef="let g">{{ g.monto | moneda }}</td>
+    </ng-container>
+    <ng-container matColumnDef="acciones">
+      <th mat-header-cell *matHeaderCellDef></th>
+      <td mat-cell *matCellDef="let g">
+        @if (auth.tienePermiso('TESORERIA_EDITAR')) {
+          @if (gestionadoEnTesoreria(g)) {
+            <button
+              mat-icon-button
+              disabled
+              matTooltip="Gestionado en Tesorería: anula su Cuenta por Pagar para poder editarlo o eliminarlo"
+            >
+              <mat-icon>lock</mat-icon>
+            </button>
+          } @else {
+            <button mat-icon-button (click)="editarGasto(g)"><mat-icon>edit</mat-icon></button>
+            <button mat-icon-button (click)="eliminarGasto(g)"><mat-icon>delete</mat-icon></button>
+          }
+        }
+      </td>
+    </ng-container>
+    <tr mat-header-row *matHeaderRowDef="columnas"></tr>
+    <tr mat-row *matRowDef="let row; columns: columnas"></tr>
+  </table>
+  @if (!gastos.length) {
+    <p class="empty-state">No hay gastos que coincidan con la búsqueda.</p>
+  }
+
+  <mat-paginator
+    [length]="totalGastos"
+    [pageIndex]="paginaGastos"
+    [pageSize]="tamanoGastos"
+    [pageSizeOptions]="opcionesTamano"
+    (page)="onPageGastosChange($event)"
+    showFirstLastButtons
+  ></mat-paginator>
+</mat-card>

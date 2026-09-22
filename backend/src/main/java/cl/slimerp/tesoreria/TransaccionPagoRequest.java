@@ -5,6 +5,7 @@ import jakarta.validation.constraints.Positive;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 public record TransaccionPagoRequest(
         @NotNull @Positive BigDecimal monto,
@@ -21,6 +22,8 @@ public record TransaccionPagoRequest(
         String chequeBanco,
         String chequeNumero,
         LocalDate chequeFechaEmision,
-        LocalDate chequeFechaPago
+        LocalDate chequeFechaPago,
+        // Fecha en que efectivamente se pagó/cobró. Si es null, se usa la actual.
+        LocalDateTime fecha
 ) {
 }

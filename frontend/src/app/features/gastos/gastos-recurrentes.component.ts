@@ -5,24 +5,30 @@ import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { CategoriaGastoService } from '../../core/services/categoria-gasto.service';
 import { GastoRecurrenteService, GastoRecurrenteRequest } from '../../core/services/gasto-recurrente.service';
 import { AuthService } from '../../core/services/auth.service';
-import { CategoriaGasto, GastoRecurrente } from '../../core/models/models';
+import {
+  CategoriaGasto,
+  ETIQUETAS_FRECUENCIA_GASTO,
+  FrecuenciaGastoRecurrente,
+  GastoRecurrente,
+} from '../../core/models/models';
 import { MonedaPipe } from '../../core/pipes/moneda.pipe';
 import { cerrarCargando, mostrarCargando } from '../../core/utils/swal-loading';
 
 @Component({
   selector: 'app-gastos-recurrentes',
   standalone: true,
-  imports: [CommonModule, FormsModule, MatTableModule, MatButtonModule, MatIconModule, MatCardModule, MonedaPipe],
+  imports: [CommonModule, FormsModule, MatTableModule, MatButtonModule, MatIconModule, MatCardModule, MatTooltipModule, MonedaPipe],
   templateUrl: './gastos-recurrentes.component.html',
   styleUrl: './gastos-recurrentes.component.scss',
 })
 export class GastosRecurrentesComponent implements OnInit {
   @ViewChild('f') formulario?: NgForm;
 
-  columnas = ['categoria', 'descripcion', 'monto', 'diaMes', 'vigencia', 'acciones'];
+  columnas = ['categoria', 'descripcion', 'monto', 'frecuencia', 'diaMes', 'vigencia', 'acciones'];
 
   categorias: CategoriaGasto[] = [];
   recurrentes: GastoRecurrente[] = [];
@@ -30,12 +36,16 @@ export class GastosRecurrentesComponent implements OnInit {
   categoriaGastoId: number | null = null;
   monto: number | null = null;
   descripcion = '';
+  frecuencia: FrecuenciaGastoRecurrente = 'MENSUAL';
   diaMes: number | null = null;
   fechaInicio = '';
   fechaFin = '';
   editandoId: number | null = null;
   guardando = false;
   error = '';
+
+  readonly etiquetaFrecuencia = ETIQUETAS_FRECUENCIA_GASTO;
+  readonly frecuencias = ['DIARIO', 'SEMANAL', 'MENSUAL', 'ANUAL'] as const;
 
   constructor(
     private categoriaGastoService: CategoriaGastoService,
@@ -56,11 +66,25 @@ export class GastosRecurrentesComponent implements OnInit {
     return this.categorias.find((c) => c.id === id)?.nombre ?? 'Sin categoría';
   }
 
+  nombreFrecuenciaDe(r: GastoRecurrente): string {
+    return ETIQUETAS_FRECUENCIA_GASTO[r.frecuencia];
+  }
+
+  necesitaDiaMes(): boolean {
+    return this.frecuencia === 'MENSUAL';
+  }
+
+  seleccionarFrecuencia(frecuencia: FrecuenciaGastoRecurrente): void {
+    this.frecuencia = frecuencia;
+    if (frecuencia !== 'MENSUAL') this.diaMes = null;
+  }
+
   editar(recurrente: GastoRecurrente): void {
     this.editandoId = recurrente.id;
     this.categoriaGastoId = recurrente.categoriaGastoId;
     this.monto = recurrente.monto;
     this.descripcion = recurrente.descripcion;
+    this.frecuencia = recurrente.frecuencia;
     this.diaMes = recurrente.diaMes;
     this.fechaInicio = recurrente.fechaInicio;
     this.fechaFin = recurrente.fechaFin ?? '';
@@ -71,6 +95,7 @@ export class GastosRecurrentesComponent implements OnInit {
     this.categoriaGastoId = null;
     this.monto = null;
     this.descripcion = '';
+    this.frecuencia = 'MENSUAL';
     this.diaMes = null;
     this.fechaInicio = '';
     this.fechaFin = '';
@@ -78,12 +103,14 @@ export class GastosRecurrentesComponent implements OnInit {
   }
 
   guardar(): void {
-    if (!this.categoriaGastoId || !this.monto || !this.descripcion.trim() || !this.diaMes || !this.fechaInicio) return;
+    if (!this.categoriaGastoId || !this.monto || !this.descripcion.trim() || !this.fechaInicio) return;
+    if (this.necesitaDiaMes() && !this.diaMes) return;
     const request: GastoRecurrenteRequest = {
       categoriaGastoId: this.categoriaGastoId,
       monto: this.monto,
       descripcion: this.descripcion.trim(),
-      diaMes: this.diaMes,
+      frecuencia: this.frecuencia,
+      diaMes: this.necesitaDiaMes() ? this.diaMes : null,
       fechaInicio: this.fechaInicio,
       fechaFin: this.fechaFin || null,
     };

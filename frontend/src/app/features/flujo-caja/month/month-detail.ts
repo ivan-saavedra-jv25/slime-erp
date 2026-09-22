@@ -1,43 +1,40 @@
 import { NgTemplateOutlet } from '@angular/common';
-import { Component, computed, inject } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Component, computed, inject, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
-import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
-import { MatMenuModule } from '@angular/material/menu';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { FormsModule } from '@angular/forms';
-import { CashflowStore } from '../core/cashflow.store';
-import { monthStatus } from '../core/health';
-import { addMonths } from '../core/month';
-import { ItemKind, MonthKey } from '../core/models';
-import { Line } from '../core/projection';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { finalize } from 'rxjs';
+import { DetalleMes, FlujoCajaService } from '../core/flujo-caja.service';
+import { MonthKey } from '../core/models';
+import {
+  addMonths,
+  currentMonthKey,
+  isValidMonthKey,
+  januaryOf,
+  monthKeysFrom,
+  parseMonth,
+  toMonthKey,
+} from '../core/month';
 import { ClpPipe } from '../shared/clp.pipe';
 import { MonthLabelPipe } from '../shared/month-label.pipe';
-import { ConfirmDialog, ConfirmDialogData } from '../shared/confirm-dialog';
-import { ItemDialog, ItemDialogData, ItemDialogResult } from './item-dialog';
-import { OverrideDialog, OverrideDialogData, OverrideDialogResult } from './override-dialog';
 
-interface CategoryGroup {
-  categoryId: string;
-  name: string;
-  total: number;
-  lines: Line[];
-}
+type MonthHealth = 'ok' | 'warning' | 'critical';
 
 @Component({
   selector: 'app-month-detail',
   standalone: true,
   imports: [
+    RouterLink,
     FormsModule,
     NgTemplateOutlet,
-    RouterLink,
     MatButtonModule,
     MatCardModule,
     MatIconModule,
-    MatMenuModule,
+    MatProgressBarModule,
     MatTooltipModule,
     ClpPipe,
     MonthLabelPipe,
@@ -46,199 +43,93 @@ interface CategoryGroup {
   styleUrl: './month-detail.css',
 })
 export class MonthDetail {
-  private readonly store = inject(CashflowStore);
-  private readonly dialog = inject(MatDialog);
-  private readonly snackBar = inject(MatSnackBar);
+  private readonly service = inject(FlujoCajaService);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
 
-  readonly months = this.store.months;
-  readonly year = this.store.year;
-  readonly canGoToPreviousYear = this.store.canGoToPreviousYear;
-  readonly selectedMonth = this.store.selectedMonth;
-  readonly projection = this.store.currentProjection;
-  readonly syncing = this.store.syncing;
-  readonly syncError = this.store.syncError;
+  readonly selected = signal<MonthKey>(currentMonthKey());
+  readonly detalle = signal<DetalleMes | null>(null);
+  readonly loading = signal(true);
+  readonly error = signal<string | null>(null);
 
-  readonly status = computed(() => monthStatus(this.projection()));
+  constructor() {
+    const param = this.route.snapshot.queryParamMap.get('mes');
+    const initial = param && isValidMonthKey(param) ? (param as MonthKey) : currentMonthKey();
+    this.selected.set(initial);
+    this.load(initial);
+  }
 
-  readonly incomeGroups = computed(() => this.group(this.projection().incomes));
-  readonly expenseGroups = computed(() => this.group(this.projection().expenses));
+  readonly year = computed(() => parseMonth(this.selected()).year);
+  readonly months = computed(() => monthKeysFrom(januaryOf(this.year()), 12));
 
-  readonly hasPrev = computed(
-    () => this.months().indexOf(this.selectedMonth()) > 0 || this.canGoToPreviousYear(),
-  );
-
-  /** Meses ofrecidos en los diálogos: el horizonte más un año de margen a cada lado. */
-  private readonly monthOptions = computed(() => {
-    const months = this.months();
-    const start = addMonths(months[0], -12);
-    return Array.from({ length: months.length + 24 }, (_, i) => addMonths(start, i));
+  readonly saldoInicial = computed(() => {
+    const d = this.detalle();
+    return d ? d.saldo - d.resultado : 0;
   });
 
-  private group(lines: readonly Line[]): CategoryGroup[] {
-    const groups = new Map<string, CategoryGroup>();
-    for (const line of lines) {
-      let group = groups.get(line.categoryId);
-      if (!group) {
-        group = {
-          categoryId: line.categoryId,
-          name: this.store.categoryName(line.categoryId),
-          total: 0,
-          lines: [],
-        };
-        groups.set(line.categoryId, group);
-      }
-      group.total += line.amount;
-      group.lines.push(line);
+  readonly totalEgresos = computed(() => {
+    const d = this.detalle();
+    return d ? d.compras + d.gastos : 0;
+  });
+
+  readonly isEmpty = computed(() => {
+    const d = this.detalle();
+    return !!d && d.ingresos === 0 && d.compras === 0 && d.gastos === 0;
+  });
+
+  readonly status = computed<{ health: MonthHealth; reason: string } | null>(() => {
+    const d = this.detalle();
+    if (!d) return null;
+    if (d.saldo < 0) {
+      return { health: 'critical', reason: 'Este mes cerró con saldo negativo' };
     }
-    return [...groups.values()].sort((a, b) => b.total - a.total);
+    if (this.totalEgresos() > 0 && d.saldo < this.totalEgresos()) {
+      return {
+        health: 'warning',
+        reason: 'El saldo final no cubre los egresos del propio mes',
+      };
+    }
+    return null;
+  });
+
+  selectMonth(key: MonthKey): void {
+    this.selected.set(key);
+    this.router.navigate([], { queryParams: { mes: key }, replaceUrl: true });
+    this.load(key);
   }
 
-  selectMonth(month: MonthKey): void {
-    this.store.selectMonth(month);
-  }
-
-  /** Avanza de mes; al pasarse de diciembre o enero, salta de año. */
   step(delta: number): void {
-    const months = this.months();
-    const index = months.indexOf(this.selectedMonth()) + delta;
-    if (index >= 0 && index < months.length) {
-      this.store.selectMonth(months[index]);
-      return;
-    }
-    if (index < 0 && !this.canGoToPreviousYear()) return;
-    const targetYear = this.year() + (index < 0 ? -1 : 1);
-    this.store.setYear(targetYear);
-    const newMonths = this.months();
-    this.store.selectMonth(index < 0 ? newMonths[newMonths.length - 1] : newMonths[0]);
+    this.selectMonth(addMonths(this.selected(), delta));
   }
 
   stepYear(delta: number): void {
-    this.store.stepYear(delta);
+    const { year, month } = parseMonth(this.selected());
+    this.selectMonth(toMonthKey(year + delta, month));
   }
 
-  actualizarCobros(): void {
-    this.store.syncCobros();
+  formatearFecha(fecha: string): string {
+    const parts = fecha.split('-').map(Number);
+    const [y, m, d] = parts;
+    if (parts.length !== 3 || !y || !m || !d) return fecha;
+    return new Date(y, m - 1, d).toLocaleDateString('es-CL', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    });
   }
 
-  addItem(initialKind: ItemKind): void {
-    const data: ItemDialogData = {
-      month: this.selectedMonth(),
-      monthOptions: this.monthOptions(),
-      initialKind,
-    };
-    this.dialog
-      .open(ItemDialog, { data })
-      .afterClosed()
-      .subscribe((result?: ItemDialogResult) => this.apply(result));
-  }
-
-  editLine(line: Line): void {
-    const edit = this.findEdit(line);
-    if (!edit) return;
-    const data: ItemDialogData = {
-      month: this.selectedMonth(),
-      monthOptions: this.monthOptions(),
-      edit,
-    };
-    this.dialog
-      .open(ItemDialog, { data })
-      .afterClosed()
-      .subscribe((result?: ItemDialogResult) => this.apply(result));
-  }
-
-  editThisMonthOnly(line: Line): void {
-    const template = this.store.state().recurring.find((r) => r.id === line.id);
-    if (!template) return;
-    const month = this.selectedMonth();
-    const data: OverrideDialogData = {
-      description: template.description,
-      month,
-      currentAmount: line.amount,
-      templateAmount: template.amount,
-      hasOverride: line.overridden,
-    };
-    this.dialog
-      .open(OverrideDialog, { data })
-      .afterClosed()
-      .subscribe((result?: OverrideDialogResult) => {
-        if (!result) return;
-        if (result.action === 'clear') {
-          this.store.clearOverride(line.id, month);
-          this.snackBar.open('Se restauró el monto de la plantilla.', undefined, {
-            duration: 3000,
-          });
-          return;
-        }
-        this.store.setOverride(line.id, month, result.amount);
-        this.snackBar.open('Ajuste aplicado sólo a este mes.', undefined, { duration: 3000 });
+  private load(key: MonthKey): void {
+    this.loading.set(true);
+    this.error.set(null);
+    this.service
+      .detalleMes(key)
+      .pipe(finalize(() => this.loading.set(false)))
+      .subscribe({
+        next: (detalle) => this.detalle.set(detalle),
+        error: () =>
+          this.error.set(
+            'No se pudo cargar el detalle del mes. Intenta de nuevo más tarde.',
+          ),
       });
-  }
-
-  skipThisMonth(line: Line): void {
-    this.store.setOverride(line.id, this.selectedMonth(), null);
-    this.snackBar
-      .open('Omitido en este mes.', 'Deshacer', { duration: 5000 })
-      .onAction()
-      .subscribe(() => this.store.clearOverride(line.id, this.selectedMonth()));
-  }
-
-  restoreTemplate(line: Line): void {
-    this.store.clearOverride(line.id, this.selectedMonth());
-  }
-
-  removeLine(line: Line): void {
-    const isSeries = line.source === 'recurring';
-    const data: ConfirmDialogData = {
-      title: isSeries ? 'Eliminar la serie completa' : 'Eliminar movimiento',
-      message: isSeries
-        ? `"${line.description}" se eliminará de todos los meses. Para sacarlo sólo de este mes usa "Omitir este mes".`
-        : `"${line.description}" se eliminará de ${this.selectedMonth()}.`,
-      confirmLabel: 'Eliminar',
-      destructive: true,
-    };
-    this.dialog
-      .open(ConfirmDialog, { data })
-      .afterClosed()
-      .subscribe((confirmed?: boolean) => {
-        if (!confirmed) return;
-        if (isSeries) this.store.removeRecurring(line.id);
-        else this.store.removeOneOff(line.id);
-      });
-  }
-
-  private findEdit(line: Line): ItemDialogData['edit'] {
-    if (line.source === 'recurring') {
-      const item = this.store.state().recurring.find((r) => r.id === line.id);
-      return item ? { source: 'recurring', item } : undefined;
-    }
-    const item = this.store.state().oneOff.find((o) => o.id === line.id);
-    return item ? { source: 'oneoff', item } : undefined;
-  }
-
-  private apply(result?: ItemDialogResult): void {
-    if (!result) return;
-    switch (result.action) {
-      case 'create-recurring':
-        this.store.addRecurring(result.value);
-        break;
-      case 'create-oneoff':
-        this.store.addOneOff(result.value);
-        break;
-      case 'update-recurring':
-        this.store.updateRecurring(result.id, result.value);
-        break;
-      case 'update-oneoff':
-        this.store.updateOneOff(result.id, result.value);
-        break;
-      case 'replace-recurring-with-oneoff':
-        // Dejó de ser recurrente: se borra la serie (y sus overrides) y queda un puntual.
-        this.store.removeRecurring(result.id);
-        this.store.addOneOff(result.value);
-        break;
-      case 'replace-oneoff-with-recurring':
-        this.store.removeOneOff(result.id);
-        this.store.addRecurring(result.value);
-        break;
-    }
   }
 }

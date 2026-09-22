@@ -1,40 +1,18 @@
-import { Component, computed, effect, inject } from '@angular/core';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { Component } from '@angular/core';
+import { MatIcon } from '@angular/material/icon';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
-import { CashflowStore } from '../core/cashflow.store';
-import { yearAlerts } from '../core/health';
 
 @Component({
   selector: 'app-flujo-caja-shell',
   standalone: true,
-  imports: [
-    RouterOutlet,
-    RouterLink,
-    RouterLinkActive,
-    MatButtonModule,
-    MatIconModule,
-  ],
+  imports: [MatIcon, RouterLink, RouterLinkActive, RouterOutlet],
   templateUrl: './shell.html',
   styleUrl: './shell.css',
 })
 export class Shell {
-  private readonly store = inject(CashflowStore);
-
-  readonly alerts = computed(() => yearAlerts(this.store.projection()));
-  private readonly snackBar = inject(MatSnackBar);
-
-  constructor() {
-    effect(() => {
-      if (this.store.loadCorrupted()) {
-        this.snackBar.open(
-          'Los datos guardados no se pudieron leer. Se partió de un flujo vacío.',
-          'Entendido',
-          { duration: 8000 },
-        );
-        this.store.loadCorrupted.set(false);
-      }
-    });
-  }
+  readonly tabs = [
+    { path: 'resumen', label: 'Resumen', icon: 'insights' },
+    { path: 'mes', label: 'Mes', icon: 'calendar_month' },
+    { path: 'auditoria', label: 'Auditoría', icon: 'fact_check' },
+  ];
 }

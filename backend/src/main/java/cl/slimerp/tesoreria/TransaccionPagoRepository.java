@@ -14,4 +14,6 @@ public interface TransaccionPagoRepository extends JpaRepository<TransaccionPago
 
     List<TransaccionPago> findByTenantIdAndCuentaPorCobrarIdAndEstado(
             Long tenantId, Long cuentaPorCobrarId, EstadoTransaccion estado);
+
+    List<TransaccionPago> findByTenantIdAndEstadoOrderByFechaAsc(Long tenantId, EstadoTransaccion estado);
 }

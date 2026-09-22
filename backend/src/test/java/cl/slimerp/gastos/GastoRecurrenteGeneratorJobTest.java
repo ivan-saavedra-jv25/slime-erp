@@ -118,4 +118,77 @@ class GastoRecurrenteGeneratorJobTest {
         verify(gastoService).crearDesdeRecurrente(recurrente, hoy);
         verify(gastoService).crearDesdeRecurrente(otra, hoy);
     }
+
+    @Test
+    void diarioGeneraTodosLosDiasDentroDeLaVigencia() {
+        GastoRecurrente diario = GastoRecurrente.builder()
+                .id(12L).tenantId(tenantId).categoriaGastoId(1L).monto(BigDecimal.TEN)
+                .descripcion("Diario").frecuencia(FrecuenciaGastoRecurrente.DIARIO)
+                .fechaInicio(LocalDate.of(2026, 9, 1)).activo(true).build();
+        when(gastoRecurrenteRepository.findByTenantIdAndActivoTrue(tenantId)).thenReturn(List.of(diario));
+        when(gastoRepository.existsByTenantIdAndGastoRecurrenteIdAndFechaBetween(
+                eq(tenantId), eq(12L), any(), any())).thenReturn(false);
+
+        job.generarParaTenant(tenantId, hoy);
+
+        verify(gastoService).crearDesdeRecurrente(diario, hoy);
+    }
+
+    @Test
+    void semanalGeneraSoloCuandoHoyCoincideConElDiaDeSemanaDeLaFechaInicio() {
+        LocalDate lunes = LocalDate.of(2026, 9, 21);
+        GastoRecurrente semanal = GastoRecurrente.builder()
+                .id(13L).tenantId(tenantId).categoriaGastoId(1L).monto(BigDecimal.TEN)
+                .descripcion("Semanal").frecuencia(FrecuenciaGastoRecurrente.SEMANAL)
+                .fechaInicio(lunes).activo(true).build();
+        when(gastoRecurrenteRepository.findByTenantIdAndActivoTrue(tenantId)).thenReturn(List.of(semanal));
+        when(gastoRepository.existsByTenantIdAndGastoRecurrenteIdAndFechaBetween(
+                eq(tenantId), eq(13L), any(), any())).thenReturn(false);
+
+        job.generarParaTenant(tenantId, lunes.plusWeeks(1));
+
+        verify(gastoService).crearDesdeRecurrente(semanal, lunes.plusWeeks(1));
+    }
+
+    @Test
+    void semanalNoGeneraSiElDiaDeLaSemanaNoCoincide() {
+        LocalDate lunes = LocalDate.of(2026, 9, 21);
+        GastoRecurrente semanal = GastoRecurrente.builder()
+                .id(13L).tenantId(tenantId).categoriaGastoId(1L).monto(BigDecimal.TEN)
+                .descripcion("Semanal").frecuencia(FrecuenciaGastoRecurrente.SEMANAL)
+                .fechaInicio(lunes).activo(true).build();
+        when(gastoRecurrenteRepository.findByTenantIdAndActivoTrue(tenantId)).thenReturn(List.of(semanal));
+
+        job.generarParaTenant(tenantId, lunes.plusDays(1));
+
+        verify(gastoService, never()).crearDesdeRecurrente(any(), any());
+    }
+
+    @Test
+    void anualGeneraDesdeLaFechaDeAniversarioEnAdelanteDentroDelMismoAnio() {
+        GastoRecurrente anual = GastoRecurrente.builder()
+                .id(14L).tenantId(tenantId).categoriaGastoId(1L).monto(BigDecimal.TEN)
+                .descripcion("Anual").frecuencia(FrecuenciaGastoRecurrente.ANUAL)
+                .fechaInicio(LocalDate.of(2025, 3, 15)).activo(true).build();
+        when(gastoRecurrenteRepository.findByTenantIdAndActivoTrue(tenantId)).thenReturn(List.of(anual));
+        when(gastoRepository.existsByTenantIdAndGastoRecurrenteIdAndFechaBetween(
+                eq(tenantId), eq(14L), any(), any())).thenReturn(false);
+
+        job.generarParaTenant(tenantId, LocalDate.of(2026, 9, 5));
+
+        verify(gastoService).crearDesdeRecurrente(anual, LocalDate.of(2026, 9, 5));
+    }
+
+    @Test
+    void anualNoGeneraAntesDelMesDeAniversario() {
+        GastoRecurrente anual = GastoRecurrente.builder()
+                .id(14L).tenantId(tenantId).categoriaGastoId(1L).monto(BigDecimal.TEN)
+                .descripcion("Anual").frecuencia(FrecuenciaGastoRecurrente.ANUAL)
+                .fechaInicio(LocalDate.of(2025, 7, 10)).activo(true).build();
+        when(gastoRecurrenteRepository.findByTenantIdAndActivoTrue(tenantId)).thenReturn(List.of(anual));
+
+        job.generarParaTenant(tenantId, LocalDate.of(2026, 3, 5));
+
+        verify(gastoService, never()).crearDesdeRecurrente(any(), any());
+    }
 }

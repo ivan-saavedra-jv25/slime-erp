@@ -2,7 +2,9 @@ package cl.slimerp.gastos;
 
 import cl.slimerp.common.PaginaResponse;
 import cl.slimerp.config.TenantContext;
+import cl.slimerp.tesoreria.CuentaPorPagar;
 import cl.slimerp.tesoreria.CuentaPorPagarService;
+import cl.slimerp.tesoreria.EstadoCuentaPorPagar;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
@@ -10,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Service
 public class GastoService {
@@ -68,6 +71,7 @@ public class GastoService {
     public Gasto actualizar(Long id, GastoRequest request) {
         Long tenantId = TenantContext.getTenantId();
         validarCategoria(tenantId, request.categoriaGastoId());
+        validarGastoNoGestionado(id, "modificar");
 
         Gasto gasto = gastoRepository.findByIdAndTenantIdAndActivoTrue(id, tenantId)
                 .orElseThrow(() -> new IllegalArgumentException("Gasto no encontrado: " + id));
@@ -81,6 +85,7 @@ public class GastoService {
     @Transactional
     public void eliminar(Long id) {
         Long tenantId = TenantContext.getTenantId();
+        validarGastoNoGestionado(id, "eliminar");
         Gasto gasto = gastoRepository.findByIdAndTenantIdAndActivoTrue(id, tenantId)
                 .orElseThrow(() -> new IllegalArgumentException("Gasto no encontrado: " + id));
         gasto.setActivo(false);
@@ -88,8 +93,10 @@ public class GastoService {
     }
 
     public Gasto obtener(Long id) {
-        return gastoRepository.findByIdAndTenantIdAndActivoTrue(id, TenantContext.getTenantId())
+        Gasto gasto = gastoRepository.findByIdAndTenantIdAndActivoTrue(id, TenantContext.getTenantId())
                 .orElseThrow(() -> new IllegalArgumentException("Gasto no encontrado: " + id));
+        poblarEstadoCuentaPorPagar(gasto);
+        return gasto;
     }
 
     public PaginaResponse<Gasto> buscar(Long categoriaGastoId, LocalDate fechaDesde, LocalDate fechaHasta,
@@ -115,7 +122,37 @@ public class GastoService {
         }
 
         var pageable = PageRequest.of(pagina, tamano, Sort.by(Sort.Direction.DESC, "fecha"));
-        return PaginaResponse.de(gastoRepository.findAll(spec, pageable));
+        PaginaResponse<Gasto> respuesta = PaginaResponse.de(gastoRepository.findAll(spec, pageable));
+        poblarEstadoCuentaPorPagar(respuesta.contenido());
+        return respuesta;
+    }
+
+    private void validarGastoNoGestionado(Long id, String accion) {
+        cuentaPorPagarService.encontrarPorGasto(id)
+                .filter(cuenta -> cuenta.getEstado() != EstadoCuentaPorPagar.ANULADO)
+                .ifPresent(cuenta -> {
+                    throw new IllegalArgumentException(
+                            "No puedes " + accion + " este gasto porque ya está gestionado en Tesorería "
+                                    + "(Cuenta por Pagar #" + cuenta.getId() + "). Anula la cuenta "
+                                    + "en Tesorería > Cuentas por Pagar para continuar.");
+                });
+    }
+
+    private void poblarEstadoCuentaPorPagar(List<Gasto> gastos) {
+        var estados = cuentaPorPagarService.encontrarPorGastos(gastos.stream().map(Gasto::getId).toList());
+        gastos.forEach(gasto -> poblarEstadoCuentaPorPagar(gasto, estados));
+    }
+
+    private void poblarEstadoCuentaPorPagar(Gasto gasto) {
+        cuentaPorPagarService.encontrarPorGasto(gasto.getId())
+                .ifPresent(cuenta -> gasto.setCuentaPorPagarEstado(cuenta.getEstado().name()));
+    }
+
+    private void poblarEstadoCuentaPorPagar(Gasto gasto, java.util.Map<Long, CuentaPorPagar> estados) {
+        CuentaPorPagar cuenta = estados.get(gasto.getId());
+        if (cuenta != null) {
+            gasto.setCuentaPorPagarEstado(cuenta.getEstado().name());
+        }
     }
 
     private CategoriaGasto validarCategoria(Long tenantId, Long categoriaGastoId) {

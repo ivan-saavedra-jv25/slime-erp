@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -146,6 +147,36 @@ class CuentaPorPagarServiceTest {
         assertEquals(1, resumen.cuentasEnDeuda());
         assertEquals(1, resumen.cuentasPagadas());
         assertEquals(0, resumen.cuentasParciales());
+    }
+
+    @Test
+    void encontrarPorGastoDelegaAlRepositorioPorTenant() {
+        CuentaPorPagar cuenta = CuentaPorPagar.builder().id(1L).tenantId(tenantId).gastoId(3L).build();
+        when(repository.findByTenantIdAndGastoId(tenantId, 3L)).thenReturn(Optional.of(cuenta));
+
+        Optional<CuentaPorPagar> resultado = service.encontrarPorGasto(3L);
+
+        assertTrue(resultado.isPresent());
+        assertEquals(1L, resultado.get().getId());
+    }
+
+    @Test
+    void encontrarPorGastosDevuelveMapaVacioSiNoHayIds() {
+        assertTrue(service.encontrarPorGastos(List.of()).isEmpty());
+        verify(repository, never()).findByTenantIdAndGastoIdIn(any(), any());
+    }
+
+    @Test
+    void encontrarPorGastosAgrupaLasCuentasPorGastoId() {
+        when(repository.findByTenantIdAndGastoIdIn(tenantId, List.of(3L, 7L))).thenReturn(List.of(
+                CuentaPorPagar.builder().id(1L).tenantId(tenantId).gastoId(3L).build(),
+                CuentaPorPagar.builder().id(2L).tenantId(tenantId).gastoId(7L).build()));
+
+        Map<Long, CuentaPorPagar> resultado = service.encontrarPorGastos(List.of(3L, 7L));
+
+        assertEquals(2, resultado.size());
+        assertTrue(resultado.containsKey(3L));
+        assertTrue(resultado.containsKey(7L));
     }
 
     @Test

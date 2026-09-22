@@ -1,6 +1,6 @@
-<h1>Gastos recurrentes</h1>
 <p class="form-section-hint">
-  Cada plantilla genera automáticamente un gasto real el día indicado de cada mes, mientras esté dentro de su vigencia.
+  Cada plantilla genera automáticamente un gasto y su registro en tesorería según su frecuencia
+  (diaria, semanal, mensual o anual), mientras esté dentro de su vigencia.
 </p>
 
 @if (error) {
@@ -22,14 +22,34 @@
           </select>
         </div>
         <div class="form-group">
-          <label for="diaMes">Día del mes<span class="required-mark">*</span></label>
-          <input id="diaMes" name="diaMes" type="number" min="1" max="28" [(ngModel)]="diaMes" required />
+          <label for="frecuencia">Frecuencia<span class="required-mark">*</span></label>
+          <select id="frecuencia" name="frecuencia" [(ngModel)]="frecuencia" required>
+            @for (freq of frecuencias; track freq) {
+              <option [ngValue]="freq">{{ etiquetaFrecuencia[freq] }}</option>
+            }
+          </select>
+          <small class="hint">
+            @switch (frecuencia) {
+              @case ('DIARIO') { Cada día mientras esté vigente. }
+              @case ('SEMANAL') { Cada semana, el mismo día de la semana que la fecha de inicio. }
+              @case ('MENSUAL') { Cada mes, el día del mes indicado. }
+              @case ('ANUAL') { Cada año, en la misma fecha que la fecha de inicio. }
+            }
+          </small>
         </div>
       </div>
 
-      <div class="form-group">
-        <label for="monto">Monto<span class="required-mark">*</span></label>
-        <input id="monto" name="monto" type="number" min="1" step="1" [(ngModel)]="monto" required />
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="monto">Monto<span class="required-mark">*</span></label>
+          <input id="monto" name="monto" type="number" min="1" step="1" [(ngModel)]="monto" required />
+        </div>
+        @if (necesitaDiaMes()) {
+          <div class="form-group">
+            <label for="diaMes">Día del mes<span class="required-mark">*</span></label>
+            <input id="diaMes" name="diaMes" type="number" min="1" max="28" [(ngModel)]="diaMes" required />
+          </div>
+        }
       </div>
 
       <div class="form-group">
@@ -72,9 +92,13 @@
       <th mat-header-cell *matHeaderCellDef>Monto</th>
       <td mat-cell *matCellDef="let r">{{ r.monto | moneda }}</td>
     </ng-container>
+    <ng-container matColumnDef="frecuencia">
+      <th mat-header-cell *matHeaderCellDef>Frecuencia</th>
+      <td mat-cell *matCellDef="let r">{{ nombreFrecuenciaDe(r) }}</td>
+    </ng-container>
     <ng-container matColumnDef="diaMes">
       <th mat-header-cell *matHeaderCellDef>Día</th>
-      <td mat-cell *matCellDef="let r">{{ r.diaMes }}</td>
+      <td mat-cell *matCellDef="let r">{{ r.diaMes ?? '—' }}</td>
     </ng-container>
     <ng-container matColumnDef="vigencia">
       <th mat-header-cell *matHeaderCellDef>Vigencia</th>

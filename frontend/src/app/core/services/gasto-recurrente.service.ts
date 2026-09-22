@@ -2,13 +2,14 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { GastoRecurrente } from '../models/models';
+import { FrecuenciaGastoRecurrente, GastoRecurrente } from '../models/models';
 
 export interface GastoRecurrenteRequest {
   categoriaGastoId: number;
   monto: number;
   descripcion: string;
-  diaMes: number;
+  frecuencia: FrecuenciaGastoRecurrente;
+  diaMes: number | null;
   fechaInicio: string;
   fechaFin: string | null;
 }

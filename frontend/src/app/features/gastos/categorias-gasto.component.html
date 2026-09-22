@@ -1,0 +1,52 @@
+@if (error) {
+  <p class="page-error">{{ error }}</p>
+}
+
+<mat-card class="form-panel">
+  <h2>{{ editandoId ? 'Editar categoría' : 'Nueva categoría' }}</h2>
+
+  @if (auth.tienePermiso('TESORERIA_EDITAR')) {
+    <form #fc="ngForm" (ngSubmit)="guardar()" novalidate>
+      <div class="form-group" [class.has-error]="nombreCtrl.invalid && nombreCtrl.touched">
+        <label for="nombreCategoria">Nombre<span class="required-mark">*</span></label>
+        <input id="nombreCategoria" name="nombreCategoria" [(ngModel)]="nombreCategoria" required #nombreCtrl="ngModel" />
+        @if (nombreCtrl.invalid && nombreCtrl.touched) {
+          <span class="field-error">El nombre es obligatorio.</span>
+        }
+      </div>
+      <div class="form-actions">
+        @if (editandoId) {
+          <button mat-button type="button" (click)="cancelarEdicion()">Cancelar</button>
+        }
+        <button mat-flat-button color="primary" type="submit" [disabled]="guardando || fc.invalid">
+          {{ guardando ? 'Guardando...' : editandoId ? 'Guardar' : 'Agregar' }}
+        </button>
+      </div>
+    </form>
+  }
+</mat-card>
+
+<mat-card class="form-panel">
+  <h2>Categorías</h2>
+
+  <table mat-table [dataSource]="categorias" class="mat-elevation-z1">
+    <ng-container matColumnDef="nombre">
+      <th mat-header-cell *matHeaderCellDef>Categoría</th>
+      <td mat-cell *matCellDef="let c">{{ c.nombre }}</td>
+    </ng-container>
+    <ng-container matColumnDef="acciones">
+      <th mat-header-cell *matHeaderCellDef></th>
+      <td mat-cell *matCellDef="let c">
+        @if (auth.tienePermiso('TESORERIA_EDITAR')) {
+          <button mat-icon-button (click)="editar(c)"><mat-icon>edit</mat-icon></button>
+          <button mat-icon-button (click)="eliminar(c)"><mat-icon>delete</mat-icon></button>
+        }
+      </td>
+    </ng-container>
+    <tr mat-header-row *matHeaderRowDef="columnas"></tr>
+    <tr mat-row *matRowDef="let row; columns: columnas"></tr>
+  </table>
+  @if (!categorias.length) {
+    <p class="empty-state">No hay categorías de gasto todavía.</p>
+  }
+</mat-card>

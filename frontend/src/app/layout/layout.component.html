@@ -51,15 +51,20 @@
             </button>
 
             <div class="nav-submenu" [class.expanded]="expandido(grupo.key)">
-              @for (item of grupo.items; track item.ruta) {
-                <a
-                  [routerLink]="item.ruta"
-                  routerLinkActive="active"
-                  [routerLinkActiveOptions]="{ exact: !!item.exact }"
-                >
-                  <mat-icon>{{ item.icono }}</mat-icon>
-                  <span class="label">{{ item.label }}</span>
-                </a>
+              @for (seccion of grupo.secciones; track seccion.titulo) {
+                @if (seccion.titulo) {
+                  <span class="nav-section-label">{{ seccion.titulo }}</span>
+                }
+                @for (item of seccion.items; track item.ruta) {
+                  <a
+                    [routerLink]="item.ruta"
+                    routerLinkActive="active"
+                    [routerLinkActiveOptions]="{ exact: !!item.exact }"
+                  >
+                    <mat-icon>{{ item.icono }}</mat-icon>
+                    <span class="label">{{ item.label }}</span>
+                  </a>
+                }
               }
             </div>
           </div>

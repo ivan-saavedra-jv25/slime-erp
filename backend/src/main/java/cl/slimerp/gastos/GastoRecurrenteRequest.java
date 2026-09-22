@@ -9,7 +9,8 @@ public record GastoRecurrenteRequest(
         @NotNull Long categoriaGastoId,
         @NotNull @Positive BigDecimal monto,
         @NotBlank String descripcion,
-        @NotNull @Min(1) @Max(28) Integer diaMes,
+        @NotNull FrecuenciaGastoRecurrente frecuencia,
+        @Min(1) @Max(28) Integer diaMes,
         @NotNull LocalDate fechaInicio,
         LocalDate fechaFin
 ) {

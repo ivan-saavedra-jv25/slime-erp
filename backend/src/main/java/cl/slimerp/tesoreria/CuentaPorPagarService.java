@@ -8,7 +8,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 public class CuentaPorPagarService {
@@ -84,6 +89,23 @@ public class CuentaPorPagarService {
     public CuentaPorPagar obtener(Long id) {
         return cuentaPorPagarRepository.findByIdAndTenantId(id, TenantContext.getTenantId())
                 .orElseThrow(() -> new IllegalArgumentException("Cuenta por pagar no encontrada: " + id));
+    }
+
+    // Usado por GastoService para saber si un gasto ya está gestionado en
+    // tesorería (existe su cuenta por pagar) antes de permitir modificarlo o
+    // eliminarlo.
+    public Optional<CuentaPorPagar> encontrarPorGasto(Long gastoId) {
+        return cuentaPorPagarRepository.findByTenantIdAndGastoId(TenantContext.getTenantId(), gastoId);
+    }
+
+    // Variante por lote para enriquecer listados de gastos sin N+1.
+    public Map<Long, CuentaPorPagar> encontrarPorGastos(Collection<Long> gastoIds) {
+        if (gastoIds.isEmpty()) {
+            return Map.of();
+        }
+        return cuentaPorPagarRepository.findByTenantIdAndGastoIdIn(TenantContext.getTenantId(), gastoIds)
+                .stream()
+                .collect(Collectors.toMap(CuentaPorPagar::getGastoId, Function.identity()));
     }
 
     public ResumenCuentasPorPagar resumen() {

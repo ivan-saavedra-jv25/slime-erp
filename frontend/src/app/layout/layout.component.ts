@@ -18,16 +18,27 @@ interface NavItem {
   exact?: boolean;
 }
 
-interface NavGroup {
+interface NavSeccion {
+  titulo: string;
+  items: NavItem[];
+}
+
+interface NavGroupSource {
   key: string;
   titulo: string;
   icono: string;
+  items?: NavItem[];
+  secciones?: NavSeccion[];
+}
+
+interface NavGroup extends NavGroupSource {
   items: NavItem[];
+  secciones: NavSeccion[];
 }
 
 const DASHBOARD: NavItem = { ruta: '/dashboard', label: 'Dashboard', icono: 'dashboard' };
 
-const GRUPOS: NavGroup[] = [
+const GRUPOS: NavGroupSource[] = [
   {
     key: 'operacion',
     titulo: 'Operación',
@@ -62,15 +73,24 @@ const GRUPOS: NavGroup[] = [
     key: 'tesoreria',
     titulo: 'Tesorería',
     icono: 'account_balance',
-    items: [
-      { ruta: '/tesoreria/cuentas', label: 'Cuentas por cobrar', icono: 'account_balance_wallet', permiso: 'TESORERIA_VER' },
-      { ruta: '/tesoreria/historial', label: 'Historial de pagos', icono: 'history', permiso: 'TESORERIA_VER' },
-      { ruta: '/cuentas-por-pagar', label: 'Cuentas por pagar', icono: 'request_quote', permiso: 'TESORERIA_VER', exact: true },
-      { ruta: '/cuentas-por-pagar/historial', label: 'Historial de pagos (compras)', icono: 'history', permiso: 'TESORERIA_VER' },
-      { ruta: '/gastos', label: 'Gastos', icono: 'receipt_long', permiso: 'TESORERIA_VER' },
-      { ruta: '/gastos/recurrentes', label: 'Gastos recurrentes', icono: 'event_repeat', permiso: 'TESORERIA_VER' },
-      { ruta: '/flujo-caja', label: 'Flujo de caja', icono: 'insights', permiso: 'TESORERIA_VER' },
-      { ruta: '/caja', label: 'Caja chica', icono: 'point_of_sale', permiso: 'TESORERIA_VER' },
+    secciones: [
+      {
+        titulo: 'Operaciones',
+        items: [
+          { ruta: '/tesoreria/cuentas', label: 'Cuentas por cobrar', icono: 'account_balance_wallet', permiso: 'TESORERIA_VER' },
+          { ruta: '/tesoreria/historial', label: 'Cobros', icono: 'call_received', permiso: 'TESORERIA_VER' },
+          { ruta: '/cuentas-por-pagar', label: 'Cuentas por pagar', icono: 'request_quote', permiso: 'TESORERIA_VER', exact: true },
+          { ruta: '/cuentas-por-pagar/historial', label: 'Pagos a proveedores', icono: 'call_made', permiso: 'TESORERIA_VER' },
+          { ruta: '/gastos', label: 'Gastos', icono: 'receipt_long', permiso: 'TESORERIA_VER' },
+          { ruta: '/caja', label: 'Caja chica', icono: 'point_of_sale', permiso: 'TESORERIA_VER' },
+        ],
+      },
+      {
+        titulo: 'Análisis',
+        items: [
+          { ruta: '/flujo-caja', label: 'Flujo de caja', icono: 'insights', permiso: 'TESORERIA_VER' },
+        ],
+      },
     ],
   },
   {
@@ -131,10 +151,15 @@ export class LayoutComponent implements OnInit {
   ) {}
 
   get grupos(): NavGroup[] {
-    return GRUPOS.map((grupo) => ({
-      ...grupo,
-      items: grupo.items.filter((item) => !item.permiso || this.auth.tienePermiso(item.permiso)),
-    })).filter((grupo) => grupo.items.length > 0);
+    return GRUPOS.map((grupo) => {
+      const secciones = (grupo.secciones ?? [{ titulo: '', items: grupo.items ?? [] }])
+        .map((seccion) => ({
+          titulo: seccion.titulo,
+          items: seccion.items.filter((item) => !item.permiso || this.auth.tienePermiso(item.permiso)),
+        }))
+        .filter((seccion) => seccion.items.length > 0);
+      return { ...grupo, secciones, items: secciones.flatMap((seccion) => seccion.items) };
+    }).filter((grupo) => (grupo.items ?? []).length > 0);
   }
 
   get iniciales(): string {

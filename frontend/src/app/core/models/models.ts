@@ -318,12 +318,22 @@ export interface CategoriaGasto {
   fechaCreacion: string;
 }
 
+export type FrecuenciaGastoRecurrente = 'DIARIO' | 'SEMANAL' | 'MENSUAL' | 'ANUAL';
+
+export const ETIQUETAS_FRECUENCIA_GASTO: Record<FrecuenciaGastoRecurrente, string> = {
+  DIARIO: 'Diario',
+  SEMANAL: 'Semanal',
+  MENSUAL: 'Mensual',
+  ANUAL: 'Anual',
+};
+
 export interface GastoRecurrente {
   id: number;
   categoriaGastoId: number;
   monto: number;
   descripcion: string;
-  diaMes: number;
+  frecuencia: FrecuenciaGastoRecurrente;
+  diaMes: number | null;
   fechaInicio: string;
   fechaFin: string | null;
   activo: boolean;
@@ -339,6 +349,7 @@ export interface Gasto {
   fecha: string;
   activo: boolean;
   fechaCreacion: string;
+  cuentaPorPagarEstado: EstadoCuentaPorPagar | null;
 }
 
 export type EstadoCuentaPorCobrar = 'DEUDA' | 'PARCIAL' | 'PAGADO' | 'ANULADO';

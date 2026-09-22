@@ -23,8 +23,15 @@ const ETIQUETAS: Record<EstadoCuentaPorCobrar, string> = {
   ANULADO: 'Anulado',
 };
 
+function hoy(): string {
+  const d = new Date();
+  const mes = String(d.getMonth() + 1).padStart(2, '0');
+  const dia = String(d.getDate()).padStart(2, '0');
+  return `${d.getFullYear()}-${mes}-${dia}`;
+}
+
 function pagoVacio(): TransaccionPagoRequest {
-  return { monto: 0, medioPago: 'EFECTIVO' };
+  return { monto: 0, medioPago: 'EFECTIVO', fecha: hoy() };
 }
 
 @Component({
@@ -134,13 +141,21 @@ export class TesoreriaCuentaDetalleComponent implements OnInit {
     return !this.cuenta || this.pagoForm.monto <= 0 || this.pagoForm.monto > this.cuenta.saldoPendiente;
   }
 
+  get fechaPagoInvalida(): boolean {
+    return !this.pagoForm.fecha;
+  }
+
   confirmarPago(): void {
-    if (!this.cuenta || this.montoInvalido) return;
+    if (!this.cuenta || this.montoInvalido || this.fechaPagoInvalida) return;
     this.guardandoPago = true;
     this.errorPago = '';
     mostrarCargando('Registrando pago');
 
-    this.transaccionPagoService.registrarPago(this.cuenta.id, this.pagoForm).subscribe({
+    const request = {
+      ...this.pagoForm,
+      fecha: this.pagoForm.fecha ? `${this.pagoForm.fecha}T12:00:00` : undefined,
+    };
+    this.transaccionPagoService.registrarPago(this.cuenta.id, request).subscribe({
       next: () => {
         cerrarCargando();
         this.guardandoPago = false;

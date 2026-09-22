@@ -135,6 +135,12 @@
             <span class="hint">Saldo pendiente: {{ cuenta.saldoPendiente | moneda }}</span>
           </div>
 
+          <div class="form-group">
+            <label for="pagoFecha">Fecha del pago<span class="required-mark">*</span></label>
+            <input id="pagoFecha" type="date" [(ngModel)]="pagoForm.fecha" name="pagoFecha" />
+            <span class="hint">Fecha real en que se realizó el pago.</span>
+          </div>
+
           @if (pagoForm.medioPago === 'TRANSFERENCIA') {
             <div class="form-group">
               <label for="bancoOrigen">Banco de origen<span class="required-mark">*</span></label>
@@ -247,7 +253,7 @@
           type="button"
           mat-flat-button
           color="primary"
-          [disabled]="montoInvalido || guardandoPago"
+          [disabled]="montoInvalido || fechaPagoInvalida || guardandoPago"
           (click)="confirmarPago()"
         >
           <mat-icon>check_circle</mat-icon>

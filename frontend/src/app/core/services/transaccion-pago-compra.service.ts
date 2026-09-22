@@ -8,6 +8,7 @@ export interface TransaccionPagoCompraRequest {
   monto: number;
   medioPago: MedioPago;
   observaciones?: string;
+  fecha?: string;
   transferenciaBancoOrigen?: string;
   transferenciaBancoDestino?: string;
   transferenciaNumeroOperacion?: string;

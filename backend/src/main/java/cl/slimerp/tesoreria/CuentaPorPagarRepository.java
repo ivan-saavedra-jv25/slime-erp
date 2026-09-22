@@ -2,6 +2,7 @@ package cl.slimerp.tesoreria;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,4 +20,8 @@ public interface CuentaPorPagarRepository extends JpaRepository<CuentaPorPagar, 
     Optional<CuentaPorPagar> findByTenantIdAndCompraId(Long tenantId, Long compraId);
 
     Optional<CuentaPorPagar> findByTenantIdAndGastoId(Long tenantId, Long gastoId);
+
+    List<CuentaPorPagar> findByTenantIdAndGastoIdIn(Long tenantId, Collection<Long> gastoIds);
+
+    List<CuentaPorPagar> findByTenantIdAndIdIn(Long tenantId, Collection<Long> ids);
 }

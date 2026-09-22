@@ -17,6 +17,7 @@ class GastoRecurrenteControllerTest {
 
     private GastoRecurrenteRepository gastoRecurrenteRepository;
     private CategoriaGastoRepository categoriaGastoRepository;
+    private GastoRecurrenteGeneratorJob job;
     private GastoRecurrenteController controller;
 
     private final CategoriaGasto categoria = CategoriaGasto.builder().id(1L).tenantId(1L).nombre("Arriendo").activo(true).build();
@@ -25,7 +26,8 @@ class GastoRecurrenteControllerTest {
     void setUp() {
         gastoRecurrenteRepository = mock(GastoRecurrenteRepository.class);
         categoriaGastoRepository = mock(CategoriaGastoRepository.class);
-        controller = new GastoRecurrenteController(gastoRecurrenteRepository, categoriaGastoRepository);
+        job = mock(GastoRecurrenteGeneratorJob.class);
+        controller = new GastoRecurrenteController(gastoRecurrenteRepository, categoriaGastoRepository, job);
         TenantContext.setTenantId(1L);
         when(gastoRecurrenteRepository.save(any(GastoRecurrente.class))).thenAnswer(inv -> inv.getArgument(0));
         when(categoriaGastoRepository.findByIdAndTenantIdAndActivoTrue(1L, 1L)).thenReturn(Optional.of(categoria));
@@ -37,8 +39,8 @@ class GastoRecurrenteControllerTest {
     }
 
     private GastoRecurrenteRequest request() {
-        return new GastoRecurrenteRequest(1L, new BigDecimal("350000"), "Arriendo oficina", 5,
-                LocalDate.of(2026, 1, 1), null);
+        return new GastoRecurrenteRequest(1L, new BigDecimal("350000"), "Arriendo oficina",
+                FrecuenciaGastoRecurrente.MENSUAL, 5, LocalDate.of(2026, 1, 1), null);
     }
 
     @Test
@@ -47,14 +49,45 @@ class GastoRecurrenteControllerTest {
 
         assertEquals(1L, response.getBody().getTenantId());
         assertEquals(new BigDecimal("350000"), response.getBody().getMonto());
+        assertEquals(FrecuenciaGastoRecurrente.MENSUAL, response.getBody().getFrecuencia());
         assertEquals((short) 5, response.getBody().getDiaMes());
     }
 
     @Test
     void rechazaLaPlantillaSiLaCategoriaNoExiste() {
-        var req = new GastoRecurrenteRequest(999L, new BigDecimal("100"), "X", 1, LocalDate.now(), null);
+        var req = new GastoRecurrenteRequest(999L, new BigDecimal("100"), "X",
+                FrecuenciaGastoRecurrente.MENSUAL, 1, LocalDate.now(), null);
 
         assertThrows(IllegalArgumentException.class, () -> controller.crear(req));
+    }
+
+    @Test
+    void guardaLaFrecuenciaSeleccionadaYSinDiaParaFrecuenciasNoMensuales() {
+        var req = new GastoRecurrenteRequest(1L, new BigDecimal("100"), "X",
+                FrecuenciaGastoRecurrente.DIARIO, null, LocalDate.now(), null);
+
+        var response = controller.crear(req);
+
+        assertEquals(FrecuenciaGastoRecurrente.DIARIO, response.getBody().getFrecuencia());
+        assertNull(response.getBody().getDiaMes());
+    }
+
+    @Test
+    void rechazaUnaPlantillaMensualSinDiaDelMes() {
+        var req = new GastoRecurrenteRequest(1L, new BigDecimal("100"), "X",
+                FrecuenciaGastoRecurrente.MENSUAL, null, LocalDate.now(), null);
+
+        assertThrows(IllegalArgumentException.class, () -> controller.crear(req));
+    }
+
+    @Test
+    void generarInstanciasDelegaEnElJobDelTenantYRetornaElConteo() {
+        when(job.generarParaTenantActual()).thenReturn(3);
+
+        var response = controller.generarInstancias();
+
+        verify(job).generarParaTenantActual();
+        assertEquals(3, response.getBody().get("generados"));
     }
 
     @Test

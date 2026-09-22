@@ -1,7 +1,10 @@
 import { Component, computed, input } from '@angular/core';
-import { MonthProjection } from '../core/projection';
-import { formatMonthLabel } from '../core/month';
 import { ClpPipe } from '../shared/clp.pipe';
+
+export interface ChartPoint {
+  label: string;
+  value: number;
+}
 
 interface Point {
   x: number;
@@ -40,7 +43,7 @@ const PADDING = { top: 16, right: 16, bottom: 28, left: 16 };
       <path [attr.d]="areaPath()" class="area" />
       <path [attr.d]="linePath()" class="line" />
 
-      @for (p of points(); track p.label) {
+      @for (p of plot(); track p.label) {
         <circle [attr.cx]="p.x" [attr.cy]="p.y" r="3.5" class="dot" [class.negative]="p.value < 0">
           <title>{{ p.label }}: {{ p.value | clp }}</title>
         </circle>
@@ -110,14 +113,15 @@ const PADDING = { top: 16, right: 16, bottom: 28, left: 16 };
   `,
 })
 export class BalanceChart {
-  readonly months = input.required<MonthProjection[]>();
+  /** Puntos en orden cronológico, con `label` y `value` ya calculados. */
+  readonly points = input.required<ChartPoint[]>();
 
   readonly width = WIDTH;
   readonly height = HEIGHT;
   readonly padding = PADDING;
 
   private readonly scale = computed(() => {
-    const values = this.months().map((m) => m.closingBalance);
+    const values = this.points().map((p) => p.value);
     let min = Math.min(0, ...values);
     let max = Math.max(0, ...values);
     // Un flujo plano dejaría min === max y dividiría por cero.
@@ -130,15 +134,15 @@ export class BalanceChart {
     return { min, max, innerHeight, innerWidth };
   });
 
-  readonly points = computed<Point[]>(() => {
-    const months = this.months();
+  readonly plot = computed<Point[]>(() => {
+    const data = this.points();
     const { min, max, innerHeight, innerWidth } = this.scale();
-    const step = months.length > 1 ? innerWidth / (months.length - 1) : 0;
-    return months.map((m, i) => ({
-      x: PADDING.left + step * i + (months.length > 1 ? 0 : innerWidth / 2),
-      y: PADDING.top + innerHeight - ((m.closingBalance - min) / (max - min)) * innerHeight,
-      label: formatMonthLabel(m.month),
-      value: m.closingBalance,
+    const step = data.length > 1 ? innerWidth / (data.length - 1) : 0;
+    return data.map((p, i) => ({
+      x: PADDING.left + step * i + (data.length > 1 ? 0 : innerWidth / 2),
+      y: PADDING.top + innerHeight - ((p.value - min) / (max - min)) * innerHeight,
+      label: p.label,
+      value: p.value,
     }));
   });
 
@@ -150,17 +154,17 @@ export class BalanceChart {
   readonly showZeroLine = computed(() => this.scale().min < 0);
 
   readonly linePath = computed(() =>
-    this.points()
+    this.plot()
       .map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x.toFixed(2)},${p.y.toFixed(2)}`)
       .join(' '),
   );
 
   readonly areaPath = computed(() => {
-    const points = this.points();
-    if (points.length === 0) return '';
+    const pts = this.plot();
+    if (pts.length === 0) return '';
     const base = this.showZeroLine() ? this.zeroY() : HEIGHT - PADDING.bottom;
-    const first = points[0];
-    const last = points[points.length - 1];
+    const first = pts[0];
+    const last = pts[pts.length - 1];
     return `${this.linePath()} L${last.x.toFixed(2)},${base.toFixed(2)} L${first.x.toFixed(2)},${base.toFixed(2)} Z`;
   });
 }

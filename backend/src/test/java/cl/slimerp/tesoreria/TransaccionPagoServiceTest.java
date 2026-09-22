@@ -11,6 +11,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -58,7 +59,7 @@ class TransaccionPagoServiceTest {
 
     private TransaccionPagoRequest requestEfectivo(BigDecimal monto) {
         return new TransaccionPagoRequest(monto, MedioPago.EFECTIVO, null,
-                null, null, null, null, null, null, null, null, null, null, null, null);
+                null, null, null, null, null, null, null, null, null, null, null, null, null);
     }
 
     @Test
@@ -95,7 +96,7 @@ class TransaccionPagoServiceTest {
     @Test
     void rechazaUnaTransferenciaSinLosBancosRequeridos() {
         var request = new TransaccionPagoRequest(new BigDecimal("100"), MedioPago.TRANSFERENCIA, null,
-                null, null, null, null, null, null, null, null, null, null, null, null);
+                null, null, null, null, null, null, null, null, null, null, null, null, null);
 
         assertThrows(IllegalArgumentException.class, () -> service.registrarPago(1L, request, 9L));
     }
@@ -103,11 +104,23 @@ class TransaccionPagoServiceTest {
     @Test
     void aceptaUnaTransferenciaConLosBancosRequeridos() {
         var request = new TransaccionPagoRequest(new BigDecimal("100"), MedioPago.TRANSFERENCIA, null,
-                "Banco A", "Banco B", "OP-123", null, null, null, null, null, null, null, null, null);
+                "Banco A", "Banco B", "OP-123", null, null, null, null, null, null, null, null, null, null);
 
         TransaccionPago pago = service.registrarPago(1L, request, 9L);
 
         assertEquals(MedioPago.TRANSFERENCIA, pago.getMedioPago());
+    }
+
+    @Test
+    void registrarUnPagoUsaLaFechaPersonalizadaEnElPagoYEnLaCuenta() {
+        LocalDateTime fechaPago = LocalDateTime.of(2026, 5, 10, 12, 0);
+        var request = new TransaccionPagoRequest(new BigDecimal("500"), MedioPago.EFECTIVO, null,
+                null, null, null, null, null, null, null, null, null, null, null, null, fechaPago);
+
+        TransaccionPago pago = service.registrarPago(1L, request, 9L);
+
+        assertEquals(fechaPago, pago.getFecha());
+        assertEquals(fechaPago, cuenta.getFechaUltimoPago());
     }
 
     @Test

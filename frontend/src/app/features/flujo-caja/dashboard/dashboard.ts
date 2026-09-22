@@ -1,16 +1,19 @@
 import { NgTemplateOutlet } from '@angular/common';
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterLink } from '@angular/router';
-import { CashflowStore } from '../core/cashflow.store';
-import { MonthHealth, monthStatus, yearAlerts } from '../core/health';
-import { MonthKey } from '../core/models';
+import { finalize } from 'rxjs';
+import { FlujoCajaService, MesResumen, ResumenAnio } from '../core/flujo-caja.service';
+import { currentYear, formatMonthLabel } from '../core/month';
 import { ClpPipe } from '../shared/clp.pipe';
 import { MonthLabelPipe } from '../shared/month-label.pipe';
 import { BalanceChart } from './balance-chart';
+
+type MonthHealth = 'ok' | 'warning' | 'critical';
 
 interface MatrixRow {
   label: string;
@@ -18,6 +21,11 @@ interface MatrixRow {
   /** Suma de la fila; `null` cuando sumar meses no tiene sentido (saldos). */
   total: number | null;
   style: 'category' | 'subtotal' | 'result' | 'balance';
+}
+
+interface MonthStatus {
+  health: MonthHealth;
+  reason: string;
 }
 
 @Component({
@@ -29,6 +37,7 @@ interface MatrixRow {
     MatButtonModule,
     MatCardModule,
     MatIconModule,
+    MatProgressBarModule,
     MatTooltipModule,
     BalanceChart,
     ClpPipe,
@@ -38,155 +47,137 @@ interface MatrixRow {
   styleUrl: './dashboard.css',
 })
 export class Dashboard {
-  private readonly store = inject(CashflowStore);
+  private readonly service = inject(FlujoCajaService);
 
-  readonly projection = this.store.projection;
-  readonly statuses = computed(() => this.projection().map((m) => monthStatus(m)));
-  readonly alerts = computed(() => yearAlerts(this.projection()));
+  readonly year = signal(currentYear());
+  readonly data = signal<ResumenAnio | null>(null);
+  readonly loading = signal(true);
+  readonly error = signal<string | null>(null);
 
-  /** Peor semáforo de los meses con alerta, para colorear el contador. */
-  readonly worstHealth = computed<MonthHealth>(() => {
-    const alerts = this.alerts();
-    if (alerts.critical > 0) return 'critical';
-    return alerts.warning > 0 ? 'warning' : 'ok';
+  constructor() {
+    this.load(this.year());
+  }
+
+  /** Los 12 meses del año (el backend siempre los devuelve, con ceros si no hay datos). */
+  readonly months = computed<MesResumen[]>(() => this.data()?.meses ?? []);
+
+  readonly monthsKeys = computed(() => this.months().map((m) => m.mes));
+
+  readonly hasData = computed(() =>
+    this.months().some((m) => m.ingresos > 0 || m.compras > 0 || m.gastos > 0),
+  );
+
+  /** Umbral de holgura: gastos mensuales promedio del año. */
+  private readonly avgEgresos = computed(() => {
+    const months = this.months();
+    if (months.length === 0) return 0;
+    return months.reduce((a, m) => a + m.compras + m.gastos, 0) / months.length;
   });
-  readonly year = this.store.year;
-  readonly baseYear = this.store.baseYear;
-  readonly canGoToPreviousYear = this.store.canGoToPreviousYear;
-  readonly isCarriedOver = this.store.isCarriedOver;
-  readonly months = computed(() => this.projection().map((m) => m.month));
 
-  readonly isEmpty = computed(() => {
-    const state = this.store.state();
-    return state.recurring.length === 0 && state.oneOff.length === 0;
+  readonly statuses = computed<MonthStatus[]>(() =>
+    this.months().map((m) => {
+      if (m.saldo < 0) return { health: 'critical', reason: 'Este mes cerró con saldo negativo' };
+      if (this.avgEgresos() > 0 && m.saldo < this.avgEgresos() * 0.3) {
+        return { health: 'warning', reason: 'Saldo final bajo para el gasto mensual habitual' };
+      }
+      return { health: 'ok', reason: 'Sin alertas este mes' };
+    }),
+  );
+
+  readonly saldoArrastrado = computed(() => {
+    const first = this.months()[0];
+    return first ? first.saldo - first.resultado : 0;
   });
+
+  statusTooltip(index: number): string {
+    return this.statuses()[index].reason;
+  }
+
+  readonly ingresosAnio = computed(() => this.months().reduce((a, m) => a + m.ingresos, 0));
+  readonly egresosAnio = computed(() =>
+    this.months().reduce((a, m) => a + m.compras + m.gastos, 0),
+  );
+  readonly resultadoAnio = computed(() => this.ingresosAnio() - this.egresosAnio());
+
+  readonly saldoFinal = computed(() => {
+    const months = this.months();
+    return months[months.length - 1]?.saldo ?? 0;
+  });
+
+  readonly lowestMonth = computed<MesResumen | null>(() =>
+    this.months().reduce<MesResumen | null>(
+      (worst, m) => (worst === null || m.saldo < worst.saldo ? m : worst),
+      null,
+    ),
+  );
+
+  readonly chartPoints = computed(() =>
+    this.months().map((m) => ({ label: formatMonthLabel(m.mes), value: m.saldo })),
+  );
 
   readonly openingRow = computed<MatrixRow>(() => ({
     label: 'Saldo inicial',
-    values: this.projection().map((m) => m.openingBalance),
+    values: this.months().map((m) => m.saldo - m.resultado),
     total: null,
     style: 'balance',
   }));
 
-  readonly incomeRows = computed(() => this.categoryRows('income'));
-  readonly expenseRows = computed(() => this.categoryRows('expense'));
+  readonly ingresosRow = computed<MatrixRow>(() =>
+    this.subtotalRow('Ingresos', this.months().map((m) => m.ingresos)),
+  );
 
-  readonly incomeTotalRow = computed<MatrixRow>(() =>
+  readonly comprasRow = computed<MatrixRow>(() =>
+    this.categoryRow('Compras', this.months().map((m) => m.compras)),
+  );
+
+  readonly gastosRow = computed<MatrixRow>(() =>
+    this.categoryRow('Gastos', this.months().map((m) => m.gastos)),
+  );
+
+  readonly egresosRow = computed<MatrixRow>(() =>
     this.subtotalRow(
-      'Total ingresos',
-      this.projection().map((m) => m.totalIncome),
+      'Total egresos',
+      this.months().map((m) => m.compras + m.gastos),
     ),
   );
 
-  readonly expenseTotalRow = computed<MatrixRow>(() =>
-    this.subtotalRow(
-      'Total gastos',
-      this.projection().map((m) => m.totalExpense),
-    ),
-  );
-
-  readonly operationalRow = computed<MatrixRow>(() => {
-    const values = this.projection().map((m) => m.operationalNet);
-    return {
-      label: 'Resultado operacional',
-      values,
-      total: values.reduce((a, b) => a + b, 0),
-      style: 'result',
-    };
-  });
-
-  /** Las filas de provisión sólo aparecen si hay algo provisionado. */
-  readonly hasProvisions = computed(() => {
-    const { taxRatePercent, contingencyMonths } = this.store.settings().provisions;
-    return taxRatePercent > 0 || contingencyMonths > 0;
-  });
-
-  readonly provisionRow = computed<MatrixRow>(() => ({
-    label: 'Impuestos provisionados',
-    values: this.projection().map((m) => m.accumulatedTaxProvision),
-    total: null,
-    style: 'subtotal',
-  }));
-
-  readonly availableRow = computed<MatrixRow>(() => ({
-    label: 'Disponible real',
-    values: this.projection().map((m) => m.availableBalance),
-    total: null,
-    style: 'balance',
-  }));
-
-  readonly finalAvailable = computed(() => {
-    const months = this.projection();
-    return months[months.length - 1]?.availableBalance ?? 0;
-  });
-
-  readonly netRow = computed<MatrixRow>(() => {
-    const values = this.projection().map((m) => m.net);
-    return {
-      label: 'Resultado del mes',
-      values,
-      total: values.reduce((a, b) => a + b, 0),
-      style: 'result',
-    };
+  readonly resultadoRow = computed<MatrixRow>(() => {
+    const values = this.months().map((m) => m.resultado);
+    return { label: 'Resultado del mes', values, total: values.reduce((a, b) => a + b, 0), style: 'result' };
   });
 
   readonly closingRow = computed<MatrixRow>(() => ({
     label: 'Saldo final',
-    values: this.projection().map((m) => m.closingBalance),
+    values: this.months().map((m) => m.saldo),
     total: null,
     style: 'balance',
   }));
 
-  readonly finalBalance = computed(() => {
-    const months = this.projection();
-    return months[months.length - 1]?.closingBalance ?? 0;
-  });
-
-  readonly lowestMonth = computed(() =>
-    this.projection().reduce((worst, m) => (m.closingBalance < worst.closingBalance ? m : worst)),
-  );
-
   private subtotalRow(label: string, values: number[]): MatrixRow {
-    return { label, values, total: values.reduce((a, b) => a + b, 0), style: 'subtotal' };
+    const total = values.reduce((a, b) => a + b, 0);
+    return { label, values, total, style: total === 0 ? 'category' : 'subtotal' };
   }
 
-  private categoryRows(kind: 'income' | 'expense'): MatrixRow[] {
-    const months = this.projection();
-    const categories =
-      kind === 'income' ? this.store.incomeCategories() : this.store.expenseCategories();
-    return (
-      categories
-        .map((category) => {
-          const values = months.map(
-            (m) =>
-              (kind === 'income' ? m.incomeByCategory : m.expenseByCategory).get(category.id) ?? 0,
-          );
-          return {
-            label: category.name,
-            values,
-            total: values.reduce((a, b) => a + b, 0),
-            style: 'category' as const,
-          };
-        })
-        // Una categoría sin montos en todo el horizonte sólo agrega ruido.
-        .filter((row) => row.total !== 0)
-    );
-  }
-
-  goToMonth(month: MonthKey): void {
-    this.store.selectMonth(month);
+  private categoryRow(label: string, values: number[]): MatrixRow {
+    return { label, values, total: values.reduce((a, b) => a + b, 0), style: 'category' };
   }
 
   stepYear(delta: number): void {
-    this.store.stepYear(delta);
+    const next = this.year() + delta;
+    this.year.set(next);
+    this.load(next);
   }
 
-  statusTooltip(index: number): string {
-    const reasons = this.statuses()[index].reasons;
-    return reasons.length === 0 ? 'Sin alertas este mes' : reasons.join('. ');
-  }
-
-  loadSample(): void {
-    this.store.loadSample();
+  private load(anio: number): void {
+    this.loading.set(true);
+    this.error.set(null);
+    this.service
+      .resumenAnio(anio)
+      .pipe(finalize(() => this.loading.set(false)))
+      .subscribe({
+        next: (resumen) => this.data.set(resumen),
+        error: () =>
+          this.error.set('No se pudo cargar el flujo del año. Intenta de nuevo más tarde.'),
+      });
   }
 }

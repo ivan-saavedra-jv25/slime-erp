@@ -11,6 +11,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -56,7 +57,7 @@ class TransaccionPagoCompraServiceTest {
 
     private TransaccionPagoRequest requestEfectivo(BigDecimal monto) {
         return new TransaccionPagoRequest(monto, MedioPago.EFECTIVO, null,
-                null, null, null, null, null, null, null, null, null, null, null, null);
+                null, null, null, null, null, null, null, null, null, null, null, null, null);
     }
 
     @Test
@@ -93,9 +94,21 @@ class TransaccionPagoCompraServiceTest {
     @Test
     void rechazaUnaTransferenciaSinLosBancosRequeridos() {
         var request = new TransaccionPagoRequest(new BigDecimal("100"), MedioPago.TRANSFERENCIA, null,
-                null, null, null, null, null, null, null, null, null, null, null, null);
+                null, null, null, null, null, null, null, null, null, null, null, null, null);
 
         assertThrows(IllegalArgumentException.class, () -> service.registrarPago(1L, request, 9L));
+    }
+
+    @Test
+    void registrarUnPagoUsaLaFechaPersonalizadaEnElPagoYEnLaCuenta() {
+        LocalDateTime fechaPago = LocalDateTime.of(2026, 3, 15, 9, 30);
+        var request = new TransaccionPagoRequest(new BigDecimal("500"), MedioPago.EFECTIVO, null,
+                null, null, null, null, null, null, null, null, null, null, null, null, fechaPago);
+
+        TransaccionPagoCompra pago = service.registrarPago(1L, request, 9L);
+
+        assertEquals(fechaPago, pago.getFecha());
+        assertEquals(fechaPago, cuenta.getFechaUltimoPago());
     }
 
     @Test
