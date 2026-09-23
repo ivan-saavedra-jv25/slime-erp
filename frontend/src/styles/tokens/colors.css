@@ -30,11 +30,20 @@
   --topbar-shadow: rgba(0, 27, 76, 0.22);
 
   /* Sidebar */
+  --sidebar-bg: #101828;
   --sidebar-border: #d9e0ea;
   --sidebar-hover: #fafbff;
   --sidebar-text: #2a343d;
   --sidebar-icon: #8393a3;
   --sidebar-subitem-text: #52677b;
+
+  /* Texto e interacciones sobre el fondo oscuro del sidebar */
+  --sidebar-on-dark-text: rgba(255, 255, 255, 0.84);
+  --sidebar-on-dark-icon: rgba(255, 255, 255, 0.72);
+  --sidebar-on-dark-muted: rgba(255, 255, 255, 0.56);
+  --sidebar-on-dark-hover: rgba(255, 255, 255, 0.08);
+  --sidebar-on-dark-active-bg: rgba(255, 255, 255, 0.14);
+  --sidebar-on-dark-border: rgba(255, 255, 255, 0.22);
 
   /* Estados de sistema */
   --success-base: #10b981;

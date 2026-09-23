@@ -129,8 +129,8 @@
 
 .sidebar {
   width: 256px;
-  background: var(--white);
-  border-right: 1px solid var(--sidebar-border);
+  background: var(--sidebar-bg);
+  border-right: 1px solid var(--sidebar-on-dark-border);
   display: flex;
   flex-direction: column;
 }
@@ -149,7 +149,7 @@
   gap: 12px;
   padding: 11px 20px;
   text-decoration: none;
-  color: var(--sidebar-text);
+  color: var(--sidebar-on-dark-text);
   font-size: 14px;
   font-weight: 400;
   border-right: 3px solid transparent;
@@ -157,22 +157,22 @@
 }
 
 .sidebar nav a mat-icon {
-  color: var(--sidebar-icon);
+  color: var(--sidebar-on-dark-icon);
 }
 
 .sidebar nav a:hover {
-  background: var(--sidebar-hover);
+  background: var(--sidebar-on-dark-hover);
 }
 
 .sidebar nav a.active {
-  background: var(--sidebar-hover);
-  border-right-color: var(--primary-base);
-  color: var(--primary-base);
+  background: var(--sidebar-on-dark-active-bg);
+  border-right-color: var(--white);
+  color: var(--white);
   font-weight: 700;
 }
 
 .sidebar nav a.active mat-icon {
-  color: var(--primary-base);
+  color: var(--white);
 }
 
 .nav-group {
@@ -188,7 +188,7 @@
   padding: 11px 20px;
   border: none;
   background: transparent;
-  color: var(--sidebar-text);
+  color: var(--sidebar-on-dark-text);
   font-size: 14px;
   font-weight: 700;
   font-family: inherit;
@@ -198,7 +198,7 @@
 }
 
 .nav-group-toggle mat-icon:not(.chevron) {
-  color: var(--sidebar-icon);
+  color: var(--sidebar-on-dark-icon);
 }
 
 .nav-group-toggle .label {
@@ -216,16 +216,16 @@
 }
 
 .nav-group-toggle:hover {
-  background: var(--sidebar-hover);
+  background: var(--sidebar-on-dark-hover);
 }
 
 .nav-group-toggle.active {
-  color: var(--primary-base);
+  color: var(--white);
   font-weight: 700;
 }
 
 .nav-group-toggle.active mat-icon:not(.chevron) {
-  color: var(--primary-base);
+  color: var(--white);
 }
 
 .nav-submenu {
@@ -234,7 +234,7 @@
   height: 0;
   overflow: hidden;
   margin-left: 31px;
-  border-left: 2px solid var(--sidebar-border);
+  border-left: 2px solid var(--sidebar-on-dark-border);
 }
 
 .nav-submenu.expanded {
@@ -247,7 +247,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: var(--text-muted);
+  color: var(--sidebar-on-dark-muted);
 }
 
 .nav-submenu a {
@@ -268,7 +268,7 @@
 }
 
 .user-box {
-  border-top: var(--border-width-default) solid var(--border-default);
+  border-top: var(--border-width-default) solid var(--sidebar-on-dark-border);
   padding: var(--space-4);
   display: flex;
   flex-direction: column;
@@ -277,11 +277,13 @@
 
 .user-name {
   font: var(--font-body-sm);
-  color: var(--sidebar-text);
+  color: var(--sidebar-on-dark-text);
 }
 
 .user-box button {
   width: 100%;
+  color: var(--white);
+  border-color: var(--sidebar-on-dark-border);
 }
 
 .content {
