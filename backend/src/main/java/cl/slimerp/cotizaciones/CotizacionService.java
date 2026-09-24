@@ -394,7 +394,9 @@ public class CotizacionService {
     }
 
     private Sort ordenamiento(String orden, String direccion) {
-        String campo = CAMPOS_ORDEN.contains(orden) ? orden : "fechaEmision";
+        // Set.of(...).contains(null) lanza NullPointerException, y "sort" es un
+        // parámetro opcional del listado: hay que descartar el nulo antes.
+        String campo = orden != null && CAMPOS_ORDEN.contains(orden) ? orden : "fechaEmision";
         Sort.Direction dir = "asc".equalsIgnoreCase(direccion) ? Sort.Direction.ASC : Sort.Direction.DESC;
         // Desempate por folio: dos cotizaciones del mismo día deben salir siempre
         // en el mismo orden entre páginas.

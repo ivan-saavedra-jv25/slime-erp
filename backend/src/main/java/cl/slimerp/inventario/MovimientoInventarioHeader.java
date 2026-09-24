@@ -22,7 +22,7 @@ public class MovimientoInventarioHeader {
     private Long tenantId;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
+    @Column(nullable = false, length = 30)
     private TipoMovimiento tipo;
 
     @Column(name = "bodega_origen_id")

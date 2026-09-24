@@ -1,0 +1,389 @@
+<div class="page-header">
+  <div>
+    <h1>{{ esEdicion ? 'Editar' : 'Nueva' }} Nota de Débito</h1>
+    <p class="form-section-hint">
+      Revierta una nota de crédito emitida y, cuando corresponde, reponga la mercadería a bodega.
+    </p>
+  </div>
+  <a mat-stroked-button routerLink="/notas-debito">
+    <mat-icon>arrow_back</mat-icon>
+    Volver
+  </a>
+</div>
+
+@if (error) {
+  <p class="page-error">{{ error }}</p>
+}
+
+<!-- 1. Nota de crédito a revertir: va primero porque cliente, bodega, base impositiva
+     y líneas disponibles se derivan de ella. -->
+<mat-card class="form-panel">
+  <h2>Nota de crédito a revertir</h2>
+  <p class="form-section-hint">
+    Toda nota de débito revierte una nota de crédito emitida. Elija el cliente y luego la nota.
+  </p>
+
+  <div class="two-col">
+    <div>
+      @if (!clienteSeleccionado) {
+        <div class="form-group search-group">
+          <label for="cliente">Cliente <span class="required-mark">*</span></label>
+          <input
+            id="cliente"
+            name="cliente"
+            placeholder="Buscar por nombre o RUT..."
+            autocomplete="off"
+            [(ngModel)]="filtroCliente"
+            (ngModelChange)="onBusquedaClienteChange()"
+          />
+          @if (clientesResultados.length) {
+            <div class="search-results">
+              @for (c of clientesResultados; track c.id) {
+                <div class="search-results__item" (click)="seleccionarCliente(c)">
+                  <span class="search-results__nombre">{{ c.nombre }}</span>
+                  <span class="search-results__sku">{{ c.rut || 'Sin RUT' }}</span>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      } @else {
+        <div class="cliente-seleccionado">
+          <div>
+            <span class="cliente-seleccionado__nombre">{{ clienteSeleccionado.nombre }}</span>
+            <span class="search-results__sku">{{ clienteSeleccionado.rut || 'Sin RUT' }}</span>
+          </div>
+          @if (!esEdicion) {
+            <button type="button" mat-stroked-button (click)="cambiarCliente()">Cambiar</button>
+          }
+        </div>
+      }
+    </div>
+
+    <div>
+      @if (!documentoSeleccionado) {
+        <div class="form-group search-group">
+          <label for="documento">Nota de crédito a revertir <span class="required-mark">*</span></label>
+          <input
+            id="documento"
+            name="documento"
+            placeholder="Buscar por folio..."
+            autocomplete="off"
+            [disabled]="!clienteSeleccionado"
+            [(ngModel)]="filtroDocumento"
+            (ngModelChange)="onBusquedaDocumentoChange()"
+          />
+          @if (!clienteSeleccionado) {
+            <span class="hint">Seleccione primero un cliente.</span>
+          }
+          @if (documentosResultados.length) {
+            <div class="search-results">
+              @for (d of documentosResultados; track d.notaCreditoId) {
+                <div class="search-results__item" (click)="seleccionarDocumento(d)">
+                  <span class="search-results__nombre">
+                    {{ d.numero }}
+                    @if (d.tieneNotasDebito) {
+                      <span class="tag tag--warning">Ya revertida</span>
+                    }
+                  </span>
+                  <span class="search-results__sku">
+                    {{ d.fecha | date: 'dd-MM-yyyy' }} · Disponible {{ d.montoDisponible | moneda }}
+                  </span>
+                </div>
+              }
+            </div>
+          }
+          @if (clienteSeleccionado && !documentosResultados.length) {
+            <span class="hint">Este cliente no tiene notas de crédito disponibles para revertir.</span>
+          }
+        </div>
+      } @else {
+        <div class="documento-ficha">
+          <div class="documento-ficha__grid">
+            <div>
+              <span class="kpi-label">Original</span>
+              <span class="documento-ficha__valor">
+                {{ etiquetaDocumento(documentoSeleccionado.docAsociadoTipo) }}
+                N.º {{ documentoSeleccionado.docAsociadoFolio }}
+              </span>
+            </div>
+            <div>
+              <span class="kpi-label">Folio NC</span>
+              <span class="documento-ficha__valor">{{ documentoSeleccionado.folio }}</span>
+            </div>
+            <div>
+              <span class="kpi-label">Fecha</span>
+              <span class="documento-ficha__valor">
+                {{ documentoSeleccionado.fecha | date: 'dd-MM-yyyy' }}
+              </span>
+            </div>
+            <div>
+              <span class="kpi-label">Total</span>
+              <span class="documento-ficha__valor">{{ documentoSeleccionado.montoTotal | moneda }}</span>
+            </div>
+            <div>
+              <span class="kpi-label">Disponible</span>
+              <span class="documento-ficha__valor">{{ documentoSeleccionado.montoDisponible | moneda }}</span>
+            </div>
+          </div>
+          @if (!esEdicion) {
+            <button type="button" mat-stroked-button (click)="cambiarDocumento()">Cambiar nota</button>
+          }
+        </div>
+      }
+    </div>
+  </div>
+
+  <div class="form-group span-2">
+    <label for="razon">Razón de la reversión <span class="required-mark">*</span></label>
+    <textarea
+      id="razon"
+      name="razon"
+      rows="2"
+      placeholder="Por qué se revierte esta nota de crédito..."
+      [(ngModel)]="ncRazon"
+    ></textarea>
+    @if (documentoSeleccionado && !ncRazon.trim()) {
+      <span class="field-error">Indique la razón por la que se revierte esta nota de crédito.</span>
+    }
+  </div>
+</mat-card>
+
+<!-- 2. Tipo de reversión: determina el comportamiento de las secciones que siguen. -->
+<mat-card class="form-panel">
+  <h2>Tipo de reversión</h2>
+  <p class="form-section-hint">El tipo determina qué puede revertir la nota y si afecta inventario.</p>
+
+  <div class="tipo-grid">
+    @for (t of tiposReversion; track t) {
+      <button
+        type="button"
+        class="tipo-opcion"
+        [class.tipo-opcion--activa]="tipoReversion === t"
+        [disabled]="!documentoSeleccionado"
+        (click)="seleccionarTipo(t)"
+      >
+        <span class="tipo-opcion__radio">
+          <mat-icon>{{ tipoReversion === t ? 'radio_button_checked' : 'radio_button_unchecked' }}</mat-icon>
+        </span>
+        <span class="tipo-opcion__texto">
+          <span class="tipo-opcion__titulo">{{ etiquetaTipo(t) }}</span>
+          <span class="tipo-opcion__ayuda">{{ ayudaTipo(t) }}</span>
+        </span>
+      </button>
+    }
+  </div>
+  @if (!documentoSeleccionado) {
+    <span class="hint">Seleccione primero la nota de crédito a revertir.</span>
+  }
+</mat-card>
+
+<!-- 3. Detalle: solo para REVIERTE_DOCUMENTO y REVIERTE_MONTO. -->
+@if (muestraDetalle) {
+  <mat-card class="form-panel">
+    <h2>Detalle a revertir</h2>
+    <p class="form-section-hint">
+      {{
+        lineasBloqueadas
+          ? 'La nota de crédito se revierte completa. Puede desmarcar la reversión de inventario de una línea si la mercadería no tiene que volver a salir.'
+          : 'Marque las líneas que desea revertir e indique la cantidad.'
+      }}
+    </p>
+
+    @if (errorLineas) {
+      <p class="page-error">{{ errorLineas }}</p>
+    }
+
+    @if (cargando) {
+      <p class="empty-state">Cargando líneas de la nota de crédito...</p>
+    }
+    @if (!cargando && !lineas.length) {
+      <p class="empty-state">La nota de crédito asociada no recuperó inventario y no tiene líneas para revertir.</p>
+    }
+
+    @if (lineas.length) {
+      <div class="table-scroll">
+        <table class="items-table">
+          <thead>
+            <tr>
+              <th class="check-col">Incluir</th>
+              <th>Producto</th>
+              <th class="right">Disponible</th>
+              <th class="right">A revertir</th>
+              <th class="right">Precio unit.</th>
+              <th class="right">Descuento</th>
+              <th class="right">Subtotal</th>
+              <th class="check-col">Revierte inventario</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (l of lineas; track l.notaCreditoDetalleId) {
+              <tr [class.items-table__row--inactiva]="!l.incluida">
+                <td class="check-col">
+                  <input
+                    type="checkbox"
+                    [name]="'incluir-' + l.notaCreditoDetalleId"
+                    [disabled]="lineasBloqueadas"
+                    [(ngModel)]="l.incluida"
+                    [attr.aria-label]="'Incluir ' + l.descripcion"
+                  />
+                </td>
+                <td>
+                  <span class="items-table__nombre">{{ l.descripcion }}</span>
+                  @if (l.codigo) {
+                    <span class="search-results__sku">{{ l.codigo }}</span>
+                  }
+                </td>
+                <td class="right">{{ l.cantidadDisponible }}</td>
+                <td class="right">
+                  <input
+                    type="number"
+                    class="celda-numero"
+                    min="0"
+                    step="1"
+                    [max]="l.cantidadDisponible"
+                    [name]="'cantidad-' + l.notaCreditoDetalleId"
+                    [disabled]="!l.incluida"
+                    [(ngModel)]="l.cantidad"
+                  />
+                </td>
+                <td class="right">
+                  <input
+                    type="number"
+                    class="celda-numero"
+                    min="0"
+                    step="1"
+                    [name]="'precio-' + l.notaCreditoDetalleId"
+                    [disabled]="!l.incluida || lineasBloqueadas"
+                    [(ngModel)]="l.precioUnitario"
+                  />
+                </td>
+                <td class="right">
+                  <input
+                    type="number"
+                    class="celda-numero"
+                    min="0"
+                    step="1"
+                    [name]="'descuento-' + l.notaCreditoDetalleId"
+                    [disabled]="!l.incluida"
+                    [(ngModel)]="l.descuento"
+                  />
+                </td>
+                <td class="right">{{ subtotalLinea(l) | moneda }}</td>
+                <td class="check-col">
+                  <input
+                    type="checkbox"
+                    [name]="'revierte-' + l.notaCreditoDetalleId"
+                    [disabled]="!l.incluida || !puedeRevertir(l)"
+                    [title]="tituloReversion(l)"
+                    [(ngModel)]="l.revierteInventario"
+                    [attr.aria-label]="'Revierte inventario de ' + l.descripcion"
+                  />
+                </td>
+              </tr>
+              @if (errorDeLinea(l)) {
+                <tr class="items-table__error-row">
+                  <td colspan="8"><span class="field-error">{{ errorDeLinea(l) }}</span></td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </mat-card>
+}
+
+<!-- 4. Corrección de texto: solo para REVIERTE_TEXTO. -->
+@if (muestraTexto) {
+  <mat-card class="form-panel">
+    <h2>Corrección de texto</h2>
+    <p class="form-section-hint">No afecta montos ni inventario.</p>
+    <div class="form-group span-2">
+      <label for="textoCorreccion">Texto de la corrección <span class="required-mark">*</span></label>
+      <textarea
+        id="textoCorreccion"
+        name="textoCorreccion"
+        rows="5"
+        [maxlength]="maxTextoCorreccion"
+        placeholder="Describa la información que se corrige..."
+        [(ngModel)]="textoCorreccion"
+      ></textarea>
+      <span class="hint">{{ textoCorreccion.length }} / {{ maxTextoCorreccion }} caracteres</span>
+      @if (!textoCorreccion.trim()) {
+        <span class="field-error">Indique el texto de la corrección.</span>
+      }
+    </div>
+  </mat-card>
+}
+
+<!-- 5. Información complementaria -->
+<mat-card class="form-panel">
+  <h2>Información complementaria</h2>
+  <div class="form-grid">
+    <div class="form-group">
+      <label for="fecha">Fecha <span class="required-mark">*</span></label>
+      <input id="fecha" type="date" name="fecha" [(ngModel)]="fecha" />
+    </div>
+    <div class="form-group">
+      <label for="motivo">Motivo</label>
+      <input id="motivo" name="motivo" placeholder="Motivo de la reversión" [(ngModel)]="motivo" />
+    </div>
+    <div class="form-group span-2">
+      <label for="observaciones">Observaciones</label>
+      <textarea id="observaciones" name="observaciones" rows="2" [(ngModel)]="observaciones"></textarea>
+    </div>
+  </div>
+</mat-card>
+
+<!-- 6. Totales y acciones. La emisión se hace desde el detalle: es una acción
+     sobre un documento ya guardado. -->
+<mat-card class="form-panel">
+  <h2>{{ muestraTexto ? 'Acciones' : 'Totales' }}</h2>
+
+  @if (!muestraTexto) {
+    <div class="totals-grid">
+      <div class="form-group">
+        <label for="descuentoGlobal">Descuento global</label>
+        <input id="descuentoGlobal" type="number" min="0" name="descuentoGlobal" [(ngModel)]="descuento" />
+        <span class="hint">Se aplica sobre el total de las líneas incluidas.</span>
+      </div>
+
+      <div class="totals-group">
+        <div class="totals-row">
+          <span>Subtotal</span>
+          <span>{{ subtotalActual | moneda }}</span>
+        </div>
+        <div class="totals-row">
+          <span>Descuentos</span>
+          <span>{{ descuentoTotal | moneda }}</span>
+        </div>
+        <div class="totals-row">
+          <span>Neto</span>
+          <span>{{ netoActual | moneda }}</span>
+        </div>
+        <div class="totals-row">
+          <span>IVA</span>
+          <span>{{ ivaActual | moneda }}</span>
+        </div>
+        <div class="totals-row totals-row--total">
+          <span>Total</span>
+          <span>{{ totalActual | moneda }}</span>
+        </div>
+      </div>
+    </div>
+  }
+
+  <div class="form-actions">
+    <a mat-stroked-button routerLink="/notas-debito">Cancelar</a>
+    @if (esEdicion) {
+      <button type="button" mat-stroked-button class="btn-peligro" (click)="eliminar()">
+        Eliminar borrador
+      </button>
+    }
+    <button type="button" mat-flat-button color="primary" [disabled]="!puedeGuardar" (click)="guardar()">
+      {{ guardando ? 'Guardando...' : 'Guardar borrador' }}
+    </button>
+  </div>
+  <span class="hint">La nota se emite desde su detalle, una vez guardada.</span>
+</mat-card>

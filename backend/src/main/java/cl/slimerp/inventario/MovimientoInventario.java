@@ -26,7 +26,7 @@ public class MovimientoInventario {
     private Long productoId;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
+    @Column(nullable = false, length = 30)
     private TipoMovimiento tipo;
 
     @Column(nullable = false, precision = 14, scale = 2)

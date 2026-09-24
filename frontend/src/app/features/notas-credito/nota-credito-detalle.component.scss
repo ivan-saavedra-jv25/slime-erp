@@ -1,0 +1,237 @@
+.page-header__titulo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.page-header__titulo h1 {
+  margin: 0;
+}
+
+.acciones {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.confirmacion {
+  border-color: var(--primary-base);
+}
+
+.confirmacion p {
+  font: var(--font-body-sm);
+  color: var(--text-body);
+  margin: 0 0 var(--space-4);
+}
+
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-5);
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .two-col {
+    grid-template-columns: 1fr;
+  }
+}
+
+.ficha-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-4);
+}
+
+.ficha-grid .span-2 {
+  grid-column: span 2;
+}
+
+@media (max-width: 560px) {
+  .ficha-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ficha-grid .span-2 {
+    grid-column: span 1;
+  }
+}
+
+.ficha-valor {
+  display: block;
+  font: var(--font-body);
+  font-weight: 600;
+  color: var(--text-title);
+}
+
+.kpi-label {
+  font: var(--font-body-sm);
+  color: var(--text-muted);
+}
+
+.sub {
+  display: block;
+  color: var(--text-muted);
+  font: var(--font-legals);
+}
+
+.texto-correccion {
+  font: var(--font-body);
+  color: var(--text-body);
+  white-space: pre-wrap;
+  margin: 0;
+}
+
+/* Cadena de trazabilidad: Documento original → Nota de Crédito → Movimientos.
+   Vertical en móvil, horizontal desde 700px. */
+.cadena {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+.cadena__nodo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  padding: var(--space-3) var(--space-4);
+  border: var(--border-width-default) solid var(--border-default);
+  border-radius: var(--radius-2);
+  background: var(--surface-card);
+  min-width: 220px;
+  text-decoration: none;
+}
+
+.cadena__nodo--enlace {
+  cursor: pointer;
+  transition: background-color 0.12s, border-color 0.12s;
+}
+
+.cadena__nodo--enlace:hover {
+  background: var(--surface-subtle);
+  border-color: var(--border-interactive);
+}
+
+.cadena__nodo--enlace:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.cadena__nodo--actual {
+  border-color: var(--primary-base);
+  background: var(--primary-background);
+}
+
+.cadena__tipo {
+  font: var(--font-body-sm);
+  color: var(--text-muted);
+}
+
+.cadena__numero {
+  font: var(--font-body);
+  font-weight: 700;
+  color: var(--text-title);
+}
+
+.cadena__flecha {
+  color: var(--text-muted);
+  margin-left: var(--space-5);
+}
+
+@media (min-width: 700px) {
+  .cadena {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .cadena__flecha {
+    margin-left: 0;
+    transform: rotate(-90deg);
+  }
+}
+
+/* Las tablas scrollean dentro de su contenedor, nunca la página. */
+.table-scroll {
+  overflow-x: auto;
+}
+
+.items-table,
+.historial-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.items-table th,
+.items-table td,
+.historial-table th,
+.historial-table td {
+  text-align: left;
+  padding: var(--space-2) var(--space-3);
+  border-bottom: var(--border-width-default) solid var(--border-default);
+  font: var(--font-body-sm);
+}
+
+.items-table th,
+.historial-table th {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.items-table .right {
+  text-align: right;
+}
+
+.items-table .center {
+  text-align: center;
+}
+
+.icono-si {
+  color: var(--success-base);
+}
+
+.icono-no {
+  color: var(--text-disabled);
+}
+
+.totals-group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-3);
+  min-width: 260px;
+  margin-left: auto;
+  margin-top: var(--space-4);
+}
+
+.totals-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  font: var(--font-body-sm);
+  color: var(--text-body);
+}
+
+.totals-row--total {
+  font: var(--font-h3);
+  font-weight: 700;
+  color: var(--text-title);
+  border-top: var(--border-width-default) solid var(--border-default);
+  padding-top: var(--space-2);
+}
+
+.clickable-row {
+  cursor: pointer;
+}
+
+.clickable-row:hover {
+  background: var(--surface-subtle);
+}
+
+.fila-accion {
+  color: var(--text-muted);
+  vertical-align: middle;
+}

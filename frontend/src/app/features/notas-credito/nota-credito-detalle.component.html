@@ -1,0 +1,342 @@
+@if (cargando) {
+  <p class="empty-state">Cargando nota de crédito...</p>
+}
+
+@if (error) {
+  <p class="page-error">{{ error }}</p>
+}
+
+@if (nota) {
+  <div class="page-header">
+    <div class="page-header__titulo">
+      <h1>{{ nota.numero }}</h1>
+      <span [class]="'tag ' + tagEstado(nota.estado)">{{ etiquetaEstado(nota.estado) }}</span>
+    </div>
+
+    <div class="acciones">
+      @if (puedeEditar) {
+        <a mat-stroked-button [routerLink]="['/notas-credito', nota.id, 'editar']">
+          <mat-icon>edit</mat-icon>
+          Editar
+        </a>
+      }
+      @if (puedeEditar) {
+        <button type="button" mat-stroked-button [disabled]="procesando" (click)="eliminar()">
+          <mat-icon>delete</mat-icon>
+          Eliminar
+        </button>
+      }
+      @if (puedeAnular) {
+        <button type="button" mat-stroked-button [disabled]="procesando" (click)="anular()">
+          <mat-icon>block</mat-icon>
+          Anular
+        </button>
+      }
+      <button type="button" mat-stroked-button [disabled]="procesando" (click)="verPdf()">
+        <mat-icon>picture_as_pdf</mat-icon>
+        PDF
+      </button>
+      @if (puedeEmitir) {
+        <button
+          type="button"
+          mat-flat-button
+          color="primary"
+          [disabled]="procesando"
+          (click)="abrirConfirmacionEmision()"
+        >
+          <mat-icon>task_alt</mat-icon>
+          Emitir
+        </button>
+      }
+      <a mat-stroked-button routerLink="/notas-credito">
+        <mat-icon>arrow_back</mat-icon>
+        Volver
+      </a>
+    </div>
+  </div>
+
+  @if (confirmandoEmision) {
+    <mat-card class="form-panel confirmacion">
+      <h2>Emitir {{ nota.numero }}</h2>
+      <p>
+        Al emitir la nota de crédito se bloquean las modificaciones y se generan las entradas de
+        inventario de las líneas marcadas como recuperación. Para revertirlo habrá que anularla.
+      </p>
+      <div class="form-actions">
+        <button type="button" mat-stroked-button (click)="cancelarEmision()">Cancelar</button>
+        <button type="button" mat-flat-button color="primary" [disabled]="procesando" (click)="emitir()">
+          {{ procesando ? 'Emitiendo...' : 'Emitir nota de crédito' }}
+        </button>
+      </div>
+    </mat-card>
+  }
+
+  <!-- Trazabilidad: Documento original → Nota de Crédito → Movimientos -->
+  <mat-card class="form-panel">
+    <h2>Trazabilidad</h2>
+    <div class="cadena">
+      <button type="button" class="cadena__nodo cadena__nodo--enlace" (click)="verDocumentoAsociado()">
+        <span class="cadena__tipo">{{ etiquetaDocumento(nota.documentoAsociado.tipo) }}</span>
+        <span class="cadena__numero">N.º {{ nota.documentoAsociado.folio }}</span>
+      </button>
+
+      <mat-icon class="cadena__flecha">arrow_downward</mat-icon>
+
+      <div class="cadena__nodo cadena__nodo--actual">
+        <span class="cadena__tipo">Nota de Crédito · {{ etiquetaTipo(nota.tipoCorreccion) }}</span>
+        <span class="cadena__numero">{{ nota.numero }}</span>
+      </div>
+
+      @if (nota.movimientosInventario.length) {
+        <mat-icon class="cadena__flecha">arrow_downward</mat-icon>
+        <button
+          type="button"
+          class="cadena__nodo cadena__nodo--enlace"
+          [disabled]="!headerMovimientos || procesando"
+          (click)="verMovimiento(headerMovimientos)"
+        >
+          <span class="cadena__tipo">Inventario</span>
+          <span class="cadena__numero">
+            {{ nota.movimientosInventario.length }} movimiento(s)
+          </span>
+        </button>
+      }
+    </div>
+  </mat-card>
+
+  <div class="two-col">
+    <mat-card class="form-panel">
+      <h2>Documento asociado</h2>
+      <div class="ficha-grid">
+        <div>
+          <span class="kpi-label">Tipo</span>
+          <span class="ficha-valor">{{ etiquetaDocumento(nota.documentoAsociado.tipo) }}</span>
+        </div>
+        <div>
+          <span class="kpi-label">Folio</span>
+          <span class="ficha-valor">{{ nota.documentoAsociado.folio }}</span>
+        </div>
+        <div>
+          <span class="kpi-label">Fecha</span>
+          <span class="ficha-valor">{{ nota.documentoAsociado.fecha | date: 'dd-MM-yyyy' }}</span>
+        </div>
+        <div>
+          <span class="kpi-label">Total del documento</span>
+          <span class="ficha-valor">{{ nota.documentoAsociado.montoTotal | moneda }}</span>
+        </div>
+        <div class="span-2">
+          <span class="kpi-label">Razón de la asociación</span>
+          <span class="ficha-valor">{{ nota.documentoAsociado.razon || '—' }}</span>
+        </div>
+      </div>
+    </mat-card>
+
+    <mat-card class="form-panel">
+      <h2>Datos de la nota</h2>
+      <div class="ficha-grid">
+        <div>
+          <span class="kpi-label">Fecha</span>
+          <span class="ficha-valor">{{ nota.fecha | date: 'dd-MM-yyyy' }}</span>
+        </div>
+        <div>
+          <span class="kpi-label">Tipo de corrección</span>
+          <span class="ficha-valor">{{ etiquetaTipo(nota.tipoCorreccion) }}</span>
+        </div>
+        <div>
+          <span class="kpi-label">Cliente</span>
+          <span class="ficha-valor">{{ nota.clienteNombre }}</span>
+          @if (nota.clienteRut) {
+            <span class="sub">{{ nota.clienteRut }}</span>
+          }
+        </div>
+        <div>
+          <span class="kpi-label">Bodega de recuperación</span>
+          <span class="ficha-valor">{{ nota.bodegaNombre || '—' }}</span>
+        </div>
+        <div>
+          <span class="kpi-label">Recuperación de inventario</span>
+          <span [class]="'tag ' + tagRecuperacion(nota.recuperacionInventario)">
+            {{ etiquetaRecuperacion(nota.recuperacionInventario) }}
+          </span>
+        </div>
+        <div>
+          <span class="kpi-label">Emitida por</span>
+          <span class="ficha-valor">{{ nota.usuarioNombre || '—' }}</span>
+        </div>
+        @if (nota.fechaEmision) {
+          <div>
+            <span class="kpi-label">Fecha de emisión</span>
+            <span class="ficha-valor">{{ nota.fechaEmision | date: 'dd-MM-yyyy HH:mm' }}</span>
+          </div>
+        }
+        @if (nota.fechaAnulacion) {
+          <div>
+            <span class="kpi-label">Fecha de anulación</span>
+            <span class="ficha-valor">{{ nota.fechaAnulacion | date: 'dd-MM-yyyy HH:mm' }}</span>
+          </div>
+        }
+        <div class="span-2">
+          <span class="kpi-label">Motivo</span>
+          <span class="ficha-valor">{{ nota.motivo || '—' }}</span>
+        </div>
+        <div class="span-2">
+          <span class="kpi-label">Observaciones</span>
+          <span class="ficha-valor">{{ nota.observaciones || '—' }}</span>
+        </div>
+      </div>
+    </mat-card>
+  </div>
+
+  @if (nota.tipoCorreccion === 'CORRIGE_TEXTO') {
+    <mat-card class="form-panel">
+      <h2>Corrección de texto</h2>
+      <p class="texto-correccion">{{ nota.textoCorreccion || '—' }}</p>
+    </mat-card>
+  }
+
+  @if (muestraDetalle) {
+    <mat-card class="form-panel">
+      <h2>Detalle</h2>
+      <div class="table-scroll">
+        <table class="items-table">
+          <thead>
+            <tr>
+              <th>Código</th>
+              <th>Descripción</th>
+              <th class="right">Cantidad</th>
+              <th class="right">Precio unit.</th>
+              <th class="right">Descuento</th>
+              <th class="right">Subtotal</th>
+              <th class="center">Recupera inventario</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (l of nota.lineas; track l.id) {
+              <tr>
+                <td>{{ l.codigo || '—' }}</td>
+                <td>{{ l.descripcion }}</td>
+                <td class="right">{{ l.cantidad }}</td>
+                <td class="right">{{ l.precioUnitario | moneda }}</td>
+                <td class="right">{{ l.descuento | moneda }}</td>
+                <td class="right">{{ l.subtotal | moneda }}</td>
+                <td class="center">
+                  <mat-icon [class.icono-si]="l.recuperaInventario" [class.icono-no]="!l.recuperaInventario">
+                    {{ l.recuperaInventario ? 'check_circle' : 'remove' }}
+                  </mat-icon>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <div class="totals-group">
+        <div class="totals-row">
+          <span>Subtotal</span>
+          <span>{{ nota.montoSubtotal | moneda }}</span>
+        </div>
+        <div class="totals-row">
+          <span>Descuentos</span>
+          <span>{{ nota.montoDescuento | moneda }}</span>
+        </div>
+        <div class="totals-row">
+          <span>Neto</span>
+          <span>{{ nota.montoNeto | moneda }}</span>
+        </div>
+        @if (!nota.exenta) {
+          <div class="totals-row">
+            <span>IVA</span>
+            <span>{{ nota.montoIva | moneda }}</span>
+          </div>
+        }
+        <div class="totals-row totals-row--total">
+          <span>Total</span>
+          <span>{{ nota.montoTotal | moneda }}</span>
+        </div>
+      </div>
+    </mat-card>
+  }
+
+  <mat-card class="form-panel" id="movimientos">
+    <h2>Movimientos de inventario relacionados</h2>
+    @if (!nota.movimientosInventario.length) {
+      <p class="empty-state">Esta nota de crédito no generó movimientos de inventario.</p>
+    } @else {
+      <div class="table-scroll">
+        <table class="items-table">
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Producto</th>
+              <th class="right">Cantidad</th>
+              <th>Bodega</th>
+              <th>Tipo</th>
+              <th class="right"></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (m of nota.movimientosInventario; track m.movimientoInventarioId) {
+              <tr
+                [class.clickable-row]="m.headerId"
+                [title]="m.headerId ? 'Ver el movimiento en Inventario' : ''"
+                (click)="verMovimiento(m.headerId)"
+              >
+                <td>{{ m.fecha | date: 'dd-MM-yyyy HH:mm' }}</td>
+                <td>{{ m.producto }}</td>
+                <td class="right">{{ m.cantidad }}</td>
+                <td>{{ m.bodega || '—' }}</td>
+                <td>
+                  <span [class]="'tag ' + tagMovimiento(m.tipo)">{{ etiquetaMovimiento(m.tipo) }}</span>
+                </td>
+                <td class="right">
+                  @if (m.headerId) {
+                    <mat-icon class="fila-accion">chevron_right</mat-icon>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </mat-card>
+
+  <mat-card class="form-panel">
+    <h2>Historial</h2>
+    @if (!nota.historial.length) {
+      <p class="empty-state">Sin eventos registrados.</p>
+    } @else {
+      <div class="table-scroll">
+        <table class="historial-table">
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Usuario</th>
+              <th>Acción</th>
+              <th>Estado</th>
+              <th>Detalle</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (e of nota.historial; track e.fecha) {
+              <tr>
+                <td>{{ e.fecha | date: 'dd-MM-yyyy HH:mm' }}</td>
+                <td>{{ e.usuario || '—' }}</td>
+                <td>{{ etiquetaAccion(e.accion) }}</td>
+                <td>
+                  @if (e.estadoAnterior) {
+                    {{ etiquetaEstado(e.estadoAnterior) }} →
+                  }
+                  @if (e.estadoNuevo) {
+                    {{ etiquetaEstado(e.estadoNuevo) }}
+                  }
+                </td>
+                <td>{{ e.detalle || '—' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </mat-card>
+}

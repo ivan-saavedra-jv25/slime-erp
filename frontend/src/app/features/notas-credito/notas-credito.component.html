@@ -1,0 +1,254 @@
+<div class="page-header">
+  <h1>Notas de Crédito</h1>
+  @if (auth.tienePermiso('NOTAS_CREDITO_EDITAR')) {
+    <a mat-flat-button color="primary" routerLink="/notas-credito/nueva">
+      <mat-icon>add</mat-icon>
+      Nueva nota de crédito
+    </a>
+  }
+</div>
+
+@if (error) {
+  <p class="page-error">{{ error }}</p>
+}
+
+<mat-card class="form-panel">
+  <div class="panel-header-row">
+    <h2>Período</h2>
+    <div class="rango-selector">
+      @for (p of periodos; track p.value) {
+        <button
+          type="button"
+          class="rango-btn"
+          [class.rango-btn--active]="periodoActivo === p.value"
+          (click)="seleccionarPeriodo(p.value)"
+        >
+          {{ p.label }}
+        </button>
+      }
+    </div>
+  </div>
+
+  @if (periodoActivo === 'personalizado') {
+    <div class="form-row form-row--filtros">
+      <div class="form-group">
+        <label for="desde">Desde</label>
+        <input id="desde" type="date" name="desde" [(ngModel)]="desde" />
+      </div>
+      <div class="form-group">
+        <label for="hasta">Hasta</label>
+        <input id="hasta" type="date" name="hasta" [(ngModel)]="hasta" />
+      </div>
+      <button type="button" mat-flat-button color="primary" [disabled]="cargando" (click)="consultar()">
+        <mat-icon>search</mat-icon>
+        {{ cargando ? 'Consultando...' : 'Consultar' }}
+      </button>
+    </div>
+  }
+</mat-card>
+
+@if (dashboard) {
+  <section class="kpi-section">
+    <div class="kpi-grid">
+      <mat-card class="kpi-card">
+        <span class="kpi-label">Notas del período</span>
+        <span class="kpi-value">{{ dashboard.cantidad }}</span>
+      </mat-card>
+      <mat-card class="kpi-card">
+        <span class="kpi-label">Emitidas</span>
+        <span class="kpi-value">{{ dashboard.emitidas }}</span>
+      </mat-card>
+      <mat-card class="kpi-card">
+        <span class="kpi-label">Total emitido</span>
+        <span class="kpi-value">{{ dashboard.montoTotalEmitido | moneda }}</span>
+      </mat-card>
+      <mat-card class="kpi-card">
+        <span class="kpi-label">Con recuperación</span>
+        <span class="kpi-value">{{ dashboard.conRecuperacionInventario }}</span>
+      </mat-card>
+      <mat-card class="kpi-card">
+        <span class="kpi-label">Documentos corregidos</span>
+        <span class="kpi-value">{{ dashboard.documentosCorregidos }}</span>
+      </mat-card>
+      <mat-card class="kpi-card">
+        <span class="kpi-label">Anuladas</span>
+        <span class="kpi-value">{{ dashboard.anuladas }}</span>
+      </mat-card>
+    </div>
+  </section>
+
+  <mat-card class="form-panel">
+    <h2>Notas de crédito por estado</h2>
+    <div class="grafico-row">
+      <div class="grafico-row__chart">
+        @if (!tieneDatosGrafico) {
+          <p class="empty-state">Sin notas de crédito en este período.</p>
+        }
+        <div [style.display]="tieneDatosGrafico ? 'block' : 'none'">
+          <highcharts-chart
+            [Highcharts]="Highcharts"
+            [options]="chartOptions"
+            [(update)]="actualizarGrafico"
+            style="display: block; width: 100%; height: 240px;"
+          ></highcharts-chart>
+        </div>
+      </div>
+
+      <div class="resumen">
+        @for (t of dashboard.porTipoCorreccion; track t.tipoCorreccion) {
+          <span class="kpi-label">{{ etiquetaTipo(t.tipoCorreccion) }}</span>
+          <span class="resumen__valor">{{ t.cantidad }}</span>
+        }
+      </div>
+    </div>
+  </mat-card>
+}
+
+<mat-card class="form-panel">
+  <div class="form-row form-row--filtros">
+    <div class="form-group">
+      <label for="estado">Estado</label>
+      <select id="estado" name="estado" [(ngModel)]="estado" (ngModelChange)="consultar()">
+        <option [ngValue]="null">Todos los estados</option>
+        @for (e of estados; track e) {
+          <option [ngValue]="e">{{ etiquetaEstado(e) }}</option>
+        }
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="tipoCorreccion">Tipo de corrección</label>
+      <select
+        id="tipoCorreccion"
+        name="tipoCorreccion"
+        [(ngModel)]="tipoCorreccion"
+        (ngModelChange)="consultar()"
+      >
+        <option [ngValue]="null">Todos los tipos</option>
+        @for (t of tiposCorreccion; track t) {
+          <option [ngValue]="t">{{ etiquetaTipo(t) }}</option>
+        }
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="docAsociadoTipo">Documento asociado</label>
+      <select
+        id="docAsociadoTipo"
+        name="docAsociadoTipo"
+        [(ngModel)]="docAsociadoTipo"
+        (ngModelChange)="consultar()"
+      >
+        <option [ngValue]="null">Todos los documentos</option>
+        @for (d of tiposDocumento; track d) {
+          <option [ngValue]="d">{{ etiquetaDocumento(d) }}</option>
+        }
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="busqueda">Buscar</label>
+      <input
+        id="busqueda"
+        name="busqueda"
+        placeholder="N° de nota, folio asociado, cliente o RUT..."
+        [(ngModel)]="busqueda"
+        (ngModelChange)="onBusquedaChange()"
+      />
+    </div>
+    @if (hayFiltrosActivos) {
+      <button type="button" mat-stroked-button class="limpiar-btn" (click)="limpiarFiltros()">
+        <mat-icon>filter_alt_off</mat-icon>
+        Limpiar filtros
+      </button>
+    }
+  </div>
+
+  @if (cargando && !notas.length) {
+    <p class="empty-state">Cargando notas de crédito...</p>
+  }
+  @if (!cargando && !notas.length) {
+    <p class="empty-state">
+      {{
+        hayFiltrosActivos
+          ? 'No hay notas de crédito que coincidan con los filtros.'
+          : 'Todavía no hay notas de crédito en este período.'
+      }}
+    </p>
+  }
+  @if (notas.length) {
+    <div class="table-scroll">
+      <table
+        class="libro-table"
+        matSort
+        [matSortActive]="orden"
+        [matSortDirection]="direccion"
+        (matSortChange)="onSortChange($event)"
+      >
+        <thead>
+          <tr>
+            <th mat-sort-header="folio">Número</th>
+            <th mat-sort-header="fecha">Fecha</th>
+            <th>Cliente</th>
+            <th>Documento asociado</th>
+            <th>Tipo de corrección</th>
+            <th>Motivo</th>
+            <th class="right" mat-sort-header="montoTotal">Total</th>
+            <th>Estado</th>
+            <th>Recuperación</th>
+            <th class="right">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (n of notas; track n.id) {
+            <tr class="clickable-row" (click)="abrir(n)">
+              <td>{{ n.numero }}</td>
+              <td>{{ n.fecha | date: 'dd-MM-yyyy' }}</td>
+              <td>
+                {{ n.clienteNombre }}
+                @if (n.clienteRut) {
+                  <span class="sub">{{ n.clienteRut }}</span>
+                }
+              </td>
+              <td>
+                {{ etiquetaDocumento(n.docAsociadoTipo) }}
+                <span class="sub">N.º {{ n.docAsociadoFolio }}</span>
+              </td>
+              <td>{{ etiquetaTipo(n.tipoCorreccion) }}</td>
+              <td class="truncate" [title]="n.motivo ?? ''">{{ n.motivo || '—' }}</td>
+              <td class="right">{{ n.montoTotal | moneda }}</td>
+              <td><span [class]="'tag ' + tagEstado(n.estado)">{{ etiquetaEstado(n.estado) }}</span></td>
+              <td>
+                <span [class]="'tag ' + tagRecuperacion(n.recuperacionInventario)">
+                  {{ etiquetaRecuperacion(n.recuperacionInventario) }}
+                </span>
+              </td>
+              <td class="right acciones-celda">
+                @if (n.estado === 'BORRADOR' && auth.tienePermiso('NOTAS_CREDITO_EDITAR')) {
+                  <button
+                    type="button"
+                    mat-icon-button
+                    aria-label="Editar borrador"
+                    title="Editar borrador"
+                    (click)="editar(n, $event)"
+                  >
+                    <mat-icon>edit</mat-icon>
+                  </button>
+                }
+                <button type="button" mat-icon-button aria-label="Ver detalle" title="Ver detalle">
+                  <mat-icon>chevron_right</mat-icon>
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <mat-paginator
+      [length]="total"
+      [pageIndex]="paginaActual"
+      [pageSize]="tamanoPagina"
+      [pageSizeOptions]="opcionesTamano"
+      [disabled]="cargando"
+      (page)="onPageChange($event)"
+      showFirstLastButtons
+    ></mat-paginator>
+  }
+</mat-card>

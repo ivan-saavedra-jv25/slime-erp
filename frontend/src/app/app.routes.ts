@@ -150,6 +150,46 @@ export const routes: Routes = [
           import('./features/notas-venta/nota-venta-detalle.component').then((m) => m.NotaVentaDetalleComponent),
       },
       {
+        path: 'notas-credito',
+        loadComponent: () =>
+          import('./features/notas-credito/notas-credito.component').then((m) => m.NotasCreditoComponent),
+      },
+      {
+        path: 'notas-credito/nueva',
+        loadComponent: () =>
+          import('./features/notas-credito/nota-credito-form.component').then((m) => m.NotaCreditoFormComponent),
+      },
+      {
+        path: 'notas-credito/:id/editar',
+        loadComponent: () =>
+          import('./features/notas-credito/nota-credito-form.component').then((m) => m.NotaCreditoFormComponent),
+      },
+      {
+        path: 'notas-credito/:id',
+        loadComponent: () =>
+          import('./features/notas-credito/nota-credito-detalle.component').then((m) => m.NotaCreditoDetalleComponent),
+      },
+      {
+        path: 'notas-debito',
+        loadComponent: () =>
+          import('./features/notas-debito/notas-debito.component').then((m) => m.NotasDebitoComponent),
+      },
+      {
+        path: 'notas-debito/nueva',
+        loadComponent: () =>
+          import('./features/notas-debito/nota-debito-form.component').then((m) => m.NotaDebitoFormComponent),
+      },
+      {
+        path: 'notas-debito/:id/editar',
+        loadComponent: () =>
+          import('./features/notas-debito/nota-debito-form.component').then((m) => m.NotaDebitoFormComponent),
+      },
+      {
+        path: 'notas-debito/:id',
+        loadComponent: () =>
+          import('./features/notas-debito/nota-debito-detalle.component').then((m) => m.NotaDebitoDetalleComponent),
+      },
+      {
         path: 'tesoreria/cuentas',
         loadComponent: () =>
           import('./features/tesoreria/tesoreria-cuentas.component').then((m) => m.TesoreriaCuentasComponent),

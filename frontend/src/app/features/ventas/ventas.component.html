@@ -67,6 +67,53 @@
     <mat-card class="form-panel">
       <h2>Datos del documento</h2>
 
+      <div class="form-group search-group">
+        <label for="notaVentaBuscar">
+          Nota de venta <span class="hint">(opcional)</span>
+        </label>
+        @if (!clienteId) {
+          <input
+            id="notaVentaBuscar"
+            type="text"
+            value="Selecciona el cliente para vincular una nota de venta"
+            readonly
+          />
+        } @else if (!notaVentaSel) {
+          <div class="item-entry__search-row">
+            <input
+              id="notaVentaBuscar"
+              type="text"
+              placeholder="Buscar por número (p. ej. NV-000006)..."
+              [(ngModel)]="filtroNotaVenta"
+              name="filtroNotaVenta"
+              (ngModelChange)="onFiltroNotaVentaChange()"
+            />
+          </div>
+          @if (filtroNotaVenta && notasVentaResultados.length) {
+            <div class="search-results">
+              @for (nv of notasVentaResultados; track nv.id) {
+                <div class="search-results__item" (click)="seleccionarNotaVenta(nv)">
+                  <span class="search-results__nombre">{{ nv.numero }} · {{ etiquetaEstado(nv.estado) }}</span>
+                  <span class="search-results__sku">
+                    {{ nv.fechaEmision }} · {{ nv.montoTotal | moneda }} · {{ nv.origen === 'COTIZACION' ? 'Desde cotización' : 'Venta directa' }}
+                  </span>
+                </div>
+              }
+              <div class="search-results__hint">Se muestran las notas del cliente sin cancelar.</div>
+            </div>
+          }
+        } @else {
+          <div class="cliente-seleccionado">
+            <span class="cliente-seleccionado__nombre">
+              {{ notaVentaSel.numero }} · {{ etiquetaEstado(notaVentaSel.estado) }} · {{ notaVentaSel.montoTotal | moneda }}
+            </span>
+            <button type="button" mat-icon-button title="Quitar nota de venta" (click)="quitarNotaVenta()">
+              <mat-icon>close</mat-icon>
+            </button>
+          </div>
+        }
+      </div>
+
       <div class="tipo-grid">
         @for (t of tiposDocumento; track t.value) {
           <button

@@ -15,6 +15,10 @@ import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -437,5 +441,17 @@ class CotizacionServiceTest {
         assertThrows(IllegalArgumentException.class,
                 () -> service.buscar(null, null, null, null, null, null, null, null, 0, 0));
         verifyNoInteractions(cotizacionRepository);
+    }
+
+    @Test
+    void elListadoFuncionaSinParametroDeOrdenamiento() {
+        // "sort" es opcional en la API y Set.of(...).contains(null) lanza NPE:
+        // sin ordenamiento explícito el listado debe caer al orden por defecto.
+        when(cotizacionRepository.findAll(any(Specification.class), any(Pageable.class)))
+                .thenReturn(Page.empty());
+
+        var pagina = service.buscar(null, null, null, null, null, null, null, null, 0, 10);
+
+        assertEquals(0, pagina.total());
     }
 }

@@ -27,6 +27,14 @@ const GRUPOS_PERMISOS: GrupoPermiso[] = [
     { valor: 'VENTAS_VER', label: 'Ver ventas' },
     { valor: 'VENTAS_EDITAR', label: 'Registrar y editar ventas' },
   ] },
+  { titulo: 'Notas de crédito', permisos: [
+    { valor: 'NOTAS_CREDITO_VER', label: 'Ver notas de crédito' },
+    { valor: 'NOTAS_CREDITO_EDITAR', label: 'Crear, emitir y anular notas de crédito' },
+  ] },
+  { titulo: 'Notas de débito', permisos: [
+    { valor: 'NOTAS_DEBITO_VER', label: 'Ver notas de débito' },
+    { valor: 'NOTAS_DEBITO_EDITAR', label: 'Crear, emitir y anular notas de débito' },
+  ] },
   { titulo: 'Compras', permisos: [
     { valor: 'COMPRAS_VER', label: 'Ver compras' },
     { valor: 'COMPRAS_EDITAR', label: 'Registrar y editar compras' },

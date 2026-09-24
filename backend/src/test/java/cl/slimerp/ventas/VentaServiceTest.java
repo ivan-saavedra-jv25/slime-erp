@@ -8,12 +8,18 @@ import cl.slimerp.inventario.MovimientoInventarioRepository;
 import cl.slimerp.inventario.StockProductoBodega;
 import cl.slimerp.inventario.StockProductoBodegaRepository;
 import cl.slimerp.inventario.StockService;
+import cl.slimerp.notasventa.EstadoNotaVenta;
+import cl.slimerp.notasventa.NotaVenta;
+import cl.slimerp.notasventa.NotaVentaDocumento;
+import cl.slimerp.notasventa.NotaVentaDocumentoRepository;
+import cl.slimerp.notasventa.NotaVentaRepository;
 import cl.slimerp.tesoreria.CuentaPorCobrarService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,6 +41,8 @@ class VentaServiceTest {
     private StockService stockService;
     private CuentaPorCobrarService cuentaPorCobrarService;
     private FolioVentaService folioVentaService;
+    private NotaVentaRepository notaVentaRepository;
+    private NotaVentaDocumentoRepository notaVentaDocumentoRepository;
     private VentaService service;
 
     private final Map<String, StockProductoBodega> stockPorClave = new HashMap<>();
@@ -63,9 +71,12 @@ class VentaServiceTest {
         stockService = new StockService(stockRepository, bodegaRepository, movimientoRepository);
         cuentaPorCobrarService = mock(CuentaPorCobrarService.class);
         folioVentaService = mock(FolioVentaService.class);
+        notaVentaRepository = mock(NotaVentaRepository.class);
+        notaVentaDocumentoRepository = mock(NotaVentaDocumentoRepository.class);
         when(folioVentaService.siguienteFolio(anyLong(), any())).thenReturn(1);
         service = new VentaService(ventaRepository, clienteRepository, productoRepository, bodegaRepository,
-                formaPagoRepository, stockService, cuentaPorCobrarService, folioVentaService);
+                formaPagoRepository, stockService, cuentaPorCobrarService, folioVentaService,
+                notaVentaRepository, notaVentaDocumentoRepository);
 
         TenantContext.setTenantId(tenantId);
 
@@ -112,7 +123,7 @@ class VentaServiceTest {
 
     private VentaRequest request(Long formaPagoId, TipoDocumentoVenta tipo, boolean exento, BigDecimal descuento,
                                   BigDecimal precioUnitario, BigDecimal cantidad) {
-        return new VentaRequest(1L, formaPagoId, 1L, tipo, exento, null, descuento,
+        return new VentaRequest(1L, formaPagoId, 1L, null, tipo, exento, null, descuento,
                 List.of(new VentaRequest.Item(10L, cantidad, precioUnitario, null)));
     }
 
@@ -172,7 +183,7 @@ class VentaServiceTest {
 
     @Test
     void elDescuentoPorLineaSeRestaDelSubtotalDeEsaLinea() {
-        var req = new VentaRequest(1L, 1L, 1L, TipoDocumentoVenta.FACTURA, false, null, null,
+        var req = new VentaRequest(1L, 1L, 1L, null, TipoDocumentoVenta.FACTURA, false, null, null,
                 List.of(new VentaRequest.Item(10L, new BigDecimal("2"), new BigDecimal("1000"), new BigDecimal("300"))));
 
         Venta venta = service.crear(req);
@@ -184,7 +195,7 @@ class VentaServiceTest {
 
     @Test
     void rechazaUnDescuentoPorLineaMayorQueElSubtotalDeEsaLinea() {
-        var req = new VentaRequest(1L, 1L, 1L, TipoDocumentoVenta.FACTURA, false, null, null,
+        var req = new VentaRequest(1L, 1L, 1L, null, TipoDocumentoVenta.FACTURA, false, null, null,
                 List.of(new VentaRequest.Item(10L, BigDecimal.ONE, new BigDecimal("1000"), new BigDecimal("1001"))));
 
         assertThrows(IllegalArgumentException.class, () -> service.crear(req));
@@ -220,7 +231,7 @@ class VentaServiceTest {
 
     @Test
     void usaLaBodegaPrincipalCuandoNoSeIndicaUna() {
-        var req = new VentaRequest(1L, 1L, null, TipoDocumentoVenta.FACTURA, false, null, null,
+        var req = new VentaRequest(1L, 1L, null, null, TipoDocumentoVenta.FACTURA, false, null, null,
                 List.of(new VentaRequest.Item(10L, BigDecimal.ONE, new BigDecimal("1000"), null)));
 
         Venta venta = service.crear(req);
@@ -251,5 +262,56 @@ class VentaServiceTest {
         Venta voucher = service.crear(request(TipoDocumentoVenta.VOUCHER, true, null, new BigDecimal("500"), BigDecimal.ONE));
         assertEquals(9, voucher.getFolio());
         assertNull(voucher.getCodigoSii());
+    }
+
+    private VentaRequest requestConNotaVenta(Long notaVentaId, Long formaPagoId) {
+        return new VentaRequest(1L, formaPagoId, 1L, notaVentaId, TipoDocumentoVenta.FACTURA, false, null, null,
+                List.of(new VentaRequest.Item(10L, BigDecimal.ONE, new BigDecimal("1000"), null)));
+    }
+
+    private NotaVenta notaVenta(Long id, Long clienteId, EstadoNotaVenta estado) {
+        return NotaVenta.builder().id(id).tenantId(tenantId).clienteId(clienteId)
+                .folio(6).estado(estado).fechaEmision(LocalDate.of(2026, 9, 1))
+                .montoTotal(new BigDecimal("1000.00")).build();
+    }
+
+    @Test
+    void guardaElVinculoConLaNotaDeVentaAlRegistrarLaVenta() {
+        when(notaVentaRepository.findByIdAndTenantId(5L, tenantId))
+                .thenReturn(Optional.of(notaVenta(5L, 1L, EstadoNotaVenta.CONFIRMADA)));
+        when(folioVentaService.siguienteFolio(tenantId, "Factura")).thenReturn(4);
+
+        Venta venta = service.crear(requestConNotaVenta(5L, 1L));
+
+        assertEquals(5L, venta.getNotaVentaId());
+        verify(notaVentaDocumentoRepository).save(argThat(doc ->
+                doc.getNotaVentaId() == 5L
+                        && "VENTA".equals(doc.getTipoDocumento())
+                        && doc.getDocumentoId() == 100L
+                        && "FACTURA N.º 4".equals(doc.getNumero())));
+    }
+
+    @Test
+    void rechazaUnaNotaDeVentaDeOtroCliente() {
+        when(notaVentaRepository.findByIdAndTenantId(5L, tenantId))
+                .thenReturn(Optional.of(notaVenta(5L, 99L, EstadoNotaVenta.CONFIRMADA)));
+
+        assertThrows(IllegalArgumentException.class, () -> service.crear(requestConNotaVenta(5L, 1L)));
+    }
+
+    @Test
+    void rechazaUnaNotaDeVentaCancelada() {
+        when(notaVentaRepository.findByIdAndTenantId(5L, tenantId))
+                .thenReturn(Optional.of(notaVenta(5L, 1L, EstadoNotaVenta.CANCELADA)));
+
+        assertThrows(IllegalArgumentException.class, () -> service.crear(requestConNotaVenta(5L, 1L)));
+    }
+
+    @Test
+    void rechazaUnaNotaDeVentaInexistente() {
+        when(notaVentaRepository.findByIdAndTenantId(5L, tenantId)).thenReturn(Optional.empty());
+
+        assertThrows(IllegalArgumentException.class, () -> service.crear(requestConNotaVenta(5L, 1L)));
+        verify(notaVentaDocumentoRepository, never()).save(any());
     }
 }

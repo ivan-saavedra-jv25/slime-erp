@@ -26,6 +26,8 @@ class RolPermisosTest {
                         Permiso.MOVIMIENTOS_VER, Permiso.MOVIMIENTOS_EDITAR,
                         Permiso.COTIZACIONES_VER, Permiso.COTIZACIONES_EDITAR,
                         Permiso.NOTAS_VENTA_VER, Permiso.NOTAS_VENTA_EDITAR,
+                        Permiso.NOTAS_CREDITO_VER, Permiso.NOTAS_CREDITO_EDITAR,
+                        Permiso.NOTAS_DEBITO_VER, Permiso.NOTAS_DEBITO_EDITAR,
                         Permiso.VENTAS_VER, Permiso.VENTAS_EDITAR,
                         Permiso.COMPRAS_VER, Permiso.COMPRAS_EDITAR,
                         Permiso.TESORERIA_VER, Permiso.TESORERIA_EDITAR, Permiso.TESORERIA_ANULAR,
@@ -42,6 +44,8 @@ class RolPermisosTest {
                         Permiso.MOVIMIENTOS_VER, Permiso.MOVIMIENTOS_EDITAR,
                         Permiso.COTIZACIONES_VER, Permiso.COTIZACIONES_EDITAR,
                         Permiso.NOTAS_VENTA_VER, Permiso.NOTAS_VENTA_EDITAR,
+                        Permiso.NOTAS_CREDITO_VER, Permiso.NOTAS_CREDITO_EDITAR,
+                        Permiso.NOTAS_DEBITO_VER, Permiso.NOTAS_DEBITO_EDITAR,
                         Permiso.VENTAS_VER, Permiso.VENTAS_EDITAR,
                         Permiso.TESORERIA_VER, Permiso.TESORERIA_EDITAR),
                 RolPermisos.permisosDe(Rol.VENDEDOR));
@@ -66,7 +70,9 @@ class RolPermisosTest {
                 Set.of(Permiso.CLIENTES_VER, Permiso.PROVEEDORES_VER, Permiso.PRODUCTOS_VER,
                         Permiso.CATEGORIAS_VER, Permiso.BODEGAS_VER,
                         Permiso.FORMAS_PAGO_VER, Permiso.MOVIMIENTOS_VER,
-                        Permiso.COTIZACIONES_VER, Permiso.NOTAS_VENTA_VER, Permiso.VENTAS_VER,
+                        Permiso.COTIZACIONES_VER, Permiso.NOTAS_VENTA_VER, Permiso.NOTAS_CREDITO_VER,
+                        Permiso.NOTAS_DEBITO_VER,
+                        Permiso.VENTAS_VER,
                         Permiso.COMPRAS_VER, Permiso.TESORERIA_VER),
                 RolPermisos.permisosDe(Rol.VISUALIZADOR));
     }

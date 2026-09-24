@@ -1,0 +1,108 @@
+{
+  "modulo": "Nota de Débito",
+  "descripcion": "Anulación o reversión de una Nota de Crédito emitida, con reversión de sus efectos incluida la recuperación de inventario. Sin XML, DTE ni envío al SII.",
+  "plan": "specs/00-gestion.md",
+  "actualizado": "2026-09-23",
+  "decisiones": {
+    "documentoAsociado": "Solo Notas de Crédito emitidas. La cadena es Venta -> Nota de Crédito -> Nota de Débito.",
+    "bodegaReversion": "La misma de la Nota de Crédito asociada (snapshot de la venta original), guardada como snapshot en la ND.",
+    "cuentasPorCobrar": "Fuera de alcance. La ND registra montos pero no toca CxC ni tesorería.",
+    "montos": "Se reutiliza CalculadoraMontosVenta con el tipo de documento y exención de la venta original, heredados vía la NC.",
+    "inventario": "Al emitir revierte la recuperación generada por la NC (salida de stock). Al anular revierte su propia reversa. Sin movimientos si la NC no recuperó inventario.",
+    "entregablesUi": "Listado con filtros, PDF y dashboard."
+  },
+  "estadosPermitidos": ["pending", "working", "completed"],
+  "tasks": [
+    {
+      "id": "ND-001",
+      "name": "Especificaciones y tasks.json",
+      "description": "Crear la carpeta nota-debito/ con tasks.json y un spec por tarea dentro de specs/.",
+      "spec": "specs/00-gestion.md",
+      "status": "completed"
+    },
+    {
+      "id": "ND-002",
+      "name": "Modelo de datos",
+      "description": "Migración V39__notas_debito.sql con las 5 tablas del módulo y los nuevos valores de TipoMovimiento (SALIDA_NOTA_CREDITO y ENTRADA_NOTA_DEBITO). Entities, repositorios, contador de folio y NumeroNotaDebito.",
+      "spec": "specs/01-modelo-datos.md",
+      "status": "completed"
+    },
+    {
+      "id": "ND-003",
+      "name": "Permisos",
+      "description": "NOTAS_DEBITO_VER y NOTAS_DEBITO_EDITAR en Permiso y RolPermisos, más los tests que enumeran permisos esperados y el tipo Permiso del frontend.",
+      "spec": "specs/02-permisos.md",
+      "status": "completed"
+    },
+    {
+      "id": "ND-004",
+      "name": "Documento asociado",
+      "description": "Selección de la Nota de Crédito a revertir (solo EMITIDA), snapshot histórico de sus datos y endpoint de líneas con la cantidad disponible a revertir.",
+      "spec": "specs/03-documento-asociado.md",
+      "status": "completed"
+    },
+    {
+      "id": "ND-005",
+      "name": "Tipo de reversión y montos",
+      "description": "Reglas de REVIERTE_DOCUMENTO, REVIERTE_MONTO y REVIERTE_TEXTO, y cálculo de montos reutilizando CalculadoraMontosVenta con el tipo de documento de la venta original.",
+      "spec": "specs/04-tipo-reversion.md",
+      "status": "completed"
+    },
+    {
+      "id": "ND-006",
+      "name": "Estados y eventos",
+      "description": "Ciclo BORRADOR / EMITIDA / ANULADA, guardias de transición e historial append-only en nota_debito_evento.",
+      "spec": "specs/05-estados.md",
+      "status": "completed"
+    },
+    {
+      "id": "ND-007",
+      "name": "Inventario y trazabilidad",
+      "description": "Reversión de la recuperación de la NC al emitir, reversa de esa salida al anular, vínculo ND ↔ movimiento y validación anti doble reversión.",
+      "spec": "specs/06-inventario-trazabilidad.md",
+      "status": "completed"
+    },
+    {
+      "id": "ND-008",
+      "name": "Controller, listado y dashboard",
+      "description": "Endpoints de /api/notas-debito, filtros con Specification, paginación, ordenamiento y dashboard por período.",
+      "spec": "specs/07-acciones-y-listado.md",
+      "status": "completed"
+    },
+    {
+      "id": "ND-009",
+      "name": "PDF",
+      "description": "NotaDebitoPdfService con OpenPDF, espejo de NotaCreditoPdfService.",
+      "spec": "specs/08-pdf.md",
+      "status": "completed"
+    },
+    {
+      "id": "ND-010",
+      "name": "Frontend — servicio, modelos, rutas y menú",
+      "description": "nota-debito.service.ts, tipos en models.ts, las 4 rutas en app.routes.ts y el ítem del sidebar.",
+      "spec": "specs/09-frontend-base.md",
+      "status": "completed"
+    },
+    {
+      "id": "ND-011",
+      "name": "Frontend — listado",
+      "description": "Componente de listado con filtros, KPIs, gráfico, tabla ordenable y paginación server-side.",
+      "spec": "specs/10-frontend-listado.md",
+      "status": "completed"
+    },
+    {
+      "id": "ND-012",
+      "name": "Frontend — formulario",
+      "description": "Formulario en 7 secciones, template-driven, con staging de líneas y validación imperativa.",
+      "spec": "specs/11-frontend-formulario.md",
+      "status": "completed"
+    },
+    {
+      "id": "ND-013",
+      "name": "Frontend — detalle y trazabilidad",
+      "description": "Detalle con acciones de estado, historial, cadena de trazabilidad y tabla de movimientos de inventario relacionados.",
+      "spec": "specs/12-frontend-detalle.md",
+      "status": "completed"
+    }
+  ]
+}

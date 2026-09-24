@@ -8,16 +8,18 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import Swal from 'sweetalert2';
-import { Bodega, Cliente, FormaPago, InventarioItem, Producto, TipoDocumentoVenta, VentaItem } from '../../core/models/models';
+import { Bodega, Cliente, FormaPago, InventarioItem, NotaVentaResumen, Producto, TipoDocumentoVenta, VentaItem } from '../../core/models/models';
 import { ClienteService } from '../../core/services/cliente.service';
 import { ProductoService } from '../../core/services/producto.service';
 import { BodegaService } from '../../core/services/bodega.service';
 import { FormaPagoService } from '../../core/services/forma-pago.service';
 import { StockService } from '../../core/services/stock.service';
 import { VentaService } from '../../core/services/venta.service';
+import { NotaVentaService } from '../../core/services/nota-venta.service';
 import { AuthService } from '../../core/services/auth.service';
 import { VentaPdfDialogComponent } from './venta-pdf-dialog.component';
 import { ProductoBuscadorDialogComponent } from './producto-buscador-dialog.component';
+import { ETIQUETAS_ESTADO } from '../notas-venta/estado-nota-venta';
 import { cerrarCargando, mostrarCargando } from '../../core/utils/swal-loading';
 import { MonedaPipe } from '../../core/pipes/moneda.pipe';
 
@@ -53,9 +55,15 @@ export class VentasComponent implements OnInit, OnDestroy {
   productosTotal = 0;
   private readonly productosConocidos = new Map<number, Producto>();
 
+  notasVentaResultados: NotaVentaResumen[] = [];
+  notaVentaId: number | null = null;
+  notaVentaSel: NotaVentaResumen | null = null;
+  filtroNotaVenta = '';
+
   private readonly LIMITE_RESULTADOS = 8;
   private readonly busquedaCliente$ = new Subject<string>();
   private readonly busquedaProducto$ = new Subject<string>();
+  private readonly busquedaNotaVenta$ = new Subject<string>();
 
   readonly tiposDocumento: { value: TipoDocumentoVenta; label: string; desc: string }[] = [
     { value: 'BOLETA', label: 'Boleta', desc: 'Afecta: detalle en bruto (IVA incluido), el total se desglosa. Puede marcarse como exenta.' },
@@ -74,6 +82,11 @@ export class VentasComponent implements OnInit, OnDestroy {
   guardando = false;
   error = '';
 
+  // Estados de nota de venta desde los que se puede registrar una venta.
+  // Excluye CANCELADA y FACTURADA (ya vendida). Los demás estados de entrega
+  // no impiden facturar: la venta es el documento que cierra la operación.
+  private readonly estadosNotaVentaFacturables = new Set(['EN_PREPARACION', 'PARCIALMENTE_ENTREGADA', 'ENTREGADA', 'CONFIRMADA', 'BORRADOR']);
+
   filtroCliente = '';
   filtroProducto = '';
   itemStaged: ItemStaged = itemVacio();
@@ -86,6 +99,7 @@ export class VentasComponent implements OnInit, OnDestroy {
     private formaPagoService: FormaPagoService,
     private stockService: StockService,
     private ventaService: VentaService,
+    private notaVentaService: NotaVentaService,
     private dialog: MatDialog,
     public auth: AuthService
   ) {}
@@ -103,11 +117,13 @@ export class VentasComponent implements OnInit, OnDestroy {
 
     this.busquedaCliente$.pipe(debounceTime(300), distinctUntilChanged()).subscribe((q) => this.buscarClientes(q));
     this.busquedaProducto$.pipe(debounceTime(300), distinctUntilChanged()).subscribe((q) => this.buscarProductos(q));
+    this.busquedaNotaVenta$.pipe(debounceTime(300), distinctUntilChanged()).subscribe((q) => this.buscarNotasVenta(q));
   }
 
   ngOnDestroy(): void {
     this.busquedaCliente$.complete();
     this.busquedaProducto$.complete();
+    this.busquedaNotaVenta$.complete();
   }
 
   onBodegaChange(): void {
@@ -170,12 +186,63 @@ export class VentasComponent implements OnInit, OnDestroy {
     this.clienteSeleccionadoObj = cliente;
     this.filtroCliente = '';
     this.clientesResultados = [];
+    this.limpiarNotaVenta();
   }
 
   cambiarCliente(): void {
     this.clienteId = null;
     this.clienteSeleccionadoObj = null;
     this.filtroCliente = '';
+    this.limpiarNotaVenta();
+  }
+
+  get notaVentaDisponible(): boolean {
+    return !!this.clienteId && !this.notaVentaId;
+  }
+
+  onFiltroNotaVentaChange(): void {
+    if (!this.clienteId) {
+      this.notasVentaResultados = [];
+      return;
+    }
+    this.busquedaNotaVenta$.next(this.filtroNotaVenta);
+  }
+
+  private buscarNotasVenta(q: string): void {
+    if (!this.clienteId) {
+      this.notasVentaResultados = [];
+      return;
+    }
+    const texto = q.trim();
+    this.notaVentaService
+      .listar({ clienteId: this.clienteId, q: texto || null, pagina: 0, tamano: this.LIMITE_RESULTADOS })
+      .subscribe((resp) => {
+        // Se ofrecen las notas de venta desde las que todavía se puede registrar
+        // una venta (no canceladas ni ya facturadas).
+        this.notasVentaResultados = resp.contenido.filter((nv) => this.estadosNotaVentaFacturables.has(nv.estado));
+      });
+  }
+
+  seleccionarNotaVenta(nv: NotaVentaResumen): void {
+    this.notaVentaId = nv.id;
+    this.notaVentaSel = nv;
+    this.filtroNotaVenta = '';
+    this.notasVentaResultados = [];
+  }
+
+  quitarNotaVenta(): void {
+    this.limpiarNotaVenta();
+  }
+
+  private limpiarNotaVenta(): void {
+    this.notaVentaId = null;
+    this.notaVentaSel = null;
+    this.filtroNotaVenta = '';
+    this.notasVentaResultados = [];
+  }
+
+  etiquetaEstado(estado: NotaVentaResumen['estado']): string {
+    return ETIQUETAS_ESTADO[estado];
   }
 
   onFiltroProductoChange(): void {
@@ -341,6 +408,7 @@ export class VentasComponent implements OnInit, OnDestroy {
         clienteId: this.clienteId!,
         formaPagoId: this.formaPagoId!,
         bodegaId: this.bodegaId,
+        notaVentaId: this.notaVentaId,
         tipoDocumento: this.tipoDocumento,
         exento: this.exento,
         observacion: this.observacion,
@@ -352,6 +420,7 @@ export class VentasComponent implements OnInit, OnDestroy {
           this.clienteId = null;
           this.clienteSeleccionadoObj = null;
           this.filtroCliente = '';
+          this.limpiarNotaVenta();
           this.formaPagoId = null;
           this.observacion = '';
           this.descuento = 0;

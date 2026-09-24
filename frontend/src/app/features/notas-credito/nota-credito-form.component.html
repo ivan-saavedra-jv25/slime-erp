@@ -1,0 +1,380 @@
+<div class="page-header">
+  <div>
+    <h1>{{ esEdicion ? 'Editar' : 'Nueva' }} Nota de Crédito</h1>
+    <p class="form-section-hint">
+      Corrige un documento de venta ya emitido y, cuando corresponde, devuelve la mercadería a bodega.
+    </p>
+  </div>
+  <a mat-stroked-button routerLink="/notas-credito">
+    <mat-icon>arrow_back</mat-icon>
+    Volver
+  </a>
+</div>
+
+@if (error) {
+  <p class="page-error">{{ error }}</p>
+}
+
+<!-- 1. Documento asociado: va primero porque cliente, bodega, base impositiva y
+     líneas disponibles se derivan de él. -->
+<mat-card class="form-panel">
+  <h2>Documento asociado</h2>
+  <p class="form-section-hint">
+    Toda nota de crédito corrige un documento existente. Elija el cliente y luego el documento.
+  </p>
+
+  <div class="two-col">
+    <div>
+      @if (!clienteSeleccionado) {
+        <div class="form-group search-group">
+          <label for="cliente">Cliente <span class="required-mark">*</span></label>
+          <input
+            id="cliente"
+            name="cliente"
+            placeholder="Buscar por nombre o RUT..."
+            autocomplete="off"
+            [(ngModel)]="filtroCliente"
+            (ngModelChange)="onBusquedaClienteChange()"
+          />
+          @if (clientesResultados.length) {
+            <div class="search-results">
+              @for (c of clientesResultados; track c.id) {
+                <div class="search-results__item" (click)="seleccionarCliente(c)">
+                  <span class="search-results__nombre">{{ c.nombre }}</span>
+                  <span class="search-results__sku">{{ c.rut || 'Sin RUT' }}</span>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      } @else {
+        <div class="cliente-seleccionado">
+          <div>
+            <span class="cliente-seleccionado__nombre">{{ clienteSeleccionado.nombre }}</span>
+            <span class="search-results__sku">{{ clienteSeleccionado.rut || 'Sin RUT' }}</span>
+          </div>
+          @if (!esEdicion) {
+            <button type="button" mat-stroked-button (click)="cambiarCliente()">Cambiar</button>
+          }
+        </div>
+      }
+    </div>
+
+    <div>
+      @if (!documentoSeleccionado) {
+        <div class="form-group search-group">
+          <label for="documento">Documento a corregir <span class="required-mark">*</span></label>
+          <input
+            id="documento"
+            name="documento"
+            placeholder="Buscar por folio..."
+            autocomplete="off"
+            [disabled]="!clienteSeleccionado"
+            [(ngModel)]="filtroDocumento"
+            (ngModelChange)="onBusquedaDocumentoChange()"
+          />
+          @if (!clienteSeleccionado) {
+            <span class="hint">Seleccione primero un cliente.</span>
+          }
+          @if (documentosResultados.length) {
+            <div class="search-results">
+              @for (d of documentosResultados; track d.ventaId) {
+                <div class="search-results__item" (click)="seleccionarDocumento(d)">
+                  <span class="search-results__nombre">
+                    {{ etiquetaDocumento(d.tipoDocumento) }} N.º {{ d.folio }}
+                    @if (d.tieneNotasCredito) {
+                      <span class="tag tag--warning">Ya corregido</span>
+                    }
+                  </span>
+                  <span class="search-results__sku">
+                    {{ d.fecha | date: 'dd-MM-yyyy' }} · {{ d.montoTotal | moneda }}
+                  </span>
+                </div>
+              }
+            </div>
+          }
+          @if (clienteSeleccionado && !documentosResultados.length) {
+            <span class="hint">Este cliente no tiene documentos de venta disponibles.</span>
+          }
+        </div>
+      } @else {
+        <div class="documento-ficha">
+          <div class="documento-ficha__grid">
+            <div>
+              <span class="kpi-label">Tipo</span>
+              <span class="documento-ficha__valor">
+                {{ etiquetaDocumento(documentoSeleccionado.tipoDocumento) }}
+              </span>
+            </div>
+            <div>
+              <span class="kpi-label">Folio</span>
+              <span class="documento-ficha__valor">{{ documentoSeleccionado.folio }}</span>
+            </div>
+            <div>
+              <span class="kpi-label">Fecha</span>
+              <span class="documento-ficha__valor">
+                {{ documentoSeleccionado.fecha | date: 'dd-MM-yyyy' }}
+              </span>
+            </div>
+            <div>
+              <span class="kpi-label">Total</span>
+              <span class="documento-ficha__valor">{{ documentoSeleccionado.montoTotal | moneda }}</span>
+            </div>
+          </div>
+          @if (!esEdicion) {
+            <button type="button" mat-stroked-button (click)="cambiarDocumento()">Cambiar documento</button>
+          }
+        </div>
+      }
+    </div>
+  </div>
+
+  <div class="form-group span-2">
+    <label for="razon">Razón de la asociación <span class="required-mark">*</span></label>
+    <textarea
+      id="razon"
+      name="razon"
+      rows="2"
+      placeholder="Por qué se corrige este documento..."
+      [(ngModel)]="razonAsociacion"
+    ></textarea>
+    @if (documentoSeleccionado && !razonAsociacion.trim()) {
+      <span class="field-error">Indique la razón por la que se corrige este documento.</span>
+    }
+  </div>
+</mat-card>
+
+<!-- 2. Tipo de corrección: determina el comportamiento de las secciones que siguen. -->
+<mat-card class="form-panel">
+  <h2>Tipo de corrección</h2>
+  <p class="form-section-hint">El tipo determina qué puede corregir la nota y si recupera inventario.</p>
+
+  <div class="tipo-grid">
+    @for (t of tiposCorreccion; track t) {
+      <button
+        type="button"
+        class="tipo-opcion"
+        [class.tipo-opcion--activa]="tipoCorreccion === t"
+        [disabled]="!documentoSeleccionado"
+        (click)="seleccionarTipo(t)"
+      >
+        <span class="tipo-opcion__radio">
+          <mat-icon>{{ tipoCorreccion === t ? 'radio_button_checked' : 'radio_button_unchecked' }}</mat-icon>
+        </span>
+        <span class="tipo-opcion__texto">
+          <span class="tipo-opcion__titulo">{{ etiquetaTipo(t) }}</span>
+          <span class="tipo-opcion__ayuda">{{ ayudaTipo(t) }}</span>
+        </span>
+      </button>
+    }
+  </div>
+  @if (!documentoSeleccionado) {
+    <span class="hint">Seleccione primero el documento a corregir.</span>
+  }
+</mat-card>
+
+<!-- 3. Detalle: solo para CORRIGE_DOCUMENTO y CORRIGE_MONTO. -->
+@if (muestraDetalle) {
+  <mat-card class="form-panel">
+    <h2>Detalle a corregir</h2>
+    <p class="form-section-hint">
+      {{
+        lineasBloqueadas
+          ? 'El documento se corrige completo. Puede desmarcar la recuperación de inventario de una línea si la mercadería no volvió.'
+          : 'Marque las líneas que desea corregir e indique la cantidad.'
+      }}
+    </p>
+
+    @if (errorLineas) {
+      <p class="page-error">{{ errorLineas }}</p>
+    }
+
+    @if (cargando) {
+      <p class="empty-state">Cargando líneas del documento...</p>
+    }
+    @if (!cargando && !lineas.length) {
+      <p class="empty-state">El documento asociado no tiene líneas de detalle.</p>
+    }
+
+    @if (lineas.length) {
+      <div class="table-scroll">
+        <table class="items-table">
+          <thead>
+            <tr>
+              <th class="check-col">Incluir</th>
+              <th>Producto</th>
+              <th class="right">Vendida</th>
+              <th class="right">Disponible</th>
+              <th class="right">A corregir</th>
+              <th class="right">Precio unit.</th>
+              <th class="right">Descuento</th>
+              <th class="right">Subtotal</th>
+              <th class="check-col">Recupera inventario</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (l of lineas; track l.ventaDetalleId) {
+              <tr [class.items-table__row--inactiva]="!l.incluida">
+                <td class="check-col">
+                  <input
+                    type="checkbox"
+                    [name]="'incluir-' + l.ventaDetalleId"
+                    [disabled]="lineasBloqueadas"
+                    [(ngModel)]="l.incluida"
+                    [attr.aria-label]="'Incluir ' + l.descripcion"
+                  />
+                </td>
+                <td>
+                  <span class="items-table__nombre">{{ l.descripcion }}</span>
+                  @if (l.codigo) {
+                    <span class="search-results__sku">{{ l.codigo }}</span>
+                  }
+                </td>
+                <td class="right">{{ l.cantidadVendida }}</td>
+                <td class="right">{{ l.cantidadDisponible }}</td>
+                <td class="right">
+                  <input
+                    type="number"
+                    class="celda-numero"
+                    min="0"
+                    step="1"
+                    [name]="'cantidad-' + l.ventaDetalleId"
+                    [disabled]="!l.incluida"
+                    [(ngModel)]="l.cantidad"
+                  />
+                </td>
+                <td class="right">
+                  <input
+                    type="number"
+                    class="celda-numero"
+                    min="0"
+                    step="1"
+                    [name]="'precio-' + l.ventaDetalleId"
+                    [disabled]="!l.incluida || lineasBloqueadas"
+                    [(ngModel)]="l.precioUnitario"
+                  />
+                </td>
+                <td class="right">
+                  <input
+                    type="number"
+                    class="celda-numero"
+                    min="0"
+                    step="1"
+                    [name]="'descuento-' + l.ventaDetalleId"
+                    [disabled]="!l.incluida"
+                    [(ngModel)]="l.descuento"
+                  />
+                </td>
+                <td class="right">{{ subtotalLinea(l) | moneda }}</td>
+                <td class="check-col">
+                  <input
+                    type="checkbox"
+                    [name]="'recupera-' + l.ventaDetalleId"
+                    [disabled]="!l.incluida || !puedeRecuperar(l)"
+                    [title]="tituloRecuperacion(l)"
+                    [(ngModel)]="l.recuperaInventario"
+                    [attr.aria-label]="'Recuperar inventario de ' + l.descripcion"
+                  />
+                </td>
+              </tr>
+              @if (errorDeLinea(l)) {
+                <tr class="items-table__error-row">
+                  <td colspan="9"><span class="field-error">{{ errorDeLinea(l) }}</span></td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </mat-card>
+}
+
+<!-- 4. Corrección de texto: solo para CORRIGE_TEXTO. -->
+@if (muestraTexto) {
+  <mat-card class="form-panel">
+    <h2>Corrección de texto</h2>
+    <p class="form-section-hint">No afecta montos ni inventario.</p>
+    <div class="form-group span-2">
+      <label for="textoCorreccion">Texto de la corrección <span class="required-mark">*</span></label>
+      <textarea
+        id="textoCorreccion"
+        name="textoCorreccion"
+        rows="5"
+        [maxlength]="maxTextoCorreccion"
+        placeholder="Describa la información que se corrige..."
+        [(ngModel)]="textoCorreccion"
+      ></textarea>
+      <span class="hint">{{ textoCorreccion.length }} / {{ maxTextoCorreccion }} caracteres</span>
+      @if (!textoCorreccion.trim()) {
+        <span class="field-error">Indique el texto de la corrección.</span>
+      }
+    </div>
+  </mat-card>
+}
+
+<!-- 5. Información complementaria -->
+<mat-card class="form-panel">
+  <h2>Información complementaria</h2>
+  <div class="form-grid">
+    <div class="form-group">
+      <label for="fecha">Fecha <span class="required-mark">*</span></label>
+      <input id="fecha" type="date" name="fecha" [(ngModel)]="fecha" />
+    </div>
+    <div class="form-group">
+      <label for="motivo">Motivo</label>
+      <input id="motivo" name="motivo" placeholder="Motivo de la corrección" [(ngModel)]="motivo" />
+    </div>
+    <div class="form-group span-2">
+      <label for="observaciones">Observaciones</label>
+      <textarea id="observaciones" name="observaciones" rows="2" [(ngModel)]="observaciones"></textarea>
+    </div>
+  </div>
+</mat-card>
+
+<!-- 6. Totales y acciones. La emisión se hace desde el detalle: es una acción
+     sobre un documento ya guardado. -->
+<mat-card class="form-panel">
+  <h2>{{ muestraTexto ? 'Acciones' : 'Totales' }}</h2>
+
+  @if (!muestraTexto) {
+    <div class="totals-grid">
+      <div class="form-group">
+        <label for="descuentoGlobal">Descuento global</label>
+        <input id="descuentoGlobal" type="number" min="0" name="descuentoGlobal" [(ngModel)]="descuento" />
+        <span class="hint">Se aplica sobre el total de las líneas incluidas.</span>
+      </div>
+
+      <div class="totals-group">
+        <div class="totals-row">
+          <span>Subtotal</span>
+          <span>{{ subtotalActual | moneda }}</span>
+        </div>
+        <div class="totals-row">
+          <span>Descuentos</span>
+          <span>{{ descuentoTotal | moneda }}</span>
+        </div>
+        <div class="totals-row">
+          <span>Neto</span>
+          <span>{{ netoActual | moneda }}</span>
+        </div>
+        <div class="totals-row">
+          <span>IVA</span>
+          <span>{{ ivaActual | moneda }}</span>
+        </div>
+        <div class="totals-row totals-row--total">
+          <span>Total</span>
+          <span>{{ totalActual | moneda }}</span>
+        </div>
+      </div>
+    </div>
+  }
+
+  <div class="form-actions">
+    <a mat-stroked-button routerLink="/notas-credito">Cancelar</a>
+    <button type="button" mat-flat-button color="primary" [disabled]="!puedeGuardar" (click)="guardar()">
+      {{ guardando ? 'Guardando...' : 'Guardar borrador' }}
+    </button>
+  </div>
+  <span class="hint">La nota se emite desde su detalle, una vez guardada.</span>
+</mat-card>

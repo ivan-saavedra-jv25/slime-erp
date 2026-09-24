@@ -24,9 +24,12 @@ public class StockService {
                 .orElseThrow(() -> new IllegalStateException("El tenant no tiene una bodega principal configurada"));
     }
 
+    // Devuelve el movimiento creado para que quien lo origina pueda dejar el
+    // vínculo registrado (lo usa la Nota de Crédito en nota_credito_movimiento).
+    // Los llamadores que no lo necesitan simplemente ignoran el retorno.
     @Transactional
-    public void sumar(Long tenantId, Long productoId, Long bodegaId, BigDecimal cantidad,
-                       TipoMovimiento tipo, Long headerId, Long referenciaId) {
+    public MovimientoInventario sumar(Long tenantId, Long productoId, Long bodegaId, BigDecimal cantidad,
+                                      TipoMovimiento tipo, Long headerId, Long referenciaId) {
         StockProductoBodega stock = stockRepository.findByTenantIdAndProductoIdAndBodegaId(tenantId, productoId, bodegaId)
                 .orElseGet(() -> stockRepository.save(StockProductoBodega.builder()
                         .tenantId(tenantId)
@@ -38,7 +41,7 @@ public class StockService {
         stock.setCantidad(stock.getCantidad().add(cantidad));
         stockRepository.save(stock);
 
-        movimientoRepository.save(MovimientoInventario.builder()
+        return movimientoRepository.save(MovimientoInventario.builder()
                 .tenantId(tenantId)
                 .productoId(productoId)
                 .tipo(tipo)

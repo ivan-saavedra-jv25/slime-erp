@@ -1,0 +1,112 @@
+{
+  "modulo": "Nota de Crédito",
+  "descripcion": "Emisión, corrección de documentos de venta y recuperación de inventario. Sin XML, DTE ni envío al SII.",
+  "plan": "C:/Users/ivana/.claude/plans/m-dulo-nota-de-wiggly-moore.md",
+  "actualizado": "2026-09-23",
+  "decisiones": {
+    "documentoAsociado": "Solo Venta (Boleta/Factura/Voucher). Es el único documento del ERP que descuenta stock.",
+    "bodegaRecuperacion": "La misma del documento original (venta.bodega_id), guardada como snapshot en la NC.",
+    "cuentasPorCobrar": "Fuera de alcance. La NC registra montos pero no toca CxC ni tesorería.",
+    "entregablesUi": "Listado con filtros, PDF y dashboard."
+  },
+  "verificacion": {
+    "backend": "422 tests verdes (mvn test en maven:3.9-eclipse-temurin-21)",
+    "frontend": "162 tests verdes (ng test)",
+    "endToEnd": "Flyway aplicó V37; ciclo crear → emitir → anular verificado contra la API con stock, movimientos y trazabilidad reales",
+    "fecha": "2026-09-23"
+  },
+  "estadosPermitidos": ["pending", "working", "completed"],
+  "tasks": [
+    {
+      "id": "NC-001",
+      "name": "Especificaciones y tasks.json",
+      "description": "Crear la carpeta nota-credito/ con tasks.json y un spec por tarea dentro de specs/.",
+      "spec": "specs/00-gestion.md",
+      "status": "completed"
+    },
+    {
+      "id": "NC-002",
+      "name": "Modelo de datos",
+      "description": "Migración V37__notas_credito.sql con las 5 tablas del módulo y el ensanchamiento de movimiento_inventario.tipo a VARCHAR(30). Entities, repositorios, contador de folio y NumeroNotaCredito.",
+      "spec": "specs/01-modelo-datos.md",
+      "status": "completed"
+    },
+    {
+      "id": "NC-003",
+      "name": "Permisos",
+      "description": "NOTAS_CREDITO_VER y NOTAS_CREDITO_EDITAR en Permiso y RolPermisos, más los tests que enumeran permisos esperados y el tipo Permiso del frontend.",
+      "spec": "specs/02-permisos.md",
+      "status": "completed"
+    },
+    {
+      "id": "NC-004",
+      "name": "Documento asociado",
+      "description": "Selección de la venta a corregir, snapshot histórico de sus datos y endpoint de líneas con la cantidad disponible a recuperar.",
+      "spec": "specs/03-documento-asociado.md",
+      "status": "completed"
+    },
+    {
+      "id": "NC-005",
+      "name": "Tipo de corrección y montos",
+      "description": "Reglas de CORRIGE_DOCUMENTO, CORRIGE_MONTO y CORRIGE_TEXTO, y cálculo de montos reutilizando CalculadoraMontosVenta con el tipo de documento de la venta original.",
+      "spec": "specs/04-tipo-correccion.md",
+      "status": "completed"
+    },
+    {
+      "id": "NC-006",
+      "name": "Estados y eventos",
+      "description": "Ciclo BORRADOR / EMITIDA / ANULADA, guardias de transición e historial append-only en nota_credito_evento.",
+      "spec": "specs/05-estados.md",
+      "status": "completed"
+    },
+    {
+      "id": "NC-007",
+      "name": "Inventario y trazabilidad",
+      "description": "Recuperación de inventario al emitir, reversa al anular, vínculo NC ↔ movimiento y validación anti doble recuperación.",
+      "spec": "specs/06-productos-inventario.md",
+      "status": "completed"
+    },
+    {
+      "id": "NC-008",
+      "name": "Controller, listado y dashboard",
+      "description": "Endpoints de /api/notas-credito, filtros con Specification, paginación, ordenamiento y dashboard por período.",
+      "spec": "specs/07-acciones-y-listado.md",
+      "status": "completed"
+    },
+    {
+      "id": "NC-009",
+      "name": "PDF",
+      "description": "NotaCreditoPdfService con OpenPDF, espejo de NotaVentaPdfService.",
+      "spec": "specs/08-pdf.md",
+      "status": "completed"
+    },
+    {
+      "id": "NC-010",
+      "name": "Frontend — servicio, modelos, rutas y menú",
+      "description": "nota-credito.service.ts, tipos en models.ts, las 4 rutas en app.routes.ts y el ítem del sidebar.",
+      "spec": "specs/09-frontend-base.md",
+      "status": "completed"
+    },
+    {
+      "id": "NC-011",
+      "name": "Frontend — listado",
+      "description": "Componente de listado con filtros, KPIs, gráfico, tabla ordenable y paginación server-side.",
+      "spec": "specs/10-frontend-listado.md",
+      "status": "completed"
+    },
+    {
+      "id": "NC-012",
+      "name": "Frontend — formulario",
+      "description": "Formulario en 7 secciones, template-driven, con staging de líneas y validación imperativa.",
+      "spec": "specs/11-frontend-formulario.md",
+      "status": "completed"
+    },
+    {
+      "id": "NC-013",
+      "name": "Frontend — detalle y trazabilidad",
+      "description": "Detalle con acciones de estado, historial, cadena de trazabilidad y tabla de movimientos de inventario relacionados.",
+      "spec": "specs/12-frontend-detalle.md",
+      "status": "completed"
+    }
+  ]
+}

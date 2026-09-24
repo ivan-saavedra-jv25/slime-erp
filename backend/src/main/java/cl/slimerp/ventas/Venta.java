@@ -33,6 +33,12 @@ public class Venta {
     @Column(name = "bodega_id", nullable = false)
     private Long bodegaId;
 
+    // Nota de venta que dio origen a esta venta (nullable: se pueden registrar
+    // ventas directas). Es el eslabón que permite a la trazabilidad recorrer la
+    // cadena Cotización -> Nota de Venta -> Venta -> NC -> ND.
+    @Column(name = "nota_venta_id")
+    private Long notaVentaId;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "tipo_documento", nullable = false, length = 20)
     private TipoDocumentoVenta tipoDocumento;

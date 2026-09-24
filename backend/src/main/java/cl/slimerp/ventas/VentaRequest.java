@@ -11,6 +11,7 @@ public record VentaRequest(
         @NotNull Long clienteId,
         @NotNull Long formaPagoId,
         Long bodegaId,
+        Long notaVentaId,
         @NotNull TipoDocumentoVenta tipoDocumento,
         boolean exento,
         String observacion,

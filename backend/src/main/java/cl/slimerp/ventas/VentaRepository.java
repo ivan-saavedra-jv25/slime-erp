@@ -2,12 +2,13 @@ package cl.slimerp.ventas;
 
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-public interface VentaRepository extends JpaRepository<Venta, Long> {
+public interface VentaRepository extends JpaRepository<Venta, Long>, JpaSpecificationExecutor<Venta> {
     @EntityGraph(attributePaths = "detalle")
     List<Venta> findByTenantIdAndActivoTrueOrderByFechaDesc(Long tenantId);
 

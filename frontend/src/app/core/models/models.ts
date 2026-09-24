@@ -38,6 +38,10 @@ export type Permiso =
   | 'COTIZACIONES_EDITAR'
   | 'NOTAS_VENTA_VER'
   | 'NOTAS_VENTA_EDITAR'
+  | 'NOTAS_CREDITO_VER'
+  | 'NOTAS_CREDITO_EDITAR'
+  | 'NOTAS_DEBITO_VER'
+  | 'NOTAS_DEBITO_EDITAR'
   | 'VENTAS_VER'
   | 'VENTAS_EDITAR'
   | 'COMPRAS_VER'
@@ -245,6 +249,7 @@ export interface Venta {
   clienteId: number;
   formaPagoId: number;
   bodegaId: number;
+  notaVentaId: number | null;
   tipoDocumento: TipoDocumentoVenta;
   exento: boolean;
   folio: number;
@@ -572,6 +577,364 @@ export interface NotaVentaItem {
   descuento: number;
 }
 
+
+// --- Nota de Crédito -------------------------------------------------------
+
+export type EstadoNotaCredito = 'BORRADOR' | 'EMITIDA' | 'ANULADA';
+
+export type TipoCorreccion = 'CORRIGE_DOCUMENTO' | 'CORRIGE_MONTO' | 'CORRIGE_TEXTO';
+
+export type AccionNotaCredito = 'CREADA' | 'EDITADA' | 'EMITIDA' | 'ANULADA';
+
+export type RecuperacionInventario = 'NO' | 'PARCIAL' | 'TOTAL';
+
+export type TipoMovimientoNotaCredito = 'RECUPERACION' | 'REVERSA_ANULACION';
+
+export interface DocumentoAsociado {
+  ventaId: number;
+  tipo: TipoDocumentoVenta;
+  folio: number | null;
+  numero: string;
+  fecha: string | null;
+  razon: string | null;
+  montoTotal: number | null;
+}
+
+// Una venta candidata a ser corregida. tieneNotasCredito avisa en la UI que ese
+// documento ya fue corregido antes.
+export interface DocumentoAsociable {
+  ventaId: number;
+  tipoDocumento: TipoDocumentoVenta;
+  folio: number | null;
+  numero: string;
+  fecha: string | null;
+  montoTotal: number;
+  exento: boolean;
+  bodegaId: number | null;
+  tieneNotasCredito: boolean;
+}
+
+// Línea del documento original con la cantidad todavía disponible para
+// recuperar (lo vendido menos lo ya recuperado por notas de crédito emitidas).
+export interface LineaDocumentoOriginal {
+  ventaDetalleId: number;
+  productoId: number;
+  codigo: string | null;
+  descripcion: string;
+  cantidad: number;
+  cantidadRecuperada: number;
+  cantidadDisponible: number;
+  precioUnitario: number;
+  descuento: number;
+  subtotal: number;
+}
+
+export interface LineaNotaCredito {
+  id: number | null;
+  productoId: number;
+  ventaDetalleId: number | null;
+  codigo: string | null;
+  descripcion: string;
+  cantidad: number;
+  precioUnitario: number;
+  descuento: number;
+  subtotal: number;
+  recuperaInventario: boolean;
+}
+
+export interface NotaCreditoItem {
+  productoId: number;
+  ventaDetalleId: number | null;
+  cantidad: number;
+  precioUnitario: number;
+  descuento: number;
+  recuperaInventario: boolean;
+}
+
+// headerId apunta a la cabecera del módulo de Inventario: es lo que permite
+// abrir su detalle y sus exportaciones desde la trazabilidad.
+export interface MovimientoRelacionado {
+  movimientoInventarioId: number;
+  headerId: number | null;
+  tipo: TipoMovimientoNotaCredito | TipoMovimientoNotaDebito;
+  fecha: string;
+  productoId: number;
+  producto: string;
+  cantidad: number;
+  bodegaId: number | null;
+  bodega: string | null;
+}
+
+export interface EventoNotaCredito {
+  fecha: string;
+  usuario: string | null;
+  accion: AccionNotaCredito;
+  estadoAnterior: EstadoNotaCredito | null;
+  estadoNuevo: EstadoNotaCredito | null;
+  detalle: string | null;
+}
+
+export interface NotaCreditoResumen {
+  id: number;
+  folio: number;
+  numero: string;
+  estado: EstadoNotaCredito;
+  tipoCorreccion: TipoCorreccion;
+  fecha: string;
+  clienteId: number;
+  clienteNombre: string | null;
+  clienteRut: string | null;
+  docAsociadoTipo: TipoDocumentoVenta;
+  docAsociadoFolio: number | null;
+  motivo: string | null;
+  montoTotal: number;
+  recuperacionInventario: RecuperacionInventario;
+}
+
+export interface NotaCredito {
+  id: number;
+  folio: number;
+  numero: string;
+  estado: EstadoNotaCredito;
+  tipoCorreccion: TipoCorreccion;
+  fecha: string;
+  clienteId: number;
+  clienteNombre: string | null;
+  clienteRazonSocial: string | null;
+  clienteRut: string | null;
+  clienteDireccion: string | null;
+  clienteEmail: string | null;
+  clienteTelefono: string | null;
+  usuarioId: number;
+  usuarioNombre: string | null;
+  documentoAsociado: DocumentoAsociado;
+  motivo: string | null;
+  observaciones: string | null;
+  textoCorreccion: string | null;
+  bodegaId: number | null;
+  bodegaNombre: string | null;
+  exenta: boolean;
+  moneda: string;
+  descuento: number;
+  montoSubtotal: number;
+  montoDescuento: number;
+  montoNeto: number;
+  montoIva: number;
+  montoTotal: number;
+  fechaEmision: string | null;
+  fechaAnulacion: string | null;
+  recuperacionInventario: RecuperacionInventario;
+  lineas: LineaNotaCredito[];
+  movimientosInventario: MovimientoRelacionado[];
+  historial: EventoNotaCredito[];
+}
+
+export interface ConteoPorEstadoNotaCredito {
+  estado: EstadoNotaCredito;
+  cantidad: number;
+  monto: number;
+}
+
+export interface ConteoPorTipoCorreccion {
+  tipoCorreccion: TipoCorreccion;
+  cantidad: number;
+  monto: number;
+}
+
+export interface DashboardNotasCredito {
+  desde: string;
+  hasta: string;
+  cantidad: number;
+  borradores: number;
+  emitidas: number;
+  anuladas: number;
+  montoTotalEmitido: number;
+  conRecuperacionInventario: number;
+  documentosCorregidos: number;
+  porEstado: ConteoPorEstadoNotaCredito[];
+  porTipoCorreccion: ConteoPorTipoCorreccion[];
+}
+
+// --- Nota de Débito -------------------------------------------------------
+
+export type EstadoNotaDebito = 'BORRADOR' | 'EMITIDA' | 'ANULADA';
+
+export type TipoReversion = 'REVIERTE_DOCUMENTO' | 'REVIERTE_MONTO' | 'REVIERTE_TEXTO';
+
+export type AccionNotaDebito = 'CREADA' | 'EDITADA' | 'EMITIDA' | 'ANULADA';
+
+export type ImpactoInventario = 'NO' | 'PARCIAL' | 'TOTAL';
+
+export type TipoMovimientoNotaDebito = 'REVERSION' | 'REVERSA_ANULACION';
+
+// La nota de crédito asociada y su disponible para revertir. El disponible se
+// recalcula con cada emisión/anulación (nunca se cachea).
+export interface DocumentoAsociadoNotaDebito {
+  notaCreditoId: number;
+  numero: string;
+  fecha: string | null;
+  ncFolio: number | null;
+  ncDocAsociadoTipo: TipoDocumentoVenta;
+  montoTotal: number | null;
+  montoDisponible: number | null;
+  razon: string | null;
+}
+
+// Una nota de crédito emitida candidata a ser revertida. tieneNotasDebito avisa
+// en la UI que ese documento ya fue revertido antes.
+export interface DocumentoNotaCreditoAsociable {
+  notaCreditoId: number;
+  numero: string;
+  folio: number | null;
+  fecha: string | null;
+  clienteId: number;
+  clienteNombre: string | null;
+  clienteRut: string | null;
+  docAsociadoTipo: TipoDocumentoVenta;
+  docAsociadoFolio: number | null;
+  exenta: boolean;
+  montoTotal: number;
+  montoDisponible: number;
+  tieneNotasDebito: boolean;
+}
+
+// Eslabón de la cadena de trazabilidad hacia atrás de la nota de débito
+// (Cotización -> Nota de Venta -> Venta -> Nota de Crédito). La nota de débito
+// y el inventario se pintan en el detalle con su propia información.
+export interface EslabonCadenaDocumento {
+  tipo: 'COTIZACION' | 'NOTA_VENTA' | 'VENTA' | 'NOTA_CREDITO';
+  documentoId: number;
+  numero: string;
+  fecha: string | null;
+  montoTotal: number | null;
+}
+
+// Línea de la nota de crédito con la cantidad todavía disponible para revertir
+// (lo que recuperó menos lo ya revertido por notas de débito emitidas).
+export interface LineaNotaCreditoOriginal {
+  notaCreditoDetalleId: number;
+  productoId: number;
+  codigo: string | null;
+  descripcion: string;
+  cantidad: number;
+  cantidadRevertida: number;
+  cantidadDisponible: number;
+  precioUnitario: number;
+  subtotal: number;
+}
+
+export interface LineaNotaDebito {
+  id: number | null;
+  productoId: number;
+  notaCreditoDetalleId: number | null;
+  codigo: string | null;
+  descripcion: string;
+  cantidad: number;
+  precioUnitario: number;
+  descuento: number;
+  subtotal: number;
+  revierteInventario: boolean;
+}
+
+export interface NotaDebitoItem {
+  productoId: number;
+  notaCreditoDetalleId: number | null;
+  cantidad: number;
+  precioUnitario: number;
+  descuento: number;
+  revierteInventario: boolean;
+}
+
+export interface EventoNotaDebito {
+  fecha: string;
+  usuario: string | null;
+  accion: AccionNotaDebito;
+  estadoAnterior: EstadoNotaDebito | null;
+  estadoNuevo: EstadoNotaDebito | null;
+  detalle: string | null;
+}
+
+export interface NotaDebitoResumen {
+  id: number;
+  folio: number;
+  numero: string;
+  estado: EstadoNotaDebito;
+  tipoReversion: TipoReversion;
+  fecha: string;
+  clienteId: number;
+  clienteNombre: string | null;
+  clienteRut: string | null;
+  ncNumero: string;
+  ncFolio: number | null;
+  ncDocAsociadoTipo: TipoDocumentoVenta;
+  motivo: string | null;
+  montoTotal: number;
+  impactoInventario: ImpactoInventario;
+}
+
+export interface NotaDebito {
+  id: number;
+  folio: number;
+  numero: string;
+  estado: EstadoNotaDebito;
+  tipoReversion: TipoReversion;
+  fecha: string;
+  clienteId: number;
+  clienteNombre: string | null;
+  clienteRazonSocial: string | null;
+  clienteRut: string | null;
+  clienteDireccion: string | null;
+  clienteEmail: string | null;
+  clienteTelefono: string | null;
+  usuarioId: number;
+  usuarioNombre: string | null;
+  documentoAsociado: DocumentoAsociadoNotaDebito;
+  motivo: string | null;
+  observaciones: string | null;
+  textoCorreccion: string | null;
+  bodegaId: number | null;
+  bodegaNombre: string | null;
+  exenta: boolean;
+  moneda: string;
+  descuento: number;
+  montoSubtotal: number;
+  montoDescuento: number;
+  montoNeto: number;
+  montoIva: number;
+  montoTotal: number;
+  fechaEmision: string | null;
+  fechaAnulacion: string | null;
+  impactoInventario: ImpactoInventario;
+  lineas: LineaNotaDebito[];
+  movimientosInventario: MovimientoRelacionado[];
+  historial: EventoNotaDebito[];
+}
+
+export interface ConteoPorEstadoNotaDebito {
+  estado: EstadoNotaDebito;
+  cantidad: number;
+  monto: number;
+}
+
+export interface ConteoPorTipoReversion {
+  tipoReversion: TipoReversion;
+  cantidad: number;
+  monto: number;
+}
+
+export interface DashboardNotasDebito {
+  desde: string;
+  hasta: string;
+  cantidad: number;
+  borradores: number;
+  emitidas: number;
+  anuladas: number;
+  montoTotalEmitido: number;
+  conReversionInventario: number;
+  notasCreditoRevertidas: number;
+  porEstado: ConteoPorEstadoNotaDebito[];
+  porTipoReversion: ConteoPorTipoReversion[];
+}
 export interface LibroNotasVentaFila {
   notaVentaId: number;
   numero: string;

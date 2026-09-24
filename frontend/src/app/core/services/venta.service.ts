@@ -8,6 +8,7 @@ export interface VentaRequest {
   clienteId: number;
   formaPagoId: number;
   bodegaId: number | null;
+  notaVentaId: number | null;
   tipoDocumento: TipoDocumentoVenta;
   exento: boolean;
   observacion?: string;

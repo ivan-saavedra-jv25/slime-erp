@@ -47,6 +47,8 @@ const GRUPOS: NavGroupSource[] = [
       { ruta: '/cotizaciones', label: 'Cotizaciones', icono: 'description', permiso: 'COTIZACIONES_VER' },
       { ruta: '/notas-venta', label: 'Notas de Venta', icono: 'receipt_long', permiso: 'NOTAS_VENTA_VER' },
       { ruta: '/ventas', label: 'Ventas', icono: 'point_of_sale', permiso: 'VENTAS_VER' },
+      { ruta: '/notas-credito', label: 'Notas de Crédito', icono: 'assignment_return', permiso: 'NOTAS_CREDITO_VER' },
+      { ruta: '/notas-debito', label: 'Notas de Débito', icono: 'assignment_returned', permiso: 'NOTAS_DEBITO_VER' },
       { ruta: '/compras', label: 'Compras', icono: 'shopping_cart', permiso: 'COMPRAS_VER' },
     ],
   },
